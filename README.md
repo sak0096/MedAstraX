@@ -45,6 +45,108 @@ CMS Synthetic Data
 └──────────────────┘
 ```
 
+## Prerequisites
+
+- Python 3.9+
+- Node.js 18+ and npm (for the dashboard)
+- CMS synthetic files staged under `data/raw/` (see [docs/DATA.md](docs/DATA.md))
+- macOS only: `brew install libomp` if you want XGBoost training alongside logistic regression
+
+## Quick start
+
+### 1. Configure environment
+
+```bash
+cp .env.example .env
+# Edit .env — set HC_EXPERIMENTAL_CONDITION for your study arm (see below)
+```
+
+### 2. Install backend and run pipelines
+
+Run from `backend/` with the virtualenv activated.
+
+```bash
+cd backend
+python -m venv .venv
+source .venv/bin/activate
+pip install -e ".[dev]"
+
+# After raw CMS files are in data/raw/
+python -m hc_analytics.ingestion
+python -m hc_analytics.features
+python -m hc_analytics.modeling
+python -m hc_analytics.explainability
+# Faster dev iteration (partial SHAP cache):
+# python -m hc_analytics.explainability --max-rows 1000
+```
+
+Processed outputs land in `data/processed/`. Models, explanations, and logs are written under `artifacts/` (gitignored).
+
+### 3. Start API and dashboard
+
+```bash
+# Terminal 1 — API (from repo root or backend venv)
+cd backend && source .venv/bin/activate
+uvicorn hc_analytics.api.app:app --reload
+# or: ../scripts/dev.sh
+
+# Terminal 2 — frontend
+cd frontend
+npm install
+npm run dev
+```
+
+Open http://localhost:5173. Vite proxies `/api` and `/health` to the FastAPI service.
+
+Check readiness: `GET http://127.0.0.1:8000/api/meta` (reports data, models, predictions, explanations, and instrumentation flags).
+
+## Study conditions
+
+Set `HC_EXPERIMENTAL_CONDITION` in `.env` before starting the API. Restart the backend after changing condition.
+
+| Condition | `.env` value | Dashboard affordances |
+|-----------|--------------|------------------------|
+| Control | `baseline` | Cohort charts, sortable risk table, beneficiary drill-down, CSV/PDF export |
+| XAI | `xai` | Baseline + global SHAP importance, local SHAP bars, stability badges, layered disclosure (top 3 / 5), fairness cues |
+| LLM | `llm` | Baseline + grounded summaries with evidence links, NL query (interpret → confirm → execute) |
+
+XAI and LLM conditions require cached explanations (`python -m hc_analytics.explainability`). More UI detail: [frontend/README.md](frontend/README.md).
+
+## Study instrumentation
+
+When `HC_LOG_EVENTS=true` (default), the dashboard records telemetry to `artifacts/logs/`:
+
+- `events.jsonl` — append-only event stream
+- `events.sqlite` — indexed store for session export
+- Pseudonymized session bundles via the **Export study session** toolbar button or `POST /api/instrumentation/export`
+
+Assign a participant label with `http://localhost:5173/?participant=P001`. Events include session start, filter changes, drill-down, explanation views, NL query steps, exports, and latency payloads. Version context (model, explanation, API build) is attached server-side.
+
+## Testing
+
+```bash
+cd backend && source .venv/bin/activate
+pytest
+```
+
+## API overview
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /health` | Service health and active condition |
+| `GET /api/meta` | Pipeline readiness and prototype metadata |
+| `GET /api/cohort/summary` | Cohort aggregates for dashboard charts |
+| `GET /api/beneficiaries` | Sortable risk table rows |
+| `GET /api/beneficiaries/{id}` | Beneficiary drill-down |
+| `GET /api/predictions` | Risk scores (legacy route; also used by tooling) |
+| `GET /api/explanations/global` | Cohort-level SHAP importance (XAI) |
+| `GET /api/explanations/{id}` | Local SHAP contributors (XAI) |
+| `GET /api/language/summary/{id}` | Grounded narrative (LLM) |
+| `POST /api/language/query/interpret` | Parse NL query (LLM) |
+| `POST /api/language/query/execute` | Run confirmed query (LLM) |
+| `POST /api/instrumentation/events` | Record study event |
+| `POST /api/instrumentation/export` | Export pseudonymized session bundle |
+
 ## Repository layout
 
 | Path | Layer |
@@ -59,55 +161,21 @@ CMS Synthetic Data
 | `frontend/` | React dashboard (3 conditions) |
 | `data/` | Local data staging (not committed) |
 | `artifacts/` | Models, explanations, logs (not committed) |
-| `docs/` | Architecture and development notes |
+| `docs/` | Architecture and data notes |
 
-## Prototype roadmap
+## Prototype status
 
-| Phase | Focus | Status |
-|-------|-------|--------|
-| 0 | Repo scaffold, versioning, config | Done |
-| 1 | CMS synthetic data ingestion | Done |
-| 2 | Feature store + cohort summaries | Done |
-| 3 | Risk models (hospitalization, high-utilization, elevated cost) | Done |
-| 4 | SHAP explainability + caching | Done |
-| 5 | Baseline dashboard | Done |
-| 6 | XAI-augmented dashboard | Done |
-| 7 | Grounded language layer + LLM dashboard | Done |
-| 8 | Instrumentation + study export | Done |
-
-## Quick start
-
-```bash
-# Backend
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
-uvicorn hc_analytics.api.app:app --reload
-
-# Frontend (after Phase 5)
-cd frontend
-npm install
-npm run dev
-```
-
-Copy `.env.example` to `.env` and configure paths before running pipelines.
-
-```bash
-# Data pipelines (after raw CMS files are staged)
-python -m hc_analytics.ingestion
-python -m hc_analytics.features
-python -m hc_analytics.modeling
-python -m hc_analytics.explainability
-# Faster local iteration (skips full beneficiary-year cache):
-python -m hc_analytics.explainability --max-rows 1000
-```
-
-On macOS, install OpenMP (`brew install libomp`) if you want XGBoost training in addition to logistic regression.
+**Complete (Phases 0–8):** scaffold → CMS ingestion → feature store → risk models → SHAP explainability → baseline dashboard → XAI UI → grounded language layer → instrumentation and study export.
 
 ## Data
 
-Download CMS DE-SynPUF (or equivalent synthetic Medicare) files into `data/raw/`. See `docs/DATA.md` for expected file layout and provenance tracking.
+Download CMS DE-SynPUF (or equivalent synthetic Medicare) files into `data/raw/`. See [docs/DATA.md](docs/DATA.md) for expected file layout and provenance tracking.
+
+## Further reading
+
+- [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — layer design and experimental conditions
+- [docs/DATA.md](docs/DATA.md) — raw file layout and artifact manifests
+- [frontend/README.md](frontend/README.md) — per-condition UI behavior
 
 ## License
 
