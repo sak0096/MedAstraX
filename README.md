@@ -68,8 +68,8 @@ CMS Synthetic Data
 | 0 | Repo scaffold, versioning, config | Done |
 | 1 | CMS synthetic data ingestion | Done |
 | 2 | Feature store + cohort summaries | Done |
-| 3 | Risk models (hospitalization, high-utilization) | **Next** |
-| 4 | SHAP explainability + caching | Planned |
+| 3 | Risk models (hospitalization, high-utilization, elevated cost) | Done |
+| 4 | SHAP explainability + caching | **Next** |
 | 5 | Baseline dashboard | Planned |
 | 6 | XAI-augmented dashboard | Planned |
 | 7 | Grounded language layer + LLM dashboard | Planned |
@@ -92,6 +92,15 @@ npm run dev
 ```
 
 Copy `.env.example` to `.env` and configure paths before running pipelines.
+
+```bash
+# Data pipelines (after raw CMS files are staged)
+python -m hc_analytics.ingestion
+python -m hc_analytics.features
+python -m hc_analytics.modeling
+```
+
+On macOS, install OpenMP (`brew install libomp`) if you want XGBoost training in addition to logistic regression.
 
 ## Data
 
