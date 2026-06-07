@@ -1,8 +1,10 @@
 import { ExplanationPanel } from "./ExplanationPanel";
+import { GroundedSummaryPanel } from "./GroundedSummaryPanel";
 import type {
   BeneficiaryDetail as BeneficiaryDetailType,
   BeneficiaryExplanation,
   ExperimentalCondition,
+  GroundedSummary,
   RiskTargetShort,
 } from "../types";
 import { formatCurrency, formatPercent, formatSex, riskBand } from "../utils/format";
@@ -15,6 +17,9 @@ interface BeneficiaryDetailProps {
   explanation?: BeneficiaryExplanation | null;
   explanationLoading?: boolean;
   explanationUnavailable?: boolean;
+  groundedSummary?: GroundedSummary | null;
+  summaryLoading?: boolean;
+  summaryUnavailable?: boolean;
   targets?: RiskTargetShort[];
 }
 
@@ -26,6 +31,9 @@ export function BeneficiaryDetail({
   explanation = null,
   explanationLoading = false,
   explanationUnavailable = false,
+  groundedSummary = null,
+  summaryLoading = false,
+  summaryUnavailable = false,
   targets = ["hospitalization", "high_utilization", "elevated_cost"],
 }: BeneficiaryDetailProps) {
   if (!detail && !loading) return null;
@@ -72,6 +80,14 @@ export function BeneficiaryDetail({
               </div>
             </dl>
           </section>
+
+          {condition === "llm" ? (
+            <GroundedSummaryPanel
+              summary={groundedSummary}
+              loading={summaryLoading}
+              unavailable={summaryUnavailable}
+            />
+          ) : null}
 
           {condition === "xai" ? (
             <ExplanationPanel

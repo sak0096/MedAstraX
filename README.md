@@ -72,7 +72,7 @@ CMS Synthetic Data
 | 4 | SHAP explainability + caching | Done |
 | 5 | Baseline dashboard | Done |
 | 6 | XAI-augmented dashboard | Done |
-| 7 | Grounded language layer + LLM dashboard | Planned |
+| 7 | Grounded language layer + LLM dashboard | Done |
 | 8 | Instrumentation + study export | Planned |
 
 ## Quick start

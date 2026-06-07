@@ -18,6 +18,7 @@ data/processed/
 artifacts/models/
 artifacts/explanations/
 artifacts/logs/
+artifacts/query_cache/
 artifacts/ingestion_manifest.json
 artifacts/feature_manifest.json
 artifacts/cohort_summary.json
