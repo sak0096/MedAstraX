@@ -195,7 +195,11 @@ def test_explanation_api_returns_global_local_and_bundle(
     client = TestClient(app)
     meta = client.get("/api/explanations/meta")
     assert meta.status_code == 200
-    assert meta.json()["explanations_ready"] is True
+    meta_payload = meta.json()
+    assert meta_payload["explanations_ready"] is True
+    assert "equity_relevant_features" in meta_payload
+    assert "age" in meta_payload["equity_relevant_features"]
+    assert meta_payload["disclosure_levels"]["concise"] == 3
 
     global_response = client.get("/api/explanations/global", params={"target": "hospitalization"})
     assert global_response.status_code == 200

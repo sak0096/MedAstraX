@@ -2,6 +2,19 @@
 
 React + Vite + Plotly dashboard for three experimental conditions.
 
+## Phase 6 — XAI-augmented dashboard
+
+Set `HC_EXPERIMENTAL_CONDITION=xai` in the backend `.env`.
+
+The XAI condition adds to the baseline layout:
+
+- Global SHAP importance panel with target switching
+- Local SHAP bar charts in beneficiary drill-down
+- Stability badges (green / yellow / red)
+- Layered disclosure toggle (top 3 vs top 5)
+- Fairness cues on equity-relevant features (age, sex, race, state, ESRD)
+- Contextual value previews mapped to beneficiary fields
+
 ## Phase 5 — Baseline dashboard
 
 The baseline condition provides:
@@ -29,7 +42,7 @@ Open http://localhost:5173. Vite proxies `/api` and `/health` to the FastAPI ser
 ## Conditions
 
 - `baseline` — cohort views, risk tables, drill-down, no explanation UI
-- `xai` — SHAP bars, global importance, stability badges (Phase 6)
+- `xai` — SHAP bars, global importance, stability badges
 - `llm` — grounded summaries, NL query with confirmation (Phase 7)
 
 Set `HC_EXPERIMENTAL_CONDITION` in the backend `.env` to match the study arm.

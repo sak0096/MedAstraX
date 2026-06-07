@@ -10,3 +10,6 @@ STABILITY_YELLOW_THRESHOLD = 0.5
 
 STABILITY_MARGIN_GREEN = 0.4
 STABILITY_MARGIN_YELLOW = 0.15
+
+# Demographic and access-related features surfaced with fairness cues in the XAI UI.
+EQUITY_RELEVANT_FEATURES = ("age", "sex", "race", "state_code", "esrd_ind")
