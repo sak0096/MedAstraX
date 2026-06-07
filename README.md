@@ -49,7 +49,7 @@ CMS Synthetic Data
 
 - Python **3.9.6** (see `.python-version`; 3.9+ supported)
 - Node.js **24.16.0** and npm (see `.nvmrc`; installed automatically by `./scripts/setup.sh` via nvm if missing)
-- CMS synthetic files staged under `data/raw/` (see [docs/DATA.md](docs/DATA.md))
+- CMS synthetic files staged under `data/raw/` ([CMS Synthetic RIF collection](https://data.cms.gov/collection/synthetic-medicare-enrollment-fee-for-service-claims-and-prescription-drug-event); see [docs/DATA.md](docs/DATA.md))
 - macOS only: `brew install libomp` if you want XGBoost training alongside logistic regression
 
 ## Reproducible setup
@@ -188,7 +188,9 @@ cd backend && source .venv/bin/activate && pytest
 
 ## Data
 
-Download CMS DE-SynPUF (or equivalent synthetic Medicare) files into `data/raw/`. See [docs/DATA.md](docs/DATA.md) for expected file layout and provenance tracking.
+The prototype uses **CMS Synthetic Medicare Enrollment, FFS Claims, and PDE** (Synthetic RIF): synthetic enrollment snapshots, fee-for-service claims (inpatient, outpatient, carrier, SNF, DME, HHA, hospice), and Part D prescription events (~8,671 beneficiaries; 2015–2025 enrollment, 2015–2023 claims). Raw files are pipe-delimited CSVs staged under `data/raw/`.
+
+Download from the [CMS data collection](https://data.cms.gov/collection/synthetic-medicare-enrollment-fee-for-service-claims-and-prescription-drug-event). See [docs/DATA.md](docs/DATA.md) for the exact file layout, ingestion steps, and provenance tracking.
 
 ## Further reading
 
