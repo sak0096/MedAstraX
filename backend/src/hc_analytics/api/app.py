@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from hc_analytics import __version__
-from hc_analytics.api.routes import explanations, predictions
+from hc_analytics.api.routes import beneficiaries, cohort, explanations, predictions
 from hc_analytics.config import get_settings
 
 settings = get_settings()
@@ -26,6 +26,8 @@ app.add_middleware(
 )
 
 app.include_router(predictions.router)
+app.include_router(cohort.router)
+app.include_router(beneficiaries.router)
 app.include_router(explanations.router)
 
 
@@ -48,7 +50,7 @@ def meta() -> Dict[str, Union[str, bool]]:
     models_ready = models_dir.exists() and any(models_dir.rglob("*.joblib")) if models_dir.exists() else False
     explanations_ready = (settings.artifacts_path / "explanations" / "manifest.json").exists()
     return {
-        "prototype_phase": "4",
+        "prototype_phase": "5",
         "experimental_condition": settings.experimental_condition.value,
         "data_ready": data_ready,
         "models_ready": models_ready,

@@ -34,7 +34,8 @@ def build_cohort_summary(features: pd.DataFrame) -> Dict[str, object]:
             .to_dict(orient="records")
         ),
         "by_age_group": (
-            working.groupby("age_group", dropna=False, observed=True)
+            working.loc[working["age_group"].notna()]
+            .groupby("age_group", observed=True)
             .agg(
                 beneficiary_years=("bene_id", "count"),
                 avg_total_claims=("total_claims", "mean"),
