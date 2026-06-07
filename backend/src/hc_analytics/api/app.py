@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from hc_analytics import __version__
-from hc_analytics.api.routes import predictions
+from hc_analytics.api.routes import explanations, predictions
 from hc_analytics.config import get_settings
 
 settings = get_settings()
@@ -26,6 +26,7 @@ app.add_middleware(
 )
 
 app.include_router(predictions.router)
+app.include_router(explanations.router)
 
 
 @app.get("/health")
@@ -43,14 +44,15 @@ def meta() -> Dict[str, Union[str, bool]]:
     processed = settings.processed_data_path
     data_ready = processed.exists() and any(processed.iterdir()) if processed.exists() else False
     predictions_ready = (processed / "predictions.parquet").exists()
-    models_ready = (settings.artifacts_path / "models").exists() and any(
-        (settings.artifacts_path / "models").rglob("*.joblib")
-    ) if (settings.artifacts_path / "models").exists() else False
+    models_dir = settings.artifacts_path / "models"
+    models_ready = models_dir.exists() and any(models_dir.rglob("*.joblib")) if models_dir.exists() else False
+    explanations_ready = (settings.artifacts_path / "explanations" / "manifest.json").exists()
     return {
-        "prototype_phase": "3",
+        "prototype_phase": "4",
         "experimental_condition": settings.experimental_condition.value,
         "data_ready": data_ready,
         "models_ready": models_ready,
         "predictions_ready": predictions_ready,
+        "explanations_ready": explanations_ready,
         "instrumentation_enabled": settings.log_events,
     }
