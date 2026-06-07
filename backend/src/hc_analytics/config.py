@@ -7,6 +7,8 @@ from typing import Optional
 from pydantic import Field
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
+_REPO_ROOT = Path(__file__).resolve().parents[3]
+
 
 class ExperimentalCondition(str, Enum):
     BASELINE = "baseline"
@@ -16,15 +18,13 @@ class ExperimentalCondition(str, Enum):
 
 class Settings(BaseSettings):
     model_config = SettingsConfigDict(
-        env_file=".env",
+        env_file=str(_REPO_ROOT / ".env"),
         env_file_encoding="utf-8",
         env_prefix="HC_",
         extra="ignore",
     )
 
-    repo_root: Path = Field(
-        default_factory=lambda: Path(__file__).resolve().parents[3],
-    )
+    repo_root: Path = Field(default_factory=lambda: _REPO_ROOT)
     data_raw_dir: Path = Path("data/raw")
     data_processed_dir: Path = Path("data/processed")
     artifacts_dir: Path = Path("artifacts")
