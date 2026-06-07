@@ -6,7 +6,14 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from hc_analytics import __version__
-from hc_analytics.api.routes import beneficiaries, cohort, explanations, language, predictions
+from hc_analytics.api.routes import (
+    beneficiaries,
+    cohort,
+    explanations,
+    instrumentation,
+    language,
+    predictions,
+)
 from hc_analytics.config import get_settings
 
 settings = get_settings()
@@ -30,6 +37,7 @@ app.include_router(cohort.router)
 app.include_router(beneficiaries.router)
 app.include_router(explanations.router)
 app.include_router(language.router)
+app.include_router(instrumentation.router)
 
 
 @app.get("/health")
@@ -57,7 +65,7 @@ def meta() -> Dict[str, Union[str, bool]]:
         runtime_settings.llm_provider and runtime_settings.llm_api_key and runtime_settings.llm_model
     )
     return {
-        "prototype_phase": "7",
+        "prototype_phase": "8",
         "experimental_condition": runtime_settings.experimental_condition.value,
         "data_ready": data_ready,
         "models_ready": models_ready,

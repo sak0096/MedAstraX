@@ -2,6 +2,17 @@
 
 React + Vite + Plotly dashboard for three experimental conditions.
 
+## Phase 8 — Instrumentation
+
+When `HC_LOG_EVENTS=true` (default), the dashboard records study events to `artifacts/logs/`:
+
+- JSONL stream (`events.jsonl`) and SQLite index (`events.sqlite`)
+- UI events: session start, filter changes, drill-down, explanation views, NL queries, exports
+- Latency payloads for drill-down actions
+- Pseudonymized session export via **Export study session** (toolbar) or `POST /api/instrumentation/export`
+
+Pass `?participant=P001` in the URL to assign a participant ID for the session.
+
 ## Phase 7 — LLM-augmented dashboard
 
 Set `HC_EXPERIMENTAL_CONDITION=llm` in the backend `.env`.

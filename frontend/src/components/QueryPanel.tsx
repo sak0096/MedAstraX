@@ -1,12 +1,14 @@
 import { useState } from "react";
 import { executeQuery, interpretQuery } from "../api/client";
-import type { BeneficiaryRow, InterpretedQuery, QueryResult } from "../types";
+import { trackEvent } from "../instrumentation/logger";
+import type { BeneficiaryRow, ExperimentalCondition, InterpretedQuery, QueryResult } from "../types";
 
 interface QueryPanelProps {
   onResults: (rows: BeneficiaryRow[], result: QueryResult) => void;
+  condition?: ExperimentalCondition;
 }
 
-export function QueryPanel({ onResults }: QueryPanelProps) {
+export function QueryPanel({ onResults, condition }: QueryPanelProps) {
   const [queryText, setQueryText] = useState("");
   const [interpreted, setInterpreted] = useState<InterpretedQuery | null>(null);
   const [result, setResult] = useState<QueryResult | null>(null);
@@ -21,6 +23,11 @@ export function QueryPanel({ onResults }: QueryPanelProps) {
     try {
       const response = await interpretQuery(queryText.trim());
       setInterpreted(response);
+      void trackEvent(
+        "query_submit",
+        { query: queryText.trim(), query_id: response.query_id, action: response.action },
+        condition,
+      );
     } catch (interpretError) {
       setError(
         interpretError instanceof Error ? interpretError.message : "Failed to interpret query.",
@@ -38,6 +45,15 @@ export function QueryPanel({ onResults }: QueryPanelProps) {
     try {
       const response = await executeQuery(interpreted.query_id);
       setResult(response);
+      void trackEvent(
+        "query_confirm",
+        {
+          query_id: interpreted.query_id,
+          row_count: response.row_count,
+          cached: response.cached,
+        },
+        condition,
+      );
       if (response.rows.length > 0) {
         onResults(response.rows, response);
       }

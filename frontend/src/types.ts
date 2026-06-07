@@ -1,5 +1,15 @@
 export type ExperimentalCondition = "baseline" | "xai" | "llm";
 
+export type StudyEventType =
+  | "session_start"
+  | "filter_change"
+  | "drill_down"
+  | "explanation_view"
+  | "query_submit"
+  | "query_confirm"
+  | "export"
+  | "latency";
+
 export interface ApiMeta {
   prototype_phase: string;
   experimental_condition: ExperimentalCondition;

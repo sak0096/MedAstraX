@@ -5,11 +5,13 @@ import type {
   BeneficiaryRow,
   CohortSummary,
   ExplanationsMeta,
+  ExperimentalCondition,
   GlobalImportance,
   GroundedSummary,
   InterpretedQuery,
   QueryResult,
   RiskTargetShort,
+  StudyEventType,
 } from "../types";
 
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
@@ -105,5 +107,32 @@ export function executeQuery(queryId: string): Promise<QueryResult> {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ query_id: queryId, confirmed: true }),
+  });
+}
+
+export function postStudyEvent(event: {
+  event_type: StudyEventType;
+  session_id: string;
+  participant_id: string;
+  condition?: ExperimentalCondition;
+  task_id?: string;
+  payload?: Record<string, unknown>;
+}): Promise<{ stored: boolean }> {
+  return fetchJson("/api/instrumentation/events", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(event),
+  });
+}
+
+export function exportStudySession(sessionId: string): Promise<{
+  session_id: string;
+  export_path: string;
+  event_count: number;
+}> {
+  return fetchJson("/api/instrumentation/export", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ session_id: sessionId }),
   });
 }
