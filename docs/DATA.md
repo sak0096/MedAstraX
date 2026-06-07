@@ -52,6 +52,20 @@ Outputs:
 
 Provenance is written to `artifacts/ingestion_manifest.json` (checksums, row counts, git commit).
 
+## Feature engineering (Phase 2)
+
+```bash
+python -m hc_analytics.features
+```
+
+Outputs:
+
+| Table / artifact | Contents |
+|------------------|----------|
+| `feature_store.parquet` | Beneficiary-year utilization, cost, Rx burden, chronic flags, readmission proxy, next-year labels |
+| `artifacts/cohort_summary.json` | Dashboard-ready cohort aggregates by state and age group |
+| `artifacts/feature_manifest.json` | Feature run provenance |
+
 ## Format notes
 
 - Raw files are **pipe-delimited** (`|`), not comma-separated.

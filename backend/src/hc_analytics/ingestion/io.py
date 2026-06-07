@@ -61,12 +61,13 @@ def read_pipe_csv(
 def parse_cms_dates(frame: pd.DataFrame, columns: Iterable[str]) -> pd.DataFrame:
     parsed = frame.copy()
     for column in columns:
-        if column in parsed.columns:
-            parsed[column] = pd.to_datetime(
-                parsed[column].astype(str).str.strip(),
-                format="%Y%m%d",
-                errors="coerce",
-            )
+        if column not in parsed.columns:
+            continue
+        raw = parsed[column].astype("string").str.strip()
+        raw = raw.replace({"": pd.NA, "<NA>": pd.NA, "nan": pd.NA, "NaN": pd.NA})
+        numeric_dates = pd.to_datetime(raw, format="%Y%m%d", errors="coerce")
+        text_dates = pd.to_datetime(raw, format="%d-%b-%Y", errors="coerce")
+        parsed[column] = numeric_dates.fillna(text_dates)
     return parsed
 
 
