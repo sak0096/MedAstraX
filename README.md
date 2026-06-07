@@ -67,8 +67,8 @@ CMS Synthetic Data
 |-------|-------|--------|
 | 0 | Repo scaffold, versioning, config | Done |
 | 1 | CMS synthetic data ingestion | Done |
-| 2 | Feature store + cohort summaries | **Next** |
-| 3 | Risk models (hospitalization, high-utilization) | Planned |
+| 2 | Feature store + cohort summaries | Done |
+| 3 | Risk models (hospitalization, high-utilization) | **Next** |
 | 4 | SHAP explainability + caching | Planned |
 | 5 | Baseline dashboard | Planned |
 | 6 | XAI-augmented dashboard | Planned |

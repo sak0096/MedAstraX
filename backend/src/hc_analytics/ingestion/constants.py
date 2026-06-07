@@ -5,7 +5,7 @@ SOURCE_URL = (
     "https://data.cms.gov/collection/"
     "synthetic-medicare-enrollment-fee-for-service-claims-and-prescription-drug-event"
 )
-SCHEMA_VERSION = "1.0"
+SCHEMA_VERSION = "1.1"
 
 BENEFICIARY_COLUMNS = [
     "BENE_ID",
@@ -35,7 +35,7 @@ CLAIM_SETTINGS = {
             "CLM_THRU_DT": "service_thru_dt",
             "CLM_PMT_AMT": "payment_amt",
             "PRVDR_STATE_CD": "provider_state_cd",
-            "ICD9_DGNS_CD_1": "principal_diagnosis_cd",
+            "PRNCPAL_DGNS_CD": "principal_diagnosis_cd",
             "CLM_FREQ_CD": "clm_freq_cd",
         },
     },
@@ -48,7 +48,7 @@ CLAIM_SETTINGS = {
             "CLM_THRU_DT": "service_thru_dt",
             "CLM_PMT_AMT": "payment_amt",
             "PRVDR_STATE_CD": "provider_state_cd",
-            "ICD9_DGNS_CD_1": "principal_diagnosis_cd",
+            "PRNCPAL_DGNS_CD": "principal_diagnosis_cd",
             "CLM_FREQ_CD": "clm_freq_cd",
         },
     },
@@ -75,7 +75,7 @@ CLAIM_SETTINGS = {
             "CLM_THRU_DT": "service_thru_dt",
             "CLM_PMT_AMT": "payment_amt",
             "PRVDR_STATE_CD": "provider_state_cd",
-            "ICD9_DGNS_CD_1": "principal_diagnosis_cd",
+            "PRNCPAL_DGNS_CD": "principal_diagnosis_cd",
             "CLM_FREQ_CD": "clm_freq_cd",
         },
     },
@@ -101,7 +101,7 @@ CLAIM_SETTINGS = {
             "CLM_THRU_DT": "service_thru_dt",
             "CLM_PMT_AMT": "payment_amt",
             "PRVDR_STATE_CD": "provider_state_cd",
-            "ICD9_DGNS_CD_1": "principal_diagnosis_cd",
+            "PRNCPAL_DGNS_CD": "principal_diagnosis_cd",
             "CLM_FREQ_CD": "clm_freq_cd",
         },
     },
@@ -114,7 +114,7 @@ CLAIM_SETTINGS = {
             "CLM_THRU_DT": "service_thru_dt",
             "CLM_PMT_AMT": "payment_amt",
             "PRVDR_STATE_CD": "provider_state_cd",
-            "ICD9_DGNS_CD_1": "principal_diagnosis_cd",
+            "PRNCPAL_DGNS_CD": "principal_diagnosis_cd",
             "CLM_FREQ_CD": "clm_freq_cd",
         },
     },
