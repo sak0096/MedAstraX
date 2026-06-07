@@ -49,18 +49,13 @@ The baseline condition provides:
 
 ## Run locally
 
-```bash
-# Terminal 1 — backend API
-cd backend && source .venv/bin/activate
-uvicorn hc_analytics.api.app:app --reload
+From the repo root (after `./scripts/setup.sh`):
 
-# Terminal 2 — frontend
-cd frontend
-npm install
-npm run dev
+```bash
+./scripts/start-dashboard.sh
 ```
 
-Open http://localhost:5173. Vite proxies `/api` and `/health` to the FastAPI service.
+API only: `./scripts/dev.sh`. Open http://localhost:5173. Vite proxies `/api` and `/health` to the FastAPI service. See the root [README](../README.md) for the full first-time setup flow.
 
 ## Conditions
 

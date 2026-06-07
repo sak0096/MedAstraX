@@ -1,15 +1,16 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-cd "$ROOT/backend"
+# shellcheck disable=SC1091
+source "$(cd "$(dirname "$0")" && pwd)/lib/common.sh"
 
-if [[ ! -d .venv ]]; then
-  python3 -m venv .venv
+ensure_env_file
+
+if ! backend_ready; then
+  log "Backend not ready — running setup..."
+  install_backend_deps
 fi
 
-source .venv/bin/activate
-pip install -e ".[dev]"
-
-cd "$ROOT"
+activate_backend_venv
+cd "$BACKEND"
 exec uvicorn hc_analytics.api.app:app --reload --host "${HC_API_HOST:-127.0.0.1}" --port "${HC_API_PORT:-8000}"

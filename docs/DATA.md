@@ -32,13 +32,10 @@ data/
 
 ## Ingestion
 
-From the repo root with the backend virtualenv active:
+From the repo root (after `./scripts/setup.sh`):
 
 ```bash
-cd backend
-source .venv/bin/activate
-pip install -e ".[dev]"
-cd ..
+source backend/.venv/bin/activate
 python -m hc_analytics.ingestion
 ```
 

@@ -4,6 +4,10 @@
   "version": "0.1.0",
   "description": "Provider-facing healthcare analytics dashboard (baseline, XAI, LLM conditions)",
   "type": "module",
+  "engines": {
+    "node": ">=20 <25",
+    "npm": ">=10"
+  },
   "scripts": {
     "dev": "vite",
     "build": "tsc -b && vite build",

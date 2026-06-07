@@ -47,58 +47,76 @@ CMS Synthetic Data
 
 ## Prerequisites
 
-- Python 3.9+
-- Node.js 18+ and npm (for the dashboard)
+- Python **3.9.6** (see `.python-version`; 3.9+ supported)
+- Node.js **24.16.0** and npm (see `.nvmrc`; installed automatically by `./scripts/setup.sh` via nvm if missing)
 - CMS synthetic files staged under `data/raw/` (see [docs/DATA.md](docs/DATA.md))
 - macOS only: `brew install libomp` if you want XGBoost training alongside logistic regression
 
-## Quick start
+## Reproducible setup
 
-### 1. Configure environment
-
-```bash
-cp .env.example .env
-# Edit .env — set HC_EXPERIMENTAL_CONDITION for your study arm (see below)
-```
-
-### 2. Install backend and run pipelines
-
-Run from `backend/` with the virtualenv activated.
+### First-time workflow (fresh clone)
 
 ```bash
-cd backend
-python -m venv .venv
-source .venv/bin/activate
-pip install -e ".[dev]"
+git clone <repo-url> MedAstraX && cd MedAstraX
 
-# After raw CMS files are in data/raw/
+./scripts/setup.sh          # .env, Python venv, pinned deps, npm ci (installs nvm/Node if needed)
+# optional: edit .env — set HC_EXPERIMENTAL_CONDITION=baseline|xai|llm
+
+# Stage CMS synthetic files under data/raw/ (see docs/DATA.md), then:
+source backend/.venv/bin/activate
 python -m hc_analytics.ingestion
 python -m hc_analytics.features
 python -m hc_analytics.modeling
 python -m hc_analytics.explainability
-# Faster dev iteration (partial SHAP cache):
+# faster dev iteration (partial SHAP cache):
 # python -m hc_analytics.explainability --max-rows 1000
+
+./scripts/verify.sh         # pytest + frontend build + API smoke check
+./scripts/start-dashboard.sh
 ```
+
+Open http://localhost:5173 (`?participant=P001` for study sessions). Vite proxies `/api` and `/health` to the FastAPI service.
+
+Check readiness anytime: `GET http://127.0.0.1:8000/api/meta` (data, models, predictions, explanations, instrumentation flags).
 
 Processed outputs land in `data/processed/`. Models, explanations, and logs are written under `artifacts/` (gitignored).
 
-### 3. Start API and dashboard
+### Scripts
+
+| Script | Purpose |
+|--------|---------|
+| `scripts/setup.sh` | Idempotent install: `.env`, backend venv, `requirements-lock.txt`, `npm ci` |
+| `scripts/verify.sh` | Run tests, production frontend build, and API smoke checks |
+| `scripts/start-dashboard.sh` | Start API + Vite dev server together (runs `setup.sh` if deps are missing) |
+| `scripts/dev.sh` | API only (auto-installs backend deps if needed) |
+| `scripts/lock-deps.sh` | Regenerate `requirements-lock.txt` and `package-lock.json` after dep changes |
+
+### Lockfiles
+
+| File | Purpose |
+|------|---------|
+| `backend/pyproject.toml` | Python dependency ranges (source of truth) |
+| `backend/requirements-lock.txt` | Pinned Python versions for `pip install -r` |
+| `frontend/package.json` | Frontend dependency ranges |
+| `frontend/package-lock.json` | Pinned npm versions for `npm ci` |
+| `.python-version` | pyenv / local Python hint |
+| `.nvmrc` | nvm Node version |
+| `.env.example` | Committed environment template → copied to `.env` |
+
+After changing `pyproject.toml` or `package.json`:
 
 ```bash
-# Terminal 1 — API (from repo root or backend venv)
-cd backend && source .venv/bin/activate
-uvicorn hc_analytics.api.app:app --reload
-# or: ../scripts/dev.sh
-
-# Terminal 2 — frontend
-cd frontend
-npm install
-npm run dev
+./scripts/lock-deps.sh
 ```
 
-Open http://localhost:5173. Vite proxies `/api` and `/health` to the FastAPI service.
+### Manual setup (equivalent to `setup.sh`)
 
-Check readiness: `GET http://127.0.0.1:8000/api/meta` (reports data, models, predictions, explanations, and instrumentation flags).
+```bash
+cp .env.example .env
+cd backend && python3 -m venv .venv && source .venv/bin/activate
+pip install -r requirements-lock.txt && pip install -e ".[dev]"
+cd ../frontend && npm ci
+```
 
 ## Study conditions
 
@@ -125,8 +143,9 @@ Assign a participant label with `http://localhost:5173/?participant=P001`. Event
 ## Testing
 
 ```bash
-cd backend && source .venv/bin/activate
-pytest
+./scripts/verify.sh
+# or backend only:
+cd backend && source .venv/bin/activate && pytest
 ```
 
 ## API overview
