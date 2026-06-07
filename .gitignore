@@ -22,11 +22,13 @@ artifacts/query_cache/
 artifacts/ingestion_manifest.json
 artifacts/feature_manifest.json
 artifacts/cohort_summary.json
+artifacts/model_manifest.json
 
 # Node
 node_modules/
 frontend/dist/
 frontend/.vite/
+frontend/tsconfig.*.tsbuildinfo
 
 # OS / IDE
 .DS_Store
