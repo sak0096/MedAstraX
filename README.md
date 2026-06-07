@@ -2,8 +2,6 @@
 
 Healthcare analytics XAI research prototype for evaluating visual explainability and grounded LLM augmentation in provider-facing dashboards.
 
-Research prototype for evaluating visual explainability and grounded LLM augmentation in provider-facing healthcare analytics dashboards.
-
 **Dissertation:** *Human-Centered Explainable AI for Healthcare Analytics* — Syed Ali Kazmi, Auburn University
 
 ## Purpose
