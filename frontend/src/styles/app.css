@@ -747,6 +747,18 @@ button {
   font-size: 0.85rem;
 }
 
+.study-export {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.study-export-status {
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
 @media (max-width: 1100px) {
   .dashboard-grid.with-detail {
     grid-template-columns: 1fr;

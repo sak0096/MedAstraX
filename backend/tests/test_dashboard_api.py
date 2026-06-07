@@ -143,11 +143,11 @@ def test_beneficiary_list_and_detail_api(
     assert len(payload["history"]) >= 1
 
 
-def test_meta_reports_phase_seven(dashboard_settings: Settings, monkeypatch) -> None:
+def test_meta_reports_phase_eight(dashboard_settings: Settings, monkeypatch) -> None:
     _patch_settings(monkeypatch, dashboard_settings)
     client = TestClient(app)
     response = client.get("/api/meta")
     assert response.status_code == 200
     payload = response.json()
-    assert payload["prototype_phase"] == "7"
+    assert payload["prototype_phase"] == "8"
     assert "language_ready" in payload

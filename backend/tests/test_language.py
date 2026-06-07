@@ -182,5 +182,5 @@ def test_meta_reports_phase_seven(language_settings: Settings, monkeypatch) -> N
     response = client.get("/api/meta")
     assert response.status_code == 200
     payload = response.json()
-    assert payload["prototype_phase"] == "7"
+    assert payload["prototype_phase"] == "8"
     assert payload["language_ready"] is False

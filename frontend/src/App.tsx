@@ -14,7 +14,9 @@ import { ExportMenu } from "./components/ExportMenu";
 import { GlobalImportancePanel } from "./components/GlobalImportancePanel";
 import { QueryPanel } from "./components/QueryPanel";
 import { RiskTable, type SortKey } from "./components/RiskTable";
+import { StudyExportButton } from "./components/StudyExportButton";
 import { CONDITION_COPY } from "./config/conditions";
+import { getParticipantId, getSessionId, trackEvent, trackLatency } from "./instrumentation/logger";
 import type {
   ApiMeta,
   BeneficiaryDetail as BeneficiaryDetailType,
@@ -99,13 +101,35 @@ export default function App() {
     void loadDashboard();
   }, [loadDashboard]);
 
+  useEffect(() => {
+    if (!meta?.instrumentation_enabled) return;
+    const loggedKey = "hc_session_logged";
+    if (sessionStorage.getItem(loggedKey)) return;
+    sessionStorage.setItem(loggedKey, "1");
+    void trackEvent(
+      "session_start",
+      {
+        participant_id: getParticipantId(),
+        session_id: getSessionId(),
+        prototype_phase: meta.prototype_phase,
+      },
+      meta.experimental_condition,
+    );
+  }, [meta?.instrumentation_enabled, meta?.experimental_condition, meta?.prototype_phase]);
+
   const handleSortChange = (nextSortBy: SortKey) => {
+    const nextDescending = nextSortBy === sortBy ? !descending : true;
     if (nextSortBy === sortBy) {
-      setDescending((current) => !current);
-      return;
+      setDescending(nextDescending);
+    } else {
+      setSortBy(nextSortBy);
+      setDescending(true);
     }
-    setSortBy(nextSortBy);
-    setDescending(true);
+    void trackEvent(
+      "filter_change",
+      { sort_by: nextSortBy, descending: nextDescending },
+      condition,
+    );
   };
 
   const handleGlobalTargetChange = (target: RiskTargetShort) => {
@@ -126,8 +150,14 @@ export default function App() {
   };
 
   const handleRowSelect = async (row: BeneficiaryRow) => {
+    const started = performance.now();
     setSelectedBeneId(row.bene_id);
     setDetailLoading(true);
+    void trackEvent(
+      "drill_down",
+      { bene_id: row.bene_id, analytic_year: row.analytic_year },
+      condition,
+    );
     setExplanation(null);
     setGroundedSummary(null);
     setExplanationUnavailable(false);
@@ -153,6 +183,15 @@ export default function App() {
           );
           setExplanation(explanationResponse);
           setExplanationUnavailable(false);
+          void trackEvent(
+            "explanation_view",
+            {
+              bene_id: row.bene_id,
+              analytic_year: row.analytic_year,
+              contributor_count: explanationResponse.contributors.length,
+            },
+            condition,
+          );
         } catch {
           setExplanation(null);
           setExplanationUnavailable(true);
@@ -177,6 +216,9 @@ export default function App() {
       setError(loadError instanceof Error ? loadError.message : "Failed to load beneficiary detail.");
     } finally {
       setDetailLoading(false);
+      void trackLatency("drill_down", performance.now() - started, condition, {
+        bene_id: row.bene_id,
+      });
     }
   };
 
@@ -199,7 +241,7 @@ export default function App() {
         </div>
         <div className="header-meta">
           <span className={`condition-badge ${condition}`}>{condition}</span>
-          <span className="meta-pill">Phase {meta?.prototype_phase ?? "7"}</span>
+          <span className="meta-pill">Phase {meta?.prototype_phase ?? "8"}</span>
           {meta?.predictions_ready ? (
             <span className="meta-pill ready">Predictions ready</span>
           ) : (
@@ -239,7 +281,8 @@ export default function App() {
       ) : null}
 
       <div className="toolbar">
-        <ExportMenu rows={rows} summary={summary} />
+        <ExportMenu rows={rows} summary={summary} condition={condition} />
+        <StudyExportButton enabled={Boolean(meta?.instrumentation_enabled)} />
         <button type="button" className="ghost-button" onClick={() => void loadDashboard()}>
           Refresh data
         </button>
@@ -248,7 +291,7 @@ export default function App() {
       <main className={`dashboard-grid${detail || detailLoading ? " with-detail" : ""}`}>
         <div className="main-column">
           {summary ? <CohortOverview summary={summary} /> : null}
-          {isLlm ? <QueryPanel onResults={handleQueryResults} /> : null}
+          {isLlm ? <QueryPanel onResults={handleQueryResults} condition={condition} /> : null}
           {isXai && globalImportance ? (
             <GlobalImportancePanel
               importance={globalImportance}
