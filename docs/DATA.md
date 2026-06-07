@@ -2,7 +2,11 @@
 
 ## Source
 
-Primary planned source: **CMS DE-SynPUF** (synthetic Medicare enrollment, fee-for-service claims, prescription drug events).
+**CMS Synthetic Medicare Enrollment, FFS Claims, and PDE** (Synthetic RIF format).
+
+- Collection: [data.cms.gov](https://data.cms.gov/collection/synthetic-medicare-enrollment-fee-for-service-claims-and-prescription-drug-event)
+- User guide: `docs/cms-synthetic-rif-user-guide.pdf`
+- ~8,671 synthetic beneficiaries, 2015–2025 enrollment snapshots, 2015–2023 claims window
 
 Synthetic data is appropriate for research prototyping and user studies. It must not be used for clinical deployment or population inference.
 
@@ -10,31 +14,46 @@ Synthetic data is appropriate for research prototyping and user studies. It must
 
 ```
 data/
-├── raw/           # Downloaded CMS files (gitignored)
-│   ├── beneficiary/
-│   ├── inpatient/
-│   ├── outpatient/
-│   ├── carrier/
-│   └── prescription/
-└── processed/     # Cleaned parquet tables (gitignored)
+├── raw/                         # Downloaded CMS files (gitignored)
+│   ├── beneficiary/             # beneficiary_2015.csv … beneficiary_2025.csv
+│   ├── inpatient/inpatient.csv
+│   ├── outpatient/outpatient.csv
+│   ├── carrier/carrier.csv
+│   ├── snf/snf.csv
+│   ├── dme/dme.csv
+│   ├── hha/hha.csv
+│   ├── hospice/hospice.csv
+│   └── prescription/pde.csv
+└── processed/                   # Cleaned parquet tables (gitignored)
     ├── beneficiaries.parquet
     ├── claims.parquet
-    ├── prescription_events.parquet
-    └── feature_store.parquet
+    └── prescription_events.parquet
 ```
 
-## Provenance
+## Ingestion
 
-Each ingestion run should record in `artifacts/ingestion_manifest.json`:
+From the repo root with the backend virtualenv active:
 
-- source dataset name and URL
-- download/extraction timestamp
-- file checksums
-- schema version
-- transformation script version (git commit)
+```bash
+cd backend
+source .venv/bin/activate
+pip install -e ".[dev]"
+cd ..
+python -m hc_analytics.ingestion
+```
 
-## Getting started (Phase 1)
+Outputs:
 
-1. Download DE-SynPUF sample files from [CMS](https://www.cms.gov/data-research/statistics-trends-and-reports/medicare-claims-synthetic-public-use-files/cms-2008-2010-data-entrepreneurs-synthetic-public-use-file-de-synpuf).
-2. Place files under `data/raw/` following the layout above.
-3. Run `python -m hc_analytics.ingestion.pipeline` (to be implemented in Phase 1).
+| Table | Contents |
+|-------|----------|
+| `beneficiaries.parquet` | Panel of beneficiary-year enrollment rows |
+| `claims.parquet` | Unified FFS claims across inpatient, outpatient, carrier, SNF, DME, HHA, hospice |
+| `prescription_events.parquet` | Part D (PDE) events |
+
+Provenance is written to `artifacts/ingestion_manifest.json` (checksums, row counts, git commit).
+
+## Format notes
+
+- Raw files are **pipe-delimited** (`|`), not comma-separated.
+- Join key across all tables: `bene_id` / `BENE_ID`.
+- Preserve leading zeros when inspecting raw files outside the ingestion pipeline.

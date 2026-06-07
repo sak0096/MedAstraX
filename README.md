@@ -65,9 +65,9 @@ CMS Synthetic Data
 
 | Phase | Focus | Status |
 |-------|-------|--------|
-| 0 | Repo scaffold, versioning, config | **Current** |
-| 1 | CMS synthetic data ingestion | Planned |
-| 2 | Feature store + cohort summaries | Planned |
+| 0 | Repo scaffold, versioning, config | Done |
+| 1 | CMS synthetic data ingestion | Done |
+| 2 | Feature store + cohort summaries | **Next** |
 | 3 | Risk models (hospitalization, high-utilization) | Planned |
 | 4 | SHAP explainability + caching | Planned |
 | 5 | Baseline dashboard | Planned |
