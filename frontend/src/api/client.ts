@@ -6,6 +6,9 @@ import type {
   CohortSummary,
   ExplanationsMeta,
   GlobalImportance,
+  GroundedSummary,
+  InterpretedQuery,
+  QueryResult,
   RiskTargetShort,
 } from "../types";
 
@@ -73,4 +76,34 @@ export function getBeneficiaryExplanation(
   return fetchJson(
     `/api/explanations/${encodeURIComponent(beneId)}?${search.toString()}`,
   );
+}
+
+export function getGroundedSummary(
+  beneId: string,
+  analyticYear?: number,
+): Promise<GroundedSummary> {
+  const search = new URLSearchParams();
+  if (analyticYear !== undefined) {
+    search.set("analytic_year", String(analyticYear));
+  }
+  const query = search.toString();
+  return fetchJson(
+    `/api/language/summary/${encodeURIComponent(beneId)}${query ? `?${query}` : ""}`,
+  );
+}
+
+export function interpretQuery(query: string): Promise<InterpretedQuery> {
+  return fetchJson<InterpretedQuery>("/api/language/query/interpret", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query }),
+  });
+}
+
+export function executeQuery(queryId: string): Promise<QueryResult> {
+  return fetchJson<QueryResult>("/api/language/query/execute", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ query_id: queryId, confirmed: true }),
+  });
 }

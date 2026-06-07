@@ -7,7 +7,61 @@ export interface ApiMeta {
   models_ready: boolean;
   predictions_ready: boolean;
   explanations_ready: boolean;
+  language_ready: boolean;
+  llm_configured: boolean;
   instrumentation_enabled: boolean;
+}
+
+export interface EvidenceClaim {
+  statement: string;
+  source_fields: string[];
+  shap_feature?: string | null;
+  shap_value?: number | null;
+}
+
+export interface GroundedExplanationPayload {
+  beneficiary_id?: string | null;
+  cohort_id?: string | null;
+  claims: EvidenceClaim[];
+  fallback?: string | null;
+}
+
+export interface GroundedSummary {
+  bene_id: string;
+  analytic_year: number;
+  narrative: string;
+  provider: string;
+  grounded: GroundedExplanationPayload;
+  target_summaries: Array<{
+    target: string;
+    target_short: string;
+    risk_score: number | null;
+    stability_badge: string;
+    top_features: string[];
+  }>;
+}
+
+export interface InterpretedQuery {
+  query_id: string;
+  natural_language: string;
+  action: "list_beneficiaries" | "cohort_summary";
+  parameters: Record<string, unknown>;
+  confirmation_message: string;
+  requires_confirmation: boolean;
+}
+
+export interface QueryResult {
+  query_id: string;
+  action: "list_beneficiaries" | "cohort_summary";
+  natural_language: string;
+  parameters: Record<string, unknown>;
+  row_count: number;
+  rows: BeneficiaryRow[];
+  cohort_summary?: CohortSummary | null;
+  grounded_narrative?: string | null;
+  claims: EvidenceClaim[];
+  fallback?: string | null;
+  cached: boolean;
 }
 
 export interface CohortSummary {

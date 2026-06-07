@@ -48,7 +48,11 @@ export function RiskTable({
           <h2>Risk List</h2>
           <p className="panel-subtitle">
             Sortable beneficiary table for operational risk triage
-            {condition === "xai" ? " with on-demand SHAP drill-down." : " (baseline condition)."}
+            {condition === "xai"
+              ? " with on-demand SHAP drill-down."
+              : condition === "llm"
+                ? " with grounded language summaries on drill-down."
+                : " (baseline condition)."}
           </p>
         </div>
         <div className="table-meta">

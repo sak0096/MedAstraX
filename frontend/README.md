@@ -2,6 +2,18 @@
 
 React + Vite + Plotly dashboard for three experimental conditions.
 
+## Phase 7 — LLM-augmented dashboard
+
+Set `HC_EXPERIMENTAL_CONDITION=llm` in the backend `.env`.
+
+The LLM condition adds:
+
+- Grounded beneficiary summaries from SHAP evidence bundles
+- Evidence links showing source fields behind each claim
+- Natural-language query box with interpret → confirm → execute flow
+- SQLite query cache (`artifacts/query_cache/`)
+- Template provider by default; set `HC_LLM_*` env vars for external LLM config
+
 ## Phase 6 — XAI-augmented dashboard
 
 Set `HC_EXPERIMENTAL_CONDITION=xai` in the backend `.env`.
@@ -43,6 +55,6 @@ Open http://localhost:5173. Vite proxies `/api` and `/health` to the FastAPI ser
 
 - `baseline` — cohort views, risk tables, drill-down, no explanation UI
 - `xai` — SHAP bars, global importance, stability badges
-- `llm` — grounded summaries, NL query with confirmation (Phase 7)
+- `llm` — grounded summaries, NL query with confirmation
 
 Set `HC_EXPERIMENTAL_CONDITION` in the backend `.env` to match the study arm.

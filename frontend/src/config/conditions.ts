@@ -17,6 +17,6 @@ export const CONDITION_COPY: Record<
   llm: {
     title: "LLM-Augmented Analytics Dashboard",
     subtitle:
-      "Grounded language condition — evidence-linked summaries and natural-language querying (Phase 7).",
+      "Grounded language condition — evidence-linked summaries, NL query with confirmation, and source field links.",
   },
 };
