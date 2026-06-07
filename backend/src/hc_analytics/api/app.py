@@ -50,7 +50,7 @@ def meta() -> Dict[str, Union[str, bool]]:
     models_ready = models_dir.exists() and any(models_dir.rglob("*.joblib")) if models_dir.exists() else False
     explanations_ready = (settings.artifacts_path / "explanations" / "manifest.json").exists()
     return {
-        "prototype_phase": "5",
+        "prototype_phase": "6",
         "experimental_condition": settings.experimental_condition.value,
         "data_ready": data_ready,
         "models_ready": models_ready,

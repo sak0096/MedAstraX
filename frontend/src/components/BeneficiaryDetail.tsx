@@ -1,13 +1,33 @@
-import type { BeneficiaryDetail as BeneficiaryDetailType } from "../types";
+import { ExplanationPanel } from "./ExplanationPanel";
+import type {
+  BeneficiaryDetail as BeneficiaryDetailType,
+  BeneficiaryExplanation,
+  ExperimentalCondition,
+  RiskTargetShort,
+} from "../types";
 import { formatCurrency, formatPercent, formatSex, riskBand } from "../utils/format";
 
 interface BeneficiaryDetailProps {
   detail: BeneficiaryDetailType | null;
   loading: boolean;
   onClose: () => void;
+  condition?: ExperimentalCondition;
+  explanation?: BeneficiaryExplanation | null;
+  explanationLoading?: boolean;
+  explanationUnavailable?: boolean;
+  targets?: RiskTargetShort[];
 }
 
-export function BeneficiaryDetail({ detail, loading, onClose }: BeneficiaryDetailProps) {
+export function BeneficiaryDetail({
+  detail,
+  loading,
+  onClose,
+  condition = "baseline",
+  explanation = null,
+  explanationLoading = false,
+  explanationUnavailable = false,
+  targets = ["hospitalization", "high_utilization", "elevated_cost"],
+}: BeneficiaryDetailProps) {
   if (!detail && !loading) return null;
 
   return (
@@ -52,6 +72,16 @@ export function BeneficiaryDetail({ detail, loading, onClose }: BeneficiaryDetai
               </div>
             </dl>
           </section>
+
+          {condition === "xai" ? (
+            <ExplanationPanel
+              explanation={explanation}
+              detail={detail}
+              loading={explanationLoading}
+              unavailable={explanationUnavailable}
+              targets={targets}
+            />
+          ) : null}
 
           <section>
             <h3>Risk scores</h3>

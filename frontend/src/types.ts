@@ -53,6 +53,58 @@ export interface BeneficiaryRow {
   elevated_cost_risk: number | null;
 }
 
+export type RiskTargetShort = "hospitalization" | "high_utilization" | "elevated_cost";
+
+export type StabilityBadge = "green" | "yellow" | "red";
+
+export type DisclosureLevel = "concise" | "expanded";
+
+export interface ExplanationsMeta {
+  explanations_ready: boolean;
+  targets: string[];
+  target_short_names: RiskTargetShort[];
+  equity_relevant_features: string[];
+  disclosure_levels: Record<DisclosureLevel, number>;
+  schema_version?: string;
+  model_family?: string;
+  top_k?: number;
+  row_count?: number;
+  stability_method?: string;
+}
+
+export interface GlobalImportance {
+  target: string;
+  target_short: RiskTargetShort;
+  model_family: string;
+  importance: Array<{
+    feature: string;
+    mean_abs_shap: number;
+    rank: number;
+  }>;
+}
+
+export interface ExplanationContributor {
+  feature: string;
+  shap_value: number;
+  direction: "increases_risk" | "decreases_risk";
+  rank: number;
+  target: string;
+  target_short: RiskTargetShort;
+  stability_badge: StabilityBadge;
+  stability_score: number;
+}
+
+export interface BeneficiaryExplanation {
+  bene_id: string;
+  analytic_year: number;
+  contributors: ExplanationContributor[];
+  stability: Array<{
+    target: string;
+    stability_badge: StabilityBadge;
+    stability_score: number;
+  }>;
+}
+
 export interface BeneficiaryDetail {
   bene_id: string;
   analytic_year: number | null;

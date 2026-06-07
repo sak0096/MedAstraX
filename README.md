@@ -71,7 +71,7 @@ CMS Synthetic Data
 | 3 | Risk models (hospitalization, high-utilization, elevated cost) | Done |
 | 4 | SHAP explainability + caching | Done |
 | 5 | Baseline dashboard | Done |
-| 6 | XAI-augmented dashboard | Planned |
+| 6 | XAI-augmented dashboard | Done |
 | 7 | Grounded language layer + LLM dashboard | Planned |
 | 8 | Instrumentation + study export | Planned |
 

@@ -8,6 +8,7 @@ from fastapi import APIRouter, HTTPException, Query
 
 from hc_analytics.config import get_settings
 from hc_analytics.explainability.bundles import EvidenceBundle
+from hc_analytics.explainability.constants import EQUITY_RELEVANT_FEATURES
 from hc_analytics.explainability.pipeline import (
     _explanations_dir,
     load_cached_bundle,
@@ -57,6 +58,9 @@ def explanations_meta() -> Dict[str, Any]:
     payload: Dict[str, Any] = {
         "explanations_ready": _explanations_ready(),
         "targets": [target.value for target in RiskTarget],
+        "target_short_names": [TARGET_SHORT_NAMES[target] for target in RiskTarget],
+        "equity_relevant_features": list(EQUITY_RELEVANT_FEATURES),
+        "disclosure_levels": {"concise": 3, "expanded": 5},
     }
     if manifest_path.exists():
         import json

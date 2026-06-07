@@ -1,4 +1,13 @@
-import type { ApiMeta, BeneficiaryDetail, BeneficiaryRow, CohortSummary } from "../types";
+import type {
+  ApiMeta,
+  BeneficiaryDetail,
+  BeneficiaryExplanation,
+  BeneficiaryRow,
+  CohortSummary,
+  ExplanationsMeta,
+  GlobalImportance,
+  RiskTargetShort,
+} from "../types";
 
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
   const response = await fetch(path, init);
@@ -42,4 +51,26 @@ export function getBeneficiaryDetail(
   }
   const query = search.toString();
   return fetchJson(`/api/beneficiaries/${encodeURIComponent(beneId)}${query ? `?${query}` : ""}`);
+}
+
+export function getExplanationsMeta(): Promise<ExplanationsMeta> {
+  return fetchJson<ExplanationsMeta>("/api/explanations/meta");
+}
+
+export function getGlobalImportance(target: RiskTargetShort): Promise<GlobalImportance> {
+  return fetchJson<GlobalImportance>(`/api/explanations/global?target=${target}`);
+}
+
+export function getBeneficiaryExplanation(
+  beneId: string,
+  analyticYear: number,
+  topK = 5,
+): Promise<BeneficiaryExplanation> {
+  const search = new URLSearchParams({
+    analytic_year: String(analyticYear),
+    top_k: String(topK),
+  });
+  return fetchJson(
+    `/api/explanations/${encodeURIComponent(beneId)}?${search.toString()}`,
+  );
 }
