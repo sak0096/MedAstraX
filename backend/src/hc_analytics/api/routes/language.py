@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from hc_analytics.config import get_settings
 from hc_analytics.explainability.pipeline import load_cached_bundle
@@ -23,6 +23,9 @@ from hc_analytics.language.query_cache import (
 )
 from hc_analytics.language.query_executor import execute_interpreted_query
 from hc_analytics.language.query_parser import parse_natural_language_query
+from hc_analytics.study.context import StudyRequestContext, get_study_context
+from hc_analytics.study.loader import get_case_for_beneficiary
+from hc_analytics.study.manipulations import apply_query_manipulations, apply_summary_manipulations
 
 router = APIRouter(prefix="/api/language", tags=["language"])
 
@@ -49,6 +52,7 @@ def language_meta() -> Dict[str, Any]:
 def grounded_summary(
     bene_id: str,
     analytic_year: Optional[int] = Query(default=None),
+    study_ctx: StudyRequestContext = Depends(get_study_context),
 ) -> GroundedSummaryResponse:
     settings = get_settings()
     if not _explanations_ready():
@@ -72,12 +76,28 @@ def grounded_summary(
             status_code=404,
             detail=f"No evidence bundle found for {bene_id} ({analytic_year}).",
         )
-    return generate_grounded_summary(bundle, settings=settings)
+    summary = generate_grounded_summary(bundle, settings=settings)
+    if study_ctx.study_mode and study_ctx.active_manipulations:
+        case = get_case_for_beneficiary(bene_id, analytic_year, settings=settings)
+        summary = apply_summary_manipulations(
+            summary,
+            case=case,
+            active_manipulations=study_ctx.active_manipulations,
+        )
+    return summary
 
 
 @router.post("/query/interpret")
-def interpret_query(request: QueryInterpretRequest) -> InterpretedQuery:
+def interpret_query(
+    request: QueryInterpretRequest,
+    study_ctx: StudyRequestContext = Depends(get_study_context),
+) -> InterpretedQuery:
     interpreted = parse_natural_language_query(request.query)
+    if study_ctx.study_mode and study_ctx.active_manipulations:
+        interpreted = apply_query_manipulations(
+            interpreted,
+            active_manipulations=study_ctx.active_manipulations,
+        )
     store_interpretation(interpreted)
     return interpreted
 

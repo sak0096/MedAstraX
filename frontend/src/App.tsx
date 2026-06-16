@@ -15,8 +15,10 @@ import { GlobalImportancePanel } from "./components/GlobalImportancePanel";
 import { QueryPanel } from "./components/QueryPanel";
 import { RiskTable, type SortKey } from "./components/RiskTable";
 import { StudyExportButton } from "./components/StudyExportButton";
+import { TaskPanel } from "./components/TaskPanel";
 import { CONDITION_COPY } from "./config/conditions";
-import { getParticipantId, getSessionId, trackEvent, trackLatency } from "./instrumentation/logger";
+import { getParticipantId, getSessionId, setActiveStudyTaskId, trackEvent, trackLatency } from "./instrumentation/logger";
+import { getStudyArmFromUrl, isStudyModeFromUrl } from "./study/session";
 import type {
   ApiMeta,
   BeneficiaryDetail as BeneficiaryDetailType,
@@ -27,6 +29,7 @@ import type {
   GroundedSummary,
   QueryResult,
   RiskTargetShort,
+  StudyCaseRef,
 } from "./types";
 
 const ROW_LIMIT = 250;
@@ -60,6 +63,8 @@ export default function App() {
   const isXai = condition === "xai";
   const isLlm = condition === "llm";
   const copy = CONDITION_COPY[condition];
+  const studyMode = Boolean(meta?.study_mode_enabled) && isStudyModeFromUrl();
+  const studyArm = getStudyArmFromUrl();
 
   const loadGlobalImportance = useCallback(
     async (target: RiskTargetShort) => {
@@ -231,6 +236,27 @@ export default function App() {
     setSummaryUnavailable(false);
   };
 
+  const handleActiveTaskChange = (taskId: string | null) => {
+    setActiveStudyTaskId(taskId);
+  };
+
+  const handleOpenStudyCase = (caseRef: StudyCaseRef) => {
+    const row: BeneficiaryRow = {
+      bene_id: caseRef.bene_id,
+      analytic_year: Number(caseRef.analytic_year),
+      age: null,
+      sex: null,
+      state_code: null,
+      total_claims: null,
+      total_payment_amt: null,
+      chronic_condition_count: null,
+      hospitalization_risk: null,
+      high_utilization_risk: null,
+      elevated_cost_risk: null,
+    };
+    void handleRowSelect(row);
+  };
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -287,6 +313,16 @@ export default function App() {
           Refresh data
         </button>
       </div>
+
+      {studyMode ? (
+        <TaskPanel
+          enabled={studyMode}
+          studyArm={studyArm}
+          condition={condition}
+          onActiveTaskChange={handleActiveTaskChange}
+          onOpenCase={handleOpenStudyCase}
+        />
+      ) : null}
 
       <main className={`dashboard-grid${detail || detailLoading ? " with-detail" : ""}`}>
         <div className="main-column">

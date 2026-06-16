@@ -34,6 +34,8 @@ class Settings(BaseSettings):
     experimental_condition: ExperimentalCondition = ExperimentalCondition.BASELINE
 
     study_id: str = "pilot-001"
+    study_mode: bool = False
+    study_cases_path: Path = Path("study/study_cases.json")
     log_events: bool = True
 
     llm_provider: Optional[str] = None

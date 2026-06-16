@@ -67,6 +67,17 @@ export function QueryPanel({ onResults, condition }: QueryPanelProps) {
   };
 
   const handleReset = () => {
+    if (interpreted) {
+      void trackEvent(
+        "query_reject",
+        {
+          query_id: interpreted.query_id,
+          action: interpreted.action,
+          reason: "cancel",
+        },
+        condition,
+      );
+    }
     setInterpreted(null);
     setResult(null);
     setError(null);

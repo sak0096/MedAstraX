@@ -13,6 +13,7 @@ from hc_analytics.api.routes import (
     instrumentation,
     language,
     predictions,
+    study,
 )
 from hc_analytics.config import get_settings
 
@@ -37,6 +38,7 @@ app.include_router(cohort.router)
 app.include_router(beneficiaries.router)
 app.include_router(explanations.router)
 app.include_router(language.router)
+app.include_router(study.router)
 app.include_router(instrumentation.router)
 
 
@@ -74,4 +76,5 @@ def meta() -> Dict[str, Union[str, bool]]:
         "language_ready": language_ready,
         "llm_configured": llm_configured,
         "instrumentation_enabled": runtime_settings.log_events,
+        "study_mode_enabled": runtime_settings.study_mode,
     }

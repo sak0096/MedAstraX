@@ -140,6 +140,46 @@ When `HC_LOG_EVENTS=true` (default), the dashboard records telemetry to `artifac
 
 Assign a participant label with `http://localhost:5173/?participant=P001`. Events include session start, filter changes, drill-down, explanation views, NL query steps, exports, and latency payloads. Version context (model, explanation, API build) is attached server-side.
 
+## User study mode
+
+Enable the guided study protocol and manipulation trials:
+
+```bash
+# in .env
+HC_STUDY_MODE=true
+```
+
+Open the dashboard with study query params:
+
+```
+http://localhost:5173/?participant=P001&study=study1
+```
+
+| URL param | Values | Purpose |
+|-----------|--------|---------|
+| `participant` | `P001`, etc. | Pseudonymized participant ID for logging |
+| `study` | `study1`, `study2`, `full` | Which task block to show in the Task Panel |
+
+Case packets live in [`study/study_cases.json`](study/study_cases.json). Regenerate from local data after pipeline runs:
+
+```bash
+source backend/.venv/bin/activate
+python scripts/generate_study_cases.py
+```
+
+Protocol and survey instruments: [docs/STUDY_PROTOCOL.md](docs/STUDY_PROTOCOL.md), [docs/SURVEY_INSTRUMENTS.md](docs/SURVEY_INSTRUMENTS.md).
+
+Study APIs (when `HC_STUDY_MODE=true`):
+
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/study/session` | Participant manipulation assignments + case index |
+| `GET /api/study/tasks` | Task definitions |
+| `POST /api/study/tasks/{id}/start` | Begin task; activates manipulation headers |
+| `POST /api/study/tasks/{id}/response` | Submit task response (logged as `task_response`) |
+
+Manipulations (M1–M5) inject incorrect SHAP rankings, misleading risk scores, false narrative claims, wrong NL filters, and low-confidence framing when the corresponding task is active.
+
 ## Testing
 
 ```bash
@@ -165,6 +205,10 @@ cd backend && source .venv/bin/activate && pytest
 | `POST /api/language/query/execute` | Run confirmed query (LLM) |
 | `POST /api/instrumentation/events` | Record study event |
 | `POST /api/instrumentation/export` | Export pseudonymized session bundle |
+| `GET /api/study/session` | Study session assignments (requires `HC_STUDY_MODE`) |
+| `GET /api/study/tasks` | Study task definitions |
+| `POST /api/study/tasks/{id}/start` | Start guided task |
+| `POST /api/study/tasks/{id}/response` | Submit task response |
 
 ## Repository layout
 

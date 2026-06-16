@@ -16,8 +16,12 @@ class EventType(str, Enum):
     FILTER_CHANGE = "filter_change"
     DRILL_DOWN = "drill_down"
     EXPLANATION_VIEW = "explanation_view"
+    EXPLANATION_TOGGLE = "explanation_toggle"
     QUERY_SUBMIT = "query_submit"
     QUERY_CONFIRM = "query_confirm"
+    QUERY_REJECT = "query_reject"
+    TASK_START = "task_start"
+    TASK_RESPONSE = "task_response"
     EXPORT = "export"
     LATENCY = "latency"
 
