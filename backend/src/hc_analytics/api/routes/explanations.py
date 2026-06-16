@@ -4,7 +4,7 @@ from pathlib import Path
 from typing import Any, Dict, List, Optional
 
 import pandas as pd
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from hc_analytics.config import get_settings
 from hc_analytics.explainability.bundles import EvidenceBundle
@@ -15,6 +15,9 @@ from hc_analytics.explainability.pipeline import (
     load_global_importance,
 )
 from hc_analytics.modeling.constants import RiskTarget, TARGET_SHORT_NAMES
+from hc_analytics.study.context import StudyRequestContext, get_study_context
+from hc_analytics.study.loader import get_case_for_beneficiary
+from hc_analytics.study.manipulations import apply_explanation_manipulations
 
 router = APIRouter(prefix="/api", tags=["explanations"])
 
@@ -98,6 +101,7 @@ def beneficiary_explanations(
     analytic_year: Optional[int] = Query(default=None),
     target: Optional[str] = Query(default=None),
     top_k: int = Query(default=5, ge=1, le=10),
+    study_ctx: StudyRequestContext = Depends(get_study_context),
 ) -> Dict[str, Any]:
     frame = _load_local_topk()
     frame = frame.loc[frame["bene_id"] == bene_id]
@@ -124,12 +128,20 @@ def beneficiary_explanations(
         .first()
         .to_dict(orient="records")
     )
-    return {
+    payload = {
         "bene_id": bene_id,
         "analytic_year": analytic_year,
         "contributors": records,
         "stability": stability,
     }
+    if study_ctx.study_mode and study_ctx.active_manipulations:
+        case = get_case_for_beneficiary(bene_id, analytic_year, settings=study_ctx.settings)
+        payload = apply_explanation_manipulations(
+            payload,
+            case=case,
+            active_manipulations=study_ctx.active_manipulations,
+        )
+    return payload
 
 
 @router.get("/explanations/{bene_id}/bundle")

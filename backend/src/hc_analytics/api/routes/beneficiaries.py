@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Optional
 
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Depends, HTTPException, Query
 
 from hc_analytics.api.data_access import (
     BENEFICIARY_LIST_COLUMNS,
@@ -12,6 +12,12 @@ from hc_analytics.api.data_access import (
     load_merged_dashboard_frame,
 )
 from hc_analytics.modeling.constants import RiskTarget, risk_score_column
+from hc_analytics.study.context import StudyRequestContext, get_study_context
+from hc_analytics.study.loader import get_case_for_beneficiary
+from hc_analytics.study.manipulations import (
+    apply_beneficiary_list_manipulations,
+    apply_beneficiary_manipulations,
+)
 
 PRIMARY_RISK_COLUMNS = [risk_score_column(target) for target in RiskTarget]
 
@@ -27,6 +33,7 @@ def list_beneficiaries(
     limit: int = Query(default=100, ge=1, le=1000),
     sort_by: str = Query(default="hospitalization_risk"),
     descending: bool = Query(default=True),
+    study_ctx: StudyRequestContext = Depends(get_study_context),
 ) -> Dict[str, Any]:
     frame = load_merged_dashboard_frame()
     if bene_id is not None:
@@ -43,11 +50,20 @@ def list_beneficiaries(
     available_columns = [column for column in BENEFICIARY_LIST_COLUMNS if column in frame.columns]
     frame = frame[available_columns].head(limit)
     records = frame_to_records(frame)
-    return {
+    payload = {
         "count": len(records),
         "sort_by": sort_by,
         "rows": records,
     }
+    if study_ctx.study_mode and study_ctx.active_manipulations:
+        payload = apply_beneficiary_list_manipulations(
+            payload,
+            active_manipulations=study_ctx.active_manipulations,
+            participant_id=study_ctx.participant_id,
+            task_id=study_ctx.task_id,
+            settings=study_ctx.settings,
+        )
+    return payload
 
 
 def _chronic_conditions(record: Dict[str, Any]) -> List[Dict[str, Any]]:
@@ -63,6 +79,7 @@ def _chronic_conditions(record: Dict[str, Any]) -> List[Dict[str, Any]]:
 def get_beneficiary(
     bene_id: str,
     analytic_year: Optional[int] = Query(default=None),
+    study_ctx: StudyRequestContext = Depends(get_study_context),
 ) -> Dict[str, Any]:
     frame = load_merged_dashboard_frame()
     frame = frame.loc[frame["bene_id"] == bene_id]
@@ -101,7 +118,7 @@ def get_beneficiary(
     }
     chronic_conditions = _chronic_conditions(latest)
 
-    return {
+    payload = {
         "bene_id": bene_id,
         "analytic_year": latest.get("analytic_year"),
         "demographics": {
@@ -130,3 +147,15 @@ def get_beneficiary(
         "model_version": latest.get("model_version"),
         "history": history,
     }
+    if study_ctx.study_mode and study_ctx.active_manipulations:
+        case = get_case_for_beneficiary(
+            bene_id,
+            int(payload["analytic_year"]) if payload["analytic_year"] is not None else None,
+            settings=study_ctx.settings,
+        )
+        payload = apply_beneficiary_manipulations(
+            payload,
+            case=case,
+            active_manipulations=study_ctx.active_manipulations,
+        )
+    return payload

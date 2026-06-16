@@ -4,8 +4,10 @@ import type {
   BeneficiaryDetail,
   BeneficiaryExplanation,
   DisclosureLevel,
+  ExperimentalCondition,
   RiskTargetShort,
 } from "../types";
+import { trackEvent } from "../instrumentation/logger";
 import {
   disclosureTopK,
   featureLabel,
@@ -22,6 +24,7 @@ interface ExplanationPanelProps {
   loading: boolean;
   unavailable: boolean;
   targets: RiskTargetShort[];
+  condition?: ExperimentalCondition;
 }
 
 const chartLayout = {
@@ -43,10 +46,24 @@ export function ExplanationPanel({
   loading,
   unavailable,
   targets,
+  condition,
 }: ExplanationPanelProps) {
   const [disclosure, setDisclosure] = useState<DisclosureLevel>("concise");
   const [activeTarget, setActiveTarget] = useState<RiskTargetShort>("hospitalization");
   const topK = disclosureTopK(disclosure);
+
+  const handleDisclosureChange = (next: DisclosureLevel) => {
+    setDisclosure(next);
+    void trackEvent(
+      "explanation_toggle",
+      {
+        disclosure: next,
+        top_k: disclosureTopK(next),
+        bene_id: detail?.bene_id,
+      },
+      condition,
+    );
+  };
 
   const grouped = useMemo(
     () => groupContributorsByTarget(explanation?.contributors ?? [], topK),
@@ -95,14 +112,14 @@ export function ExplanationPanel({
           <button
             type="button"
             className={`target-button${disclosure === "concise" ? " active" : ""}`}
-            onClick={() => setDisclosure("concise")}
+            onClick={() => handleDisclosureChange("concise")}
           >
             Concise (top 3)
           </button>
           <button
             type="button"
             className={`target-button${disclosure === "expanded" ? " active" : ""}`}
-            onClick={() => setDisclosure("expanded")}
+            onClick={() => handleDisclosureChange("expanded")}
           >
             Expanded (top 5)
           </button>

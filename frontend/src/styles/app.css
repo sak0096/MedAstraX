@@ -759,6 +759,112 @@ button {
   font-size: 0.85rem;
 }
 
+.study-panel.collapsed .study-task-list,
+.study-panel.collapsed .study-active-task,
+.study-panel.collapsed .study-assignments {
+  display: none;
+}
+
+.study-assignments {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 0.85rem;
+  margin-bottom: 12px;
+}
+
+.study-task-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+
+.study-task-button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: white;
+  text-align: left;
+  cursor: pointer;
+}
+
+.study-task-button.active {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.study-task-button span {
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.study-active-task {
+  border-top: 1px solid var(--border);
+  padding-top: 16px;
+}
+
+.study-case-actions {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin: 12px 0;
+}
+
+.study-response-field {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 12px 0;
+}
+
+.study-response-field input,
+.study-response-field textarea {
+  width: 100%;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 10px;
+  font: inherit;
+}
+
+.study-manipulation-note {
+  color: #9a3412;
+  font-size: 0.9rem;
+}
+
+.confidence-badge {
+  display: inline-flex;
+  align-items: center;
+  margin-top: 6px;
+  padding: 2px 8px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+}
+
+.confidence-badge.low {
+  background: #fef3c7;
+  color: #92400e;
+}
+
+.confidence-badge.high {
+  background: #dbeafe;
+  color: #1d4ed8;
+}
+
+.risk-score-card {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
 @media (max-width: 1100px) {
   .dashboard-grid.with-detail {
     grid-template-columns: 1fr;

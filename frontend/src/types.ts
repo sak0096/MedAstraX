@@ -5,10 +5,52 @@ export type StudyEventType =
   | "filter_change"
   | "drill_down"
   | "explanation_view"
+  | "explanation_toggle"
   | "query_submit"
   | "query_confirm"
+  | "query_reject"
+  | "task_start"
+  | "task_response"
   | "export"
   | "latency";
+
+export type RiskConfidence = "normal" | "low" | "high";
+
+export interface StudyContextPayload {
+  case_id?: string | null;
+  active_manipulations?: string[];
+  risk_confidence?: Record<string, RiskConfidence>;
+  manipulation_applied?: string[];
+}
+
+export interface StudyCaseRef {
+  case_id: string;
+  label: string;
+  bene_id: string;
+  analytic_year: string;
+}
+
+export interface StudyTaskDefinition {
+  task_id: string;
+  study: "study1" | "study2";
+  title: string;
+  time_limit_min: number;
+  instructions: string;
+  response_type: string;
+  requires_cases: string[];
+  manipulation_slot?: "study1" | "study2" | null;
+  conditions: string[];
+  suggested_query?: string | null;
+}
+
+export interface StudySession {
+  participant_id: string;
+  study_mode_enabled: boolean;
+  assignments: Record<string, string>;
+  manipulation_catalog: Record<string, string>;
+  task_sets: Record<string, string[]>;
+  cases: StudyCaseRef[];
+}
 
 export interface ApiMeta {
   prototype_phase: string;
@@ -20,6 +62,7 @@ export interface ApiMeta {
   language_ready: boolean;
   llm_configured: boolean;
   instrumentation_enabled: boolean;
+  study_mode_enabled: boolean;
 }
 
 export interface EvidenceClaim {
@@ -49,6 +92,7 @@ export interface GroundedSummary {
     stability_badge: string;
     top_features: string[];
   }>;
+  study_context?: StudyContextPayload;
 }
 
 export interface InterpretedQuery {
@@ -167,6 +211,7 @@ export interface BeneficiaryExplanation {
     stability_badge: StabilityBadge;
     stability_score: number;
   }>;
+  study_context?: StudyContextPayload;
 }
 
 export interface BeneficiaryDetail {
@@ -191,4 +236,5 @@ export interface BeneficiaryDetail {
   labels: Record<string, number | null>;
   model_version: string | null;
   history: BeneficiaryRow[];
+  study_context?: StudyContextPayload;
 }

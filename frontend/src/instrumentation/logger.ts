@@ -1,18 +1,24 @@
 import { postStudyEvent } from "../api/client";
 import type { ExperimentalCondition } from "../types";
+import { setActiveStudyTaskId as persistActiveStudyTaskId } from "../study/session";
 
 export type StudyEventType =
   | "session_start"
   | "filter_change"
   | "drill_down"
   | "explanation_view"
+  | "explanation_toggle"
   | "query_submit"
   | "query_confirm"
+  | "query_reject"
+  | "task_start"
+  | "task_response"
   | "export"
   | "latency";
 
 const SESSION_KEY = "hc_session_id";
 const PARTICIPANT_KEY = "hc_participant_id";
+const ACTIVE_TASK_KEY = "hc_active_study_task";
 
 export function getSessionId(): string {
   const existing = sessionStorage.getItem(SESSION_KEY);
@@ -35,10 +41,19 @@ export function getParticipantId(): string {
   return generated;
 }
 
+export function getActiveStudyTaskId(): string | null {
+  return sessionStorage.getItem(ACTIVE_TASK_KEY);
+}
+
+export function setActiveStudyTaskId(taskId: string | null): void {
+  persistActiveStudyTaskId(taskId);
+}
+
 export async function trackEvent(
   eventType: StudyEventType,
   payload: Record<string, unknown> = {},
   condition?: ExperimentalCondition,
+  taskId?: string,
 ): Promise<void> {
   try {
     await postStudyEvent({
@@ -46,6 +61,7 @@ export async function trackEvent(
       session_id: getSessionId(),
       participant_id: getParticipantId(),
       condition,
+      task_id: taskId ?? getActiveStudyTaskId() ?? undefined,
       payload,
     });
   } catch {

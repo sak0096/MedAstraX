@@ -1,5 +1,6 @@
 import { ExplanationPanel } from "./ExplanationPanel";
 import { GroundedSummaryPanel } from "./GroundedSummaryPanel";
+import { ConfidenceBadge } from "./ConfidenceBadge";
 import type {
   BeneficiaryDetail as BeneficiaryDetailType,
   BeneficiaryExplanation,
@@ -96,6 +97,7 @@ export function BeneficiaryDetail({
               loading={explanationLoading}
               unavailable={explanationUnavailable}
               targets={targets}
+              condition={condition}
             />
           ) : null}
 
@@ -106,6 +108,7 @@ export function BeneficiaryDetail({
                 <article key={key} className={`risk-score-card ${riskBand(value)}`}>
                   <span>{key.replace(/_/g, " ")}</span>
                   <strong>{formatPercent(value, 0)}</strong>
+                  <ConfidenceBadge level={detail.study_context?.risk_confidence?.[key]} />
                 </article>
               ))}
             </div>

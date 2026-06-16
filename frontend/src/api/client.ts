@@ -12,10 +12,32 @@ import type {
   QueryResult,
   RiskTargetShort,
   StudyEventType,
+  StudySession,
+  StudyTaskDefinition,
 } from "../types";
+import { getActiveStudyTaskId } from "../study/session";
+import { getParticipantId, getSessionId } from "../instrumentation/logger";
+
+function studyHeaders(): Record<string, string> {
+  const headers: Record<string, string> = {
+    "X-Participant-Id": getParticipantId(),
+    "X-Study-Session-Id": getSessionId(),
+  };
+  const taskId = getActiveStudyTaskId();
+  if (taskId) {
+    headers["X-Study-Task-Id"] = taskId;
+  }
+  return headers;
+}
 
 async function fetchJson<T>(path: string, init?: RequestInit): Promise<T> {
-  const response = await fetch(path, init);
+  const response = await fetch(path, {
+    ...init,
+    headers: {
+      ...studyHeaders(),
+      ...(init?.headers ?? {}),
+    },
+  });
   if (!response.ok) {
     const detail = await response.text();
     throw new Error(detail || `Request failed: ${response.status}`);
@@ -134,5 +156,49 @@ export function exportStudySession(sessionId: string): Promise<{
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ session_id: sessionId }),
+  });
+}
+
+export function getStudySession(participantId: string): Promise<StudySession> {
+  return fetchJson(`/api/study/session?participant_id=${encodeURIComponent(participantId)}`);
+}
+
+export function getStudyTasks(study?: "study1" | "study2"): Promise<{ tasks: StudyTaskDefinition[] }> {
+  const query = study ? `?study=${study}` : "";
+  return fetchJson(`/api/study/tasks${query}`);
+}
+
+export function startStudyTask(
+  taskId: string,
+  participantId: string,
+  sessionId: string,
+): Promise<{
+  task: StudyTaskDefinition;
+  active_manipulation: string | null;
+  cases: StudySession["cases"];
+}> {
+  const search = new URLSearchParams({
+    participant_id: participantId,
+    session_id: sessionId,
+  });
+  return fetchJson(`/api/study/tasks/${encodeURIComponent(taskId)}/start?${search.toString()}`, {
+    method: "POST",
+  });
+}
+
+export function submitStudyTaskResponse(
+  taskId: string,
+  submission: {
+    participant_id: string;
+    session_id: string;
+    responses: Record<string, unknown>;
+    time_ms?: number;
+    notes?: string;
+  },
+): Promise<{ stored: boolean; task_id: string }> {
+  return fetchJson(`/api/study/tasks/${encodeURIComponent(taskId)}/response`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(submission),
   });
 }
