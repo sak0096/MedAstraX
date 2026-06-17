@@ -1,7 +1,17 @@
 # MedAstraX Post-Study Survey Instruments
 
 **Purpose:** Capture dependent variables from dissertation §3.4 — usability, workload, trust, perceived understanding/control, and qualitative follow-up.  
-**Administration:** Demographics once at start; **post-condition** blocks after Study 1 and Study 2; **post-study** block once at end; interview last.
+**Protocol version:** 2.0  
+**Administration:** External **Qualtrics** survey (not embedded in the prototype).
+
+### Study-specific administration
+
+| Cohort | When | Survey blocks |
+|--------|------|---------------|
+| **Study 1** (`study=study1`) | Once per session | Part A → (tasks) → Part B ×2 (Baseline + XAI) → Part C1 → Part D |
+| **Study 2** (`study=study2`) | Once per session | Part A → (tasks) → Part B ×2 (Baseline + LLM) → Part C2 → Part D |
+
+Participants complete **one study only** — not both in the same session. Use the matching Part C block below.
 
 **Response scales:** Unless noted, use **7-point Likert** (1 = Strongly disagree · 7 = Strongly agree).
 
@@ -139,23 +149,33 @@
 
 ---
 
-## Part C — Post-study survey (end of session)
+## Part C — Post-study survey (end of session, before interview)
 
-*After both blocks; before interview. Approximately 8–10 minutes.*
+*Approximately 5–8 minutes. Use **C1** for Study 1 or **C2** for Study 2.*
 
-### C1. Cross-condition comparison
+### C1. Study 1 — Baseline vs XAI comparison
 
 | # | Item | Response |
 |---|------|----------|
-| P1 | Which version helped you **understand** risk best? | MC: Baseline / XAI / LLM / No difference |
-| P2 | Which version would you **use in daily work**? | MC |
+| P1 | Which version helped you **understand** risk best? | MC: Baseline / XAI / No difference |
+| P2 | Which version would you **use in daily work**? | MC: Baseline / XAI |
 | P3 | Which version **slowed you down** the most? | MC |
-| P4 | Which version made you **most likely to accept model outputs without checking**? *(overreliance)* | MC |
-| P5 | Rank the three conditions (1 = most preferred) for: Understanding · Speed · Trust · Control | Rank 1–3 each |
+| P4 | Which version made you **most likely to accept model outputs without checking**? | MC |
+| P5 | Rank Baseline and XAI (1 = most preferred) for: Understanding · Speed · Trust · Control | Rank 1–2 each |
+
+### C2. Study 2 — Baseline vs LLM comparison
+
+| # | Item | Response |
+|---|------|----------|
+| P1 | Which version helped you **find and verify** cohort members best? | MC: Baseline / LLM / No difference |
+| P2 | Which version would you **use in daily work**? | MC: Baseline / LLM |
+| P3 | Which version **slowed you down** the most? | MC |
+| P4 | Which version made you **most likely to accept generated text without checking the record**? | MC |
+| P5 | Rank Baseline and LLM (1 = most preferred) for: Understanding · Speed · Trust · Control | Rank 1–2 each |
 
 ---
 
-### C2. Behavioral reliance reflection (self-report complement to WOA)
+### C3. Behavioral reliance reflection (self-report; both studies)
 
 | # | Item |
 |---|------|
@@ -169,7 +189,7 @@
 
 ---
 
-### C3. Cognitive load & transparency trade-offs (H1b, H1c)
+### C4. Cognitive load & transparency trade-offs (H1b, H1c)
 
 | # | Item |
 |---|------|
@@ -181,7 +201,7 @@
 
 ---
 
-### C4. Adoption & governance (NIST AI RMF alignment)
+### C5. Adoption & governance (NIST AI RMF alignment)
 
 | # | Item |
 |---|------|
@@ -193,7 +213,7 @@
 
 ---
 
-### C5. Open-ended (short answer)
+### C6. Open-ended (short answer)
 
 1. What was the **most helpful** feature across all versions?
 2. What was **most confusing or frustrating**?
@@ -246,8 +266,11 @@
 | Task performance | Accuracy, time, rank error | H1a, H3a |
 | Engagement | Logged events | §3.4.1 |
 
-**Behavioral WOA (not self-report):**  
-For outreach tasks, compute weight of advice as proportional shift from participant’s initial ranking toward model ranking (Panigutti et al., 2022; Scharowski et al., 2023).
+**Behavioral reliance (primary):**  
+Use `scripts/score_study_session.py` on exported logs — harmful switching, appropriate rejection, etc. (see [STUDY_APPENDICES.md](./STUDY_APPENDICES.md)).
+
+**Weight of Advice (secondary):**  
+For S1-T5 outreach ranks, proportional shift from initial ranking toward AI recommendation (Panigutti et al., 2022).
 
 **Appropriate reliance index:**  
 `agreement_with_correct_AI − agreement_with_incorrect_AI` across manipulation trials.
@@ -256,13 +279,20 @@ For outreach tasks, compute weight of advice as proportional shift from particip
 
 ## Part F — Suggested Qualtrics structure
 
+### Study 1 survey
+
 1. Block: Demographics (Part A)  
-2. Block: Condition 1 tasks *(external — not in Qualtrics)*  
-3. Block: Post-condition 1 (Part B with `[CONDITION]` = first arm)  
+2. Block: Condition 1 tasks *(in MedAstraX — not in Qualtrics)*  
+3. Block: Post-condition 1 (Part B; `[CONDITION]` = Baseline or XAI)  
 4. Block: Condition 2 tasks  
 5. Block: Post-condition 2 (Part B)  
-6. Block: Post-study (Part C)  
-7. Block: Open-ended (Part C5)  
-8. Interview (Part D) — separate recording
+6. Block: Post-study comparison (Part C1 or C2)  
+7. Block: Reflection (Part C3–C5)  
+8. Block: Open-ended (Part C6)  
+9. Interview (Part D) — separate recording  
 
-*Embed condition name via hidden field set by facilitator.*
+### Study 2 survey
+
+Same structure; Part B conditions are Baseline and LLM; use Part C2 instead of C1.
+
+*Embed `participant`, `study`, and `condition` via hidden fields set by facilitator.*

@@ -175,7 +175,7 @@ Score a completed session:
 python scripts/score_study_session.py <session_id>
 ```
 
-Protocol and survey instruments: [docs/STUDY_PROTOCOL.md](docs/STUDY_PROTOCOL.md), [docs/SURVEY_INSTRUMENTS.md](docs/SURVEY_INSTRUMENTS.md).
+**Study documentation:** [docs/STUDY_INDEX.md](docs/STUDY_INDEX.md) (hub) · [STUDY_PROTOCOL](docs/STUDY_PROTOCOL.md) · [FACILITATOR_RUNBOOK](docs/FACILITATOR_RUNBOOK.md) · [SURVEY_INSTRUMENTS](docs/SURVEY_INSTRUMENTS.md) · [APPENDICES](docs/STUDY_APPENDICES.md)
 
 Study APIs (when `HC_STUDY_MODE=true`):
 
@@ -236,7 +236,7 @@ cd backend && source .venv/bin/activate && pytest
 | `frontend/` | React dashboard (3 conditions) |
 | `data/` | Local data staging (not committed) |
 | `artifacts/` | Models, explanations, logs (not committed) |
-| `docs/` | Architecture and data notes |
+| `docs/` | Architecture, data notes, **study protocol & facilitator runbook** |
 
 ## Prototype status
 
