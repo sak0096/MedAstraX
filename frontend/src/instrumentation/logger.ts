@@ -8,11 +8,14 @@ export type StudyEventType =
   | "drill_down"
   | "explanation_view"
   | "explanation_toggle"
+  | "evidence_link_open"
   | "query_submit"
   | "query_confirm"
   | "query_reject"
   | "task_start"
+  | "task_initial_response"
   | "task_response"
+  | "comprehension_complete"
   | "export"
   | "latency";
 

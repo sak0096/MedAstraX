@@ -1,12 +1,74 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "2.0",
   "default_analytic_year": 2022,
   "manipulation_catalog": {
-    "M1": "Inverted local SHAP ranking (swap top 2 contributors)",
-    "M2": "Misleading hospitalization risk display (\u00b10.25)",
-    "M3": "False grounded narrative claim contradicting record",
+    "correct": "Faithful outreach recommendation matching operational priority rule",
+    "M2": "Incorrect outreach recommendation vs operational priority rule",
+    "M3": "Unsupported grounded narrative claim contradicting record",
     "M4": "Incorrect NL query chronic filter",
-    "M5": "Low-confidence risk framing + forced red stability"
+    "M6": "Incorrect NL query time window on interpretation card",
+    "M7": "Omitted utilization threshold on interpretation card"
+  },
+  "priority_rule": {
+    "description": "Rank outreach candidates using the study operational priority rule: 3 points per inpatient claim, 0.5 per outpatient claim, 2 points per chronic condition flag, and 0.1 per total claim in the analytic year. Higher score = higher outreach priority.",
+    "weights": {
+      "inpatient_claims": 3.0,
+      "outpatient_claims": 0.5,
+      "chronic_condition_count": 2.0,
+      "total_claims": 0.1
+    }
+  },
+  "comprehension": {
+    "pass_threshold": 2,
+    "questions": [
+      {
+        "question_id": "Q1",
+        "prompt": "Which signal receives the highest weight in the outreach priority rule?",
+        "choices": [
+          "Inpatient claims",
+          "Outpatient claims only",
+          "Beneficiary age",
+          "State code"
+        ],
+        "correct_index": 0
+      },
+      {
+        "question_id": "Q2",
+        "prompt": "When two cases tie on utilization signals, what should you consult next?",
+        "choices": [
+          "Chronic condition burden and total claims in the analytic year",
+          "Beneficiary name alphabetically",
+          "Random selection",
+          "Model version number"
+        ],
+        "correct_index": 0
+      },
+      {
+        "question_id": "Q3",
+        "prompt": "Before accepting an AI outreach recommendation you should:",
+        "choices": [
+          "Compare it against the priority rule and visible record fields",
+          "Always accept the top model score",
+          "Ignore chronic flags",
+          "Skip verification when the interface looks confident"
+        ],
+        "correct_index": 0
+      }
+    ]
+  },
+  "case_sets": {
+    "alpha": [
+      "B-01",
+      "B-02",
+      "B-03",
+      "B-04"
+    ],
+    "beta": [
+      "B-01b",
+      "B-02b",
+      "B-03b",
+      "B-04b"
+    ]
   },
   "cases": [
     {
@@ -14,6 +76,7 @@
       "label": "Case B-01",
       "bene_id": "-10000010263023",
       "analytic_year": 2022,
+      "case_set": "alpha",
       "ground_truth": {
         "hospitalization_risk": 0.999204,
         "high_utilization_risk": 0.803596,
@@ -21,6 +84,9 @@
         "chronic_condition_count": 0,
         "has_diabetes": 0,
         "has_chf": 0,
+        "inpatient_claims": 1,
+        "outpatient_claims": 42,
+        "total_claims": 71,
         "top_hospitalization_features": [
           {
             "feature": "total_payment_amt",
@@ -40,33 +106,40 @@
             "direction": "increases_risk",
             "rank": 3
           }
+        ],
+        "priority_score": 31.1,
+        "outreach_rank": 4,
+        "outreach_set_ranking": [
+          "B-04",
+          "B-02",
+          "B-03",
+          "B-01"
         ]
       },
       "manipulations": {
-        "M1": {
-          "type": "inverted_shap",
-          "target": "next_year_hospitalization"
-        },
         "M2": {
-          "type": "misleading_risk",
-          "risk_column": "hospitalization_risk",
-          "delta": -0.25
+          "type": "incorrect_outreach_recommendation"
         },
         "M3": {
           "type": "false_narrative_claim",
-          "statement": "Beneficiary has active diabetes management needs driving utilization.",
+          "statement": "Beneficiary had two inpatient admissions in the analytic year.",
           "source_fields": [
-            "has_diabetes"
+            "inpatient_claims"
           ],
-          "contradicts_field": "has_diabetes",
+          "contradicts_field": "inpatient_claims",
           "contradicts_expected": 0
         },
-        "M5": {
-          "type": "low_confidence",
-          "risk_columns": [
-            "hospitalization_risk"
-          ],
-          "force_stability": "red"
+        "M4": {
+          "type": "incorrect_query_filter",
+          "substitute_filter": "has_hypertension"
+        },
+        "M6": {
+          "type": "incorrect_query_time_window",
+          "displayed_months": 6,
+          "actual_months": 12
+        },
+        "M7": {
+          "type": "omitted_query_threshold"
         }
       }
     },
@@ -75,6 +148,7 @@
       "label": "Case B-02",
       "bene_id": "-10000010266687",
       "analytic_year": 2022,
+      "case_set": "alpha",
       "ground_truth": {
         "hospitalization_risk": 0.990339,
         "high_utilization_risk": 0.999996,
@@ -82,6 +156,9 @@
         "chronic_condition_count": 1,
         "has_diabetes": 0,
         "has_chf": 0,
+        "inpatient_claims": 38,
+        "outpatient_claims": 63,
+        "total_claims": 252,
         "top_hospitalization_features": [
           {
             "feature": "distinct_diagnosis_count",
@@ -101,33 +178,40 @@
             "direction": "decreases_risk",
             "rank": 3
           }
+        ],
+        "priority_score": 172.7,
+        "outreach_rank": 2,
+        "outreach_set_ranking": [
+          "B-04",
+          "B-02",
+          "B-03",
+          "B-01"
         ]
       },
       "manipulations": {
-        "M1": {
-          "type": "inverted_shap",
-          "target": "next_year_hospitalization"
-        },
         "M2": {
-          "type": "misleading_risk",
-          "risk_column": "hospitalization_risk",
-          "delta": -0.25
+          "type": "incorrect_outreach_recommendation"
         },
         "M3": {
           "type": "false_narrative_claim",
-          "statement": "Beneficiary has active diabetes management needs driving utilization.",
+          "statement": "Beneficiary had two inpatient admissions in the analytic year.",
           "source_fields": [
-            "has_diabetes"
+            "inpatient_claims"
           ],
-          "contradicts_field": "has_diabetes",
+          "contradicts_field": "inpatient_claims",
           "contradicts_expected": 0
         },
-        "M5": {
-          "type": "low_confidence",
-          "risk_columns": [
-            "hospitalization_risk"
-          ],
-          "force_stability": "red"
+        "M4": {
+          "type": "incorrect_query_filter",
+          "substitute_filter": "has_hypertension"
+        },
+        "M6": {
+          "type": "incorrect_query_time_window",
+          "displayed_months": 6,
+          "actual_months": 12
+        },
+        "M7": {
+          "type": "omitted_query_threshold"
         }
       }
     },
@@ -136,6 +220,7 @@
       "label": "Case B-03",
       "bene_id": "-10000010279991",
       "analytic_year": 2022,
+      "case_set": "alpha",
       "ground_truth": {
         "hospitalization_risk": 0.99192,
         "high_utilization_risk": 0.999244,
@@ -143,6 +228,9 @@
         "chronic_condition_count": 0,
         "has_diabetes": 0,
         "has_chf": 0,
+        "inpatient_claims": 13,
+        "outpatient_claims": 14,
+        "total_claims": 119,
         "top_hospitalization_features": [
           {
             "feature": "distinct_diagnosis_count",
@@ -162,33 +250,40 @@
             "direction": "increases_risk",
             "rank": 3
           }
+        ],
+        "priority_score": 57.9,
+        "outreach_rank": 3,
+        "outreach_set_ranking": [
+          "B-04",
+          "B-02",
+          "B-03",
+          "B-01"
         ]
       },
       "manipulations": {
-        "M1": {
-          "type": "inverted_shap",
-          "target": "next_year_hospitalization"
-        },
         "M2": {
-          "type": "misleading_risk",
-          "risk_column": "hospitalization_risk",
-          "delta": -0.25
+          "type": "incorrect_outreach_recommendation"
         },
         "M3": {
           "type": "false_narrative_claim",
-          "statement": "Beneficiary has active diabetes management needs driving utilization.",
+          "statement": "Beneficiary had two inpatient admissions in the analytic year.",
           "source_fields": [
-            "has_diabetes"
+            "inpatient_claims"
           ],
-          "contradicts_field": "has_diabetes",
+          "contradicts_field": "inpatient_claims",
           "contradicts_expected": 0
         },
-        "M5": {
-          "type": "low_confidence",
-          "risk_columns": [
-            "hospitalization_risk"
-          ],
-          "force_stability": "red"
+        "M4": {
+          "type": "incorrect_query_filter",
+          "substitute_filter": "has_hypertension"
+        },
+        "M6": {
+          "type": "incorrect_query_time_window",
+          "displayed_months": 6,
+          "actual_months": 12
+        },
+        "M7": {
+          "type": "omitted_query_threshold"
         }
       }
     },
@@ -197,6 +292,7 @@
       "label": "Case B-04",
       "bene_id": "-10000010259786",
       "analytic_year": 2022,
+      "case_set": "alpha",
       "ground_truth": {
         "hospitalization_risk": 0.9987,
         "high_utilization_risk": 0.999991,
@@ -204,6 +300,9 @@
         "chronic_condition_count": 1,
         "has_diabetes": 1,
         "has_chf": 0,
+        "inpatient_claims": 135,
+        "outpatient_claims": 1,
+        "total_claims": 282,
         "top_hospitalization_features": [
           {
             "feature": "distinct_diagnosis_count",
@@ -223,17 +322,19 @@
             "direction": "increases_risk",
             "rank": 3
           }
+        ],
+        "priority_score": 435.7,
+        "outreach_rank": 1,
+        "outreach_set_ranking": [
+          "B-04",
+          "B-02",
+          "B-03",
+          "B-01"
         ]
       },
       "manipulations": {
-        "M1": {
-          "type": "inverted_shap",
-          "target": "next_year_hospitalization"
-        },
         "M2": {
-          "type": "misleading_risk",
-          "risk_column": "hospitalization_risk",
-          "delta": -0.25
+          "type": "incorrect_outreach_recommendation"
         },
         "M3": {
           "type": "false_narrative_claim",
@@ -244,12 +345,305 @@
           "contradicts_field": "has_chf",
           "contradicts_expected": 0
         },
-        "M5": {
-          "type": "low_confidence",
-          "risk_columns": [
-            "hospitalization_risk"
+        "M4": {
+          "type": "incorrect_query_filter",
+          "substitute_filter": "has_hypertension"
+        },
+        "M6": {
+          "type": "incorrect_query_time_window",
+          "displayed_months": 6,
+          "actual_months": 12
+        },
+        "M7": {
+          "type": "omitted_query_threshold"
+        }
+      }
+    },
+    {
+      "case_id": "B-01b",
+      "label": "Case B-01b",
+      "bene_id": "-10000010275202",
+      "analytic_year": 2022,
+      "case_set": "beta",
+      "ground_truth": {
+        "hospitalization_risk": 0.858164,
+        "high_utilization_risk": 1.0,
+        "elevated_cost_risk": 0.994702,
+        "chronic_condition_count": 1,
+        "has_diabetes": 0,
+        "has_chf": 0,
+        "inpatient_claims": 183,
+        "outpatient_claims": 0,
+        "total_claims": 387,
+        "top_hospitalization_features": [
+          {
+            "feature": "dme_claims",
+            "shap_value": -4.278927,
+            "direction": "decreases_risk",
+            "rank": 1
+          },
+          {
+            "feature": "readmission_30d_count",
+            "shap_value": 3.396938,
+            "direction": "increases_risk",
+            "rank": 2
+          },
+          {
+            "feature": "distinct_diagnosis_count",
+            "shap_value": 2.910012,
+            "direction": "increases_risk",
+            "rank": 3
+          }
+        ],
+        "priority_score": 589.7,
+        "outreach_rank": 1,
+        "outreach_set_ranking": [
+          "B-01b",
+          "B-02b",
+          "B-03b",
+          "B-04b"
+        ]
+      },
+      "manipulations": {
+        "M2": {
+          "type": "incorrect_outreach_recommendation"
+        },
+        "M3": {
+          "type": "false_narrative_claim",
+          "statement": "Beneficiary had two inpatient admissions in the analytic year.",
+          "source_fields": [
+            "inpatient_claims"
           ],
-          "force_stability": "red"
+          "contradicts_field": "inpatient_claims",
+          "contradicts_expected": 0
+        },
+        "M4": {
+          "type": "incorrect_query_filter",
+          "substitute_filter": "has_hypertension"
+        },
+        "M6": {
+          "type": "incorrect_query_time_window",
+          "displayed_months": 6,
+          "actual_months": 12
+        },
+        "M7": {
+          "type": "omitted_query_threshold"
+        }
+      }
+    },
+    {
+      "case_id": "B-02b",
+      "label": "Case B-02b",
+      "bene_id": "-10000010262670",
+      "analytic_year": 2022,
+      "case_set": "beta",
+      "ground_truth": {
+        "hospitalization_risk": 0.99217,
+        "high_utilization_risk": 0.998693,
+        "elevated_cost_risk": 0.972617,
+        "chronic_condition_count": 1,
+        "has_diabetes": 0,
+        "has_chf": 0,
+        "inpatient_claims": 168,
+        "outpatient_claims": 0,
+        "total_claims": 229,
+        "top_hospitalization_features": [
+          {
+            "feature": "readmission_30d_count",
+            "shap_value": 3.396938,
+            "direction": "increases_risk",
+            "rank": 1
+          },
+          {
+            "feature": "distinct_diagnosis_count",
+            "shap_value": 2.51463,
+            "direction": "increases_risk",
+            "rank": 2
+          },
+          {
+            "feature": "rx_fill_count",
+            "shap_value": -1.983282,
+            "direction": "decreases_risk",
+            "rank": 3
+          }
+        ],
+        "priority_score": 528.9,
+        "outreach_rank": 2,
+        "outreach_set_ranking": [
+          "B-01b",
+          "B-02b",
+          "B-03b",
+          "B-04b"
+        ]
+      },
+      "manipulations": {
+        "M2": {
+          "type": "incorrect_outreach_recommendation"
+        },
+        "M3": {
+          "type": "false_narrative_claim",
+          "statement": "Beneficiary had two inpatient admissions in the analytic year.",
+          "source_fields": [
+            "inpatient_claims"
+          ],
+          "contradicts_field": "inpatient_claims",
+          "contradicts_expected": 0
+        },
+        "M4": {
+          "type": "incorrect_query_filter",
+          "substitute_filter": "has_hypertension"
+        },
+        "M6": {
+          "type": "incorrect_query_time_window",
+          "displayed_months": 6,
+          "actual_months": 12
+        },
+        "M7": {
+          "type": "omitted_query_threshold"
+        }
+      }
+    },
+    {
+      "case_id": "B-03b",
+      "label": "Case B-03b",
+      "bene_id": "-10000010256636",
+      "analytic_year": 2022,
+      "case_set": "beta",
+      "ground_truth": {
+        "hospitalization_risk": 0.935241,
+        "high_utilization_risk": 0.956008,
+        "elevated_cost_risk": 0.445096,
+        "chronic_condition_count": 0,
+        "has_diabetes": 0,
+        "has_chf": 0,
+        "inpatient_claims": 162,
+        "outpatient_claims": 0,
+        "total_claims": 207,
+        "top_hospitalization_features": [
+          {
+            "feature": "rx_fill_count",
+            "shap_value": -4.508024,
+            "direction": "decreases_risk",
+            "rank": 1
+          },
+          {
+            "feature": "readmission_30d_count",
+            "shap_value": 3.323091,
+            "direction": "increases_risk",
+            "rank": 2
+          },
+          {
+            "feature": "distinct_diagnosis_count",
+            "shap_value": 2.119248,
+            "direction": "increases_risk",
+            "rank": 3
+          }
+        ],
+        "priority_score": 506.7,
+        "outreach_rank": 3,
+        "outreach_set_ranking": [
+          "B-01b",
+          "B-02b",
+          "B-03b",
+          "B-04b"
+        ]
+      },
+      "manipulations": {
+        "M2": {
+          "type": "incorrect_outreach_recommendation"
+        },
+        "M3": {
+          "type": "false_narrative_claim",
+          "statement": "Beneficiary had two inpatient admissions in the analytic year.",
+          "source_fields": [
+            "inpatient_claims"
+          ],
+          "contradicts_field": "inpatient_claims",
+          "contradicts_expected": 0
+        },
+        "M4": {
+          "type": "incorrect_query_filter",
+          "substitute_filter": "has_hypertension"
+        },
+        "M6": {
+          "type": "incorrect_query_time_window",
+          "displayed_months": 6,
+          "actual_months": 12
+        },
+        "M7": {
+          "type": "omitted_query_threshold"
+        }
+      }
+    },
+    {
+      "case_id": "B-04b",
+      "label": "Case B-04b",
+      "bene_id": "-10000010265432",
+      "analytic_year": 2022,
+      "case_set": "beta",
+      "ground_truth": {
+        "hospitalization_risk": 0.987345,
+        "high_utilization_risk": 0.999875,
+        "elevated_cost_risk": 0.996337,
+        "chronic_condition_count": 0,
+        "has_diabetes": 0,
+        "has_chf": 0,
+        "inpatient_claims": 141,
+        "outpatient_claims": 0,
+        "total_claims": 249,
+        "top_hospitalization_features": [
+          {
+            "feature": "readmission_30d_count",
+            "shap_value": 2.953859,
+            "direction": "increases_risk",
+            "rank": 1
+          },
+          {
+            "feature": "distinct_diagnosis_count",
+            "shap_value": 1.723866,
+            "direction": "increases_risk",
+            "rank": 2
+          },
+          {
+            "feature": "rx_fill_count",
+            "shap_value": -0.992806,
+            "direction": "decreases_risk",
+            "rank": 3
+          }
+        ],
+        "priority_score": 447.9,
+        "outreach_rank": 4,
+        "outreach_set_ranking": [
+          "B-01b",
+          "B-02b",
+          "B-03b",
+          "B-04b"
+        ]
+      },
+      "manipulations": {
+        "M2": {
+          "type": "incorrect_outreach_recommendation"
+        },
+        "M3": {
+          "type": "false_narrative_claim",
+          "statement": "Beneficiary had two inpatient admissions in the analytic year.",
+          "source_fields": [
+            "inpatient_claims"
+          ],
+          "contradicts_field": "inpatient_claims",
+          "contradicts_expected": 0
+        },
+        "M4": {
+          "type": "incorrect_query_filter",
+          "substitute_filter": "has_hypertension"
+        },
+        "M6": {
+          "type": "incorrect_query_time_window",
+          "displayed_months": 6,
+          "actual_months": 12
+        },
+        "M7": {
+          "type": "omitted_query_threshold"
         }
       }
     },
@@ -258,6 +652,7 @@
       "label": "Case B-07",
       "bene_id": "-10000010260449",
       "analytic_year": 2022,
+      "case_set": "shared",
       "ground_truth": {
         "hospitalization_risk": 0.97857,
         "high_utilization_risk": 1.0,
@@ -265,6 +660,9 @@
         "chronic_condition_count": 2,
         "has_diabetes": 1,
         "has_chf": 0,
+        "inpatient_claims": 31,
+        "outpatient_claims": 28,
+        "total_claims": 301,
         "top_hospitalization_features": [
           {
             "feature": "distinct_diagnosis_count",
@@ -284,17 +682,12 @@
             "direction": "increases_risk",
             "rank": 3
           }
-        ]
+        ],
+        "priority_score": 141.1
       },
       "manipulations": {
-        "M1": {
-          "type": "inverted_shap",
-          "target": "next_year_hospitalization"
-        },
         "M2": {
-          "type": "misleading_risk",
-          "risk_column": "hospitalization_risk",
-          "delta": -0.25
+          "type": "incorrect_outreach_recommendation"
         },
         "M3": {
           "type": "false_narrative_claim",
@@ -305,12 +698,17 @@
           "contradicts_field": "has_chf",
           "contradicts_expected": 0
         },
-        "M5": {
-          "type": "low_confidence",
-          "risk_columns": [
-            "hospitalization_risk"
-          ],
-          "force_stability": "red"
+        "M4": {
+          "type": "incorrect_query_filter",
+          "substitute_filter": "has_hypertension"
+        },
+        "M6": {
+          "type": "incorrect_query_time_window",
+          "displayed_months": 6,
+          "actual_months": 12
+        },
+        "M7": {
+          "type": "omitted_query_threshold"
         }
       }
     },
@@ -319,6 +717,7 @@
       "label": "Case B-09",
       "bene_id": "-10000010271299",
       "analytic_year": 2022,
+      "case_set": "shared",
       "ground_truth": {
         "hospitalization_risk": 0.972289,
         "high_utilization_risk": 0.999995,
@@ -326,6 +725,9 @@
         "chronic_condition_count": 1,
         "has_diabetes": 1,
         "has_chf": 0,
+        "inpatient_claims": 0,
+        "outpatient_claims": 41,
+        "total_claims": 143,
         "top_hospitalization_features": [
           {
             "feature": "distinct_diagnosis_count",
@@ -345,17 +747,12 @@
             "direction": "increases_risk",
             "rank": 3
           }
-        ]
+        ],
+        "priority_score": 36.8
       },
       "manipulations": {
-        "M1": {
-          "type": "inverted_shap",
-          "target": "next_year_hospitalization"
-        },
         "M2": {
-          "type": "misleading_risk",
-          "risk_column": "hospitalization_risk",
-          "delta": -0.25
+          "type": "incorrect_outreach_recommendation"
         },
         "M3": {
           "type": "false_narrative_claim",
@@ -366,12 +763,17 @@
           "contradicts_field": "has_chf",
           "contradicts_expected": 0
         },
-        "M5": {
-          "type": "low_confidence",
-          "risk_columns": [
-            "hospitalization_risk"
-          ],
-          "force_stability": "red"
+        "M4": {
+          "type": "incorrect_query_filter",
+          "substitute_filter": "has_hypertension"
+        },
+        "M6": {
+          "type": "incorrect_query_time_window",
+          "displayed_months": 6,
+          "actual_months": 12
+        },
+        "M7": {
+          "type": "omitted_query_threshold"
         }
       }
     },
@@ -380,6 +782,7 @@
       "label": "Case B-12",
       "bene_id": "-10000010273042",
       "analytic_year": 2022,
+      "case_set": "shared",
       "ground_truth": {
         "hospitalization_risk": 0.989279,
         "high_utilization_risk": 1.0,
@@ -387,6 +790,9 @@
         "chronic_condition_count": 2,
         "has_diabetes": 0,
         "has_chf": 1,
+        "inpatient_claims": 27,
+        "outpatient_claims": 115,
+        "total_claims": 260,
         "top_hospitalization_features": [
           {
             "feature": "distinct_diagnosis_count",
@@ -406,33 +812,33 @@
             "direction": "increases_risk",
             "rank": 3
           }
-        ]
+        ],
+        "priority_score": 168.5
       },
       "manipulations": {
-        "M1": {
-          "type": "inverted_shap",
-          "target": "next_year_hospitalization"
-        },
         "M2": {
-          "type": "misleading_risk",
-          "risk_column": "hospitalization_risk",
-          "delta": -0.25
+          "type": "incorrect_outreach_recommendation"
         },
         "M3": {
           "type": "false_narrative_claim",
-          "statement": "Beneficiary has active diabetes management needs driving utilization.",
+          "statement": "Beneficiary had two inpatient admissions in the analytic year.",
           "source_fields": [
-            "has_diabetes"
+            "inpatient_claims"
           ],
-          "contradicts_field": "has_diabetes",
+          "contradicts_field": "inpatient_claims",
           "contradicts_expected": 0
         },
-        "M5": {
-          "type": "low_confidence",
-          "risk_columns": [
-            "hospitalization_risk"
-          ],
-          "force_stability": "red"
+        "M4": {
+          "type": "incorrect_query_filter",
+          "substitute_filter": "has_hypertension"
+        },
+        "M6": {
+          "type": "incorrect_query_time_window",
+          "displayed_months": 6,
+          "actual_months": 12
+        },
+        "M7": {
+          "type": "omitted_query_threshold"
         }
       }
     },
@@ -441,6 +847,7 @@
       "label": "Case B-15",
       "bene_id": "-10000010266211",
       "analytic_year": 2022,
+      "case_set": "shared",
       "ground_truth": {
         "hospitalization_risk": 0.931411,
         "high_utilization_risk": 0.999953,
@@ -448,6 +855,9 @@
         "chronic_condition_count": 1,
         "has_diabetes": 0,
         "has_chf": 1,
+        "inpatient_claims": 3,
+        "outpatient_claims": 66,
+        "total_claims": 118,
         "top_hospitalization_features": [
           {
             "feature": "rx_days_supply",
@@ -467,38 +877,47 @@
             "direction": "increases_risk",
             "rank": 3
           }
-        ]
+        ],
+        "priority_score": 55.8
       },
       "manipulations": {
-        "M1": {
-          "type": "inverted_shap",
-          "target": "next_year_hospitalization"
-        },
         "M2": {
-          "type": "misleading_risk",
-          "risk_column": "hospitalization_risk",
-          "delta": -0.25
+          "type": "incorrect_outreach_recommendation"
         },
         "M3": {
           "type": "false_narrative_claim",
-          "statement": "Beneficiary has active diabetes management needs driving utilization.",
+          "statement": "Beneficiary had two inpatient admissions in the analytic year.",
           "source_fields": [
-            "has_diabetes"
+            "inpatient_claims"
           ],
-          "contradicts_field": "has_diabetes",
+          "contradicts_field": "inpatient_claims",
           "contradicts_expected": 0
         },
-        "M5": {
-          "type": "low_confidence",
-          "risk_columns": [
-            "hospitalization_risk"
-          ],
-          "force_stability": "red"
+        "M4": {
+          "type": "incorrect_query_filter",
+          "substitute_filter": "has_hypertension"
+        },
+        "M6": {
+          "type": "incorrect_query_time_window",
+          "displayed_months": 6,
+          "actual_months": 12
+        },
+        "M7": {
+          "type": "omitted_query_threshold"
         }
       }
     }
   ],
   "tasks": [
+    {
+      "task_id": "S1-T0",
+      "study": "study1",
+      "title": "Priority rule tutorial",
+      "time_limit_min": 4,
+      "instructions": "Review the operational priority rule panel, then complete the comprehension check before continuing.",
+      "response_type": "comprehension",
+      "requires_cases": []
+    },
     {
       "task_id": "S1-T1",
       "study": "study1",
@@ -522,19 +941,18 @@
       "study": "study1",
       "title": "Risk driver interpretation",
       "time_limit_min": 6,
-      "instructions": "Open Case B-07. What are the top 3 drivers of hospitalization risk? For each, state whether it increases or decreases risk.",
+      "instructions": "Open Case B-07. What are the top 3 drivers of hospitalization risk? For each, state whether it increases or decreases risk. SHAP explanations are faithful in this task.",
       "response_type": "feature_list",
       "requires_cases": [
         "B-07"
-      ],
-      "manipulation_slot": "study1"
+      ]
     },
     {
       "task_id": "S1-T4a",
       "study": "study1",
-      "title": "Global model literacy (XAI)",
+      "title": "Global model literacy (tutorial)",
       "time_limit_min": 5,
-      "instructions": "Switch the global importance view across all three risk targets. Which feature is most important for elevated cost risk at the cohort level?",
+      "instructions": "Tutorial only: switch the global importance view across risk targets. Which feature is most important for elevated cost risk at the cohort level?",
       "response_type": "free_text",
       "requires_cases": [],
       "conditions": [
@@ -559,21 +977,17 @@
       "task_id": "S1-T5",
       "study": "study1",
       "title": "Outreach prioritization",
-      "time_limit_min": 6,
-      "instructions": "Cases B-01 through B-04 need outreach slots. Rank them 1\u20134 (1 = highest priority). Indicate whether you relied on risk scores, explanations, or your own judgment.",
-      "response_type": "ranking",
-      "requires_cases": [
-        "B-01",
-        "B-02",
-        "B-03",
-        "B-04"
-      ],
-      "manipulation_slot": "study1"
+      "time_limit_min": 8,
+      "instructions": "Your assigned outreach quartet needs ranking. Submit an initial priority order, review the AI recommendation, then submit a final order with confidence.",
+      "response_type": "sequential_ranking",
+      "requires_cases": [],
+      "manipulation_slot": "study1",
+      "sequential_judgment": true
     },
     {
       "task_id": "S1-T6",
       "study": "study1",
-      "title": "Explanation density (XAI pilot)",
+      "title": "Explanation density (exploratory)",
       "time_limit_min": 4,
       "instructions": "For Case B-09, compare concise (top-3) vs expanded (top-5) explanations. Which helped more for an outreach decision?",
       "response_type": "preference",
@@ -601,36 +1015,37 @@
       "study": "study2",
       "title": "Natural-language cohort query",
       "time_limit_min": 5,
-      "instructions": "Use the query box: 'Top 25 hospitalization risk with diabetes.' Review the interpretation, confirm, and verify one result via drill-down.",
+      "instructions": "Use the query box: 'Top 25 hospitalization risk with diabetes in the last 12 months with at least 50 claims.' Review the interpretation, confirm, and verify one result via drill-down.",
       "response_type": "query_flow",
       "requires_cases": [],
       "conditions": [
         "llm"
       ],
       "manipulation_slot": "study2",
-      "suggested_query": "Top 25 hospitalization risk with diabetes"
+      "suggested_query": "Top 25 hospitalization risk with diabetes in the last 12 months with at least 50 claims"
     },
     {
       "task_id": "S2-T3",
       "study": "study2",
-      "title": "Grounded summary interpretation",
-      "time_limit_min": 6,
-      "instructions": "Open Case B-15. List three claims and their source fields. Flag any claim you cannot verify.",
-      "response_type": "claim_review",
+      "title": "Summary validation",
+      "time_limit_min": 8,
+      "instructions": "Open Case B-15. Decide whether the summary is supported, flag any unsupported claim, then review the summary and submit a final judgment with confidence.",
+      "response_type": "sequential_claim_review",
       "requires_cases": [
         "B-15"
       ],
       "conditions": [
         "llm"
       ],
-      "manipulation_slot": "study2"
+      "manipulation_slot": "study2",
+      "sequential_judgment": true
     },
     {
       "task_id": "S2-T4",
       "study": "study2",
       "title": "Cross-check summary vs record",
       "time_limit_min": 5,
-      "instructions": "Using Case B-15, decide whether utilization is a key driver based on the summary and underlying panels. Would you change your outreach decision?",
+      "instructions": "Using Case B-15, decide whether utilization is a key driver based on the summary and underlying panels.",
       "response_type": "free_text",
       "requires_cases": [
         "B-15"
@@ -654,14 +1069,14 @@
       "study": "study2",
       "title": "Query control check",
       "time_limit_min": 5,
-      "instructions": "Run: 'Top 10 elevated cost risk with heart failure.' Cancel and rephrase if the interpretation looks wrong before confirming.",
+      "instructions": "Run: 'Top 10 elevated cost risk with heart failure in the last 12 months with at least 30 claims.' Cancel and rephrase if the interpretation looks wrong before confirming.",
       "response_type": "query_flow",
       "requires_cases": [],
       "conditions": [
         "llm"
       ],
       "manipulation_slot": "study2",
-      "suggested_query": "Top 10 elevated cost risk with heart failure"
+      "suggested_query": "Top 10 elevated cost risk with heart failure in the last 12 months with at least 30 claims"
     },
     {
       "task_id": "S2-T7",
@@ -675,6 +1090,7 @@
   ],
   "task_sets": {
     "study1": [
+      "S1-T0",
       "S1-T1",
       "S1-T2",
       "S1-T3",

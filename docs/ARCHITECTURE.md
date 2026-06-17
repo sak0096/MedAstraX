@@ -78,8 +78,19 @@ Log: task metadata, interface events, explanation interactions, latency/fallback
 All conditions share data, models, and tasks. Only explanation/interaction affordances differ:
 
 - **baseline** — risk scores, no explicit rationale UI
-- **xai** — SHAP bars, global importance, stability badges, layered disclosure
-- **llm** — grounded summaries, NL query with confirmation, evidence links
+- **xai** — SHAP bars, global importance (tutorial tasks), stability badges
+- **llm** — frozen grounded summaries, NL query with confirmation, evidence links
+
+## User study mode (v2)
+
+When `HC_STUDY_MODE=true`, the prototype adds:
+
+- **Study orchestration** — `study/study_cases.json` task catalog, parallel case sets α/β, comprehension gate
+- **Sequential judgments** — initial → AI → final on outreach and summary validation
+- **Controlled errors** — M2 recommendation, M3/M4/M6/M7 query and narrative errors (Appendix D)
+- **Instrumentation** — task events, evidence-link opens, session export, scoring script
+
+Documentation: [STUDY_PROTOCOL.md](./STUDY_PROTOCOL.md), [FACILITATOR_RUNBOOK.md](./FACILITATOR_RUNBOOK.md), [STUDY_APPENDICES.md](./STUDY_APPENDICES.md).
 
 ## Versioning
 

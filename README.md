@@ -158,27 +158,38 @@ http://localhost:5173/?participant=P001&study=study1
 | URL param | Values | Purpose |
 |-----------|--------|---------|
 | `participant` | `P001`, etc. | Pseudonymized participant ID for logging |
-| `study` | `study1`, `study2`, `full` | Which task block to show in the Task Panel |
+| `study` | `study1`, `study2` | Participant study block (`full` = facilitator/dev only) |
+| `facilitator` | `1` | Show manipulation assignments (facilitators only) |
 
-Case packets live in [`study/study_cases.json`](study/study_cases.json). Regenerate from local data after pipeline runs:
+Case packets live in [`study/study_cases.json`](study/study_cases.json) (schema v2). Frozen LLM stimuli: [`study/frozen_summaries.json`](study/frozen_summaries.json). Regenerate after pipeline runs:
 
 ```bash
 source backend/.venv/bin/activate
 python scripts/generate_study_cases.py
+python scripts/generate_frozen_summaries.py
 ```
 
-Protocol and survey instruments: [docs/STUDY_PROTOCOL.md](docs/STUDY_PROTOCOL.md), [docs/SURVEY_INSTRUMENTS.md](docs/SURVEY_INSTRUMENTS.md).
+Score a completed session:
+
+```bash
+python scripts/score_study_session.py <session_id>
+```
+
+**Study documentation:** [docs/STUDY_INDEX.md](docs/STUDY_INDEX.md) (hub) · [STUDY_PROTOCOL](docs/STUDY_PROTOCOL.md) · [FACILITATOR_RUNBOOK](docs/FACILITATOR_RUNBOOK.md) · [SURVEY_INSTRUMENTS](docs/SURVEY_INSTRUMENTS.md) · [APPENDICES](docs/STUDY_APPENDICES.md)
 
 Study APIs (when `HC_STUDY_MODE=true`):
 
 | Endpoint | Purpose |
 |----------|---------|
-| `GET /api/study/session` | Participant manipulation assignments + case index |
+| `GET /api/study/session` | Case set, priority rule, comprehension, assignments |
 | `GET /api/study/tasks` | Task definitions |
-| `POST /api/study/tasks/{id}/start` | Begin task; activates manipulation headers |
-| `POST /api/study/tasks/{id}/response` | Submit task response (logged as `task_response`) |
+| `POST /api/study/tasks/{id}/start` | Begin task; returns `trial_id` for sequential tasks |
+| `POST /api/study/tasks/{id}/response` | Submit initial/final/single-phase response |
+| `GET /api/study/tasks/{id}/recommendation` | Outreach AI recommendation (Study 1) |
+| `POST /api/study/comprehension` | Comprehension check (S1-T0) |
+| `POST /api/study/score-session` | Behavioral reliance scoring export |
 
-Manipulations (M1–M5) inject incorrect SHAP rankings, misleading risk scores, false narrative claims, wrong NL filters, and low-confidence framing when the corresponding task is active.
+Primary controlled errors (revised proposal Appendix D): **M2** incorrect outreach recommendation, **M3** unsupported narrative, **M4/M6/M7** query interpretation errors. SHAP remains faithful during interpretation tasks.
 
 ## Testing
 
@@ -208,7 +219,8 @@ cd backend && source .venv/bin/activate && pytest
 | `GET /api/study/session` | Study session assignments (requires `HC_STUDY_MODE`) |
 | `GET /api/study/tasks` | Study task definitions |
 | `POST /api/study/tasks/{id}/start` | Start guided task |
-| `POST /api/study/tasks/{id}/response` | Submit task response |
+| `POST /api/study/tasks/{id}/response` | Submit initial/final task response |
+| `GET /api/study/tasks/{id}/recommendation` | Outreach recommendation |
 
 ## Repository layout
 
@@ -224,7 +236,7 @@ cd backend && source .venv/bin/activate && pytest
 | `frontend/` | React dashboard (3 conditions) |
 | `data/` | Local data staging (not committed) |
 | `artifacts/` | Models, explanations, logs (not committed) |
-| `docs/` | Architecture and data notes |
+| `docs/` | Architecture, data notes, **study protocol & facilitator runbook** |
 
 ## Prototype status
 

@@ -1,3 +1,4 @@
+import { trackEvent } from "../instrumentation/logger";
 import type { GroundedSummary } from "../types";
 import { featureLabel } from "../utils/xai";
 
@@ -5,18 +6,20 @@ interface GroundedSummaryPanelProps {
   summary: GroundedSummary | null;
   loading: boolean;
   unavailable: boolean;
+  condition?: "baseline" | "xai" | "llm";
 }
 
 export function GroundedSummaryPanel({
   summary,
   loading,
   unavailable,
+  condition,
 }: GroundedSummaryPanelProps) {
   if (loading) {
     return (
       <section className="llm-section">
         <h3>Grounded summary</h3>
-        <p className="detail-loading">Generating evidence-linked narrative…</p>
+        <p className="detail-loading">Loading evidence-linked narrative…</p>
       </section>
     );
   }
@@ -37,13 +40,26 @@ export function GroundedSummaryPanel({
 
   const fallback = summary.grounded.fallback;
 
+  const handleEvidenceOpen = (field: string, claim: string) => {
+    void trackEvent(
+      "evidence_link_open",
+      {
+        source_field: field,
+        claim,
+        bene_id: summary.bene_id,
+        analytic_year: summary.analytic_year,
+      },
+      condition,
+    );
+  };
+
   return (
     <section className="llm-section">
       <div className="llm-section-header">
         <div>
           <h3>Grounded summary</h3>
           <p className="panel-subtitle">
-            Template narrative mapped to verified SHAP evidence ({summary.provider} provider).
+            Frozen study stimulus mapped to verified SHAP evidence ({summary.provider} provider).
           </p>
         </div>
       </div>
@@ -61,7 +77,13 @@ export function GroundedSummaryPanel({
             <div className="evidence-links">
               <span>Sources:</span>
               {claim.source_fields.map((field) => (
-                <button key={field} type="button" className="evidence-link" title={field}>
+                <button
+                  key={field}
+                  type="button"
+                  className="evidence-link"
+                  title={field}
+                  onClick={() => handleEvidenceOpen(field, claim.statement)}
+                >
                   {featureLabel(field)}
                 </button>
               ))}

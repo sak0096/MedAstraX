@@ -9,6 +9,7 @@ import type {
   GlobalImportance,
   GroundedSummary,
   InterpretedQuery,
+  OutreachRecommendation,
   QueryResult,
   RiskTargetShort,
   StudyEventType,
@@ -175,6 +176,8 @@ export function startStudyTask(
 ): Promise<{
   task: StudyTaskDefinition;
   active_manipulation: string | null;
+  trial_id: string | null;
+  outreach_case_ids: string[];
   cases: StudySession["cases"];
 }> {
   const search = new URLSearchParams({
@@ -191,12 +194,43 @@ export function submitStudyTaskResponse(
   submission: {
     participant_id: string;
     session_id: string;
+    trial_id?: string;
+    phase?: "initial" | "final" | "single";
     responses: Record<string, unknown>;
+    confidence?: number;
+    reliance_source?: string;
     time_ms?: number;
     notes?: string;
   },
-): Promise<{ stored: boolean; task_id: string }> {
+): Promise<{ stored: boolean; task_id: string; phase?: string }> {
   return fetchJson(`/api/study/tasks/${encodeURIComponent(taskId)}/response`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(submission),
+  });
+}
+
+export function getOutreachRecommendation(
+  taskId: string,
+  participantId: string,
+): Promise<OutreachRecommendation> {
+  const search = new URLSearchParams({ participant_id: participantId });
+  return fetchJson(
+    `/api/study/tasks/${encodeURIComponent(taskId)}/recommendation?${search.toString()}`,
+  );
+}
+
+export function submitComprehension(submission: {
+  participant_id: string;
+  session_id: string;
+  answers: Record<string, number>;
+}): Promise<{
+  passed: boolean;
+  correct: number;
+  total: number;
+  results: Array<{ question_id: string; correct: boolean }>;
+}> {
+  return fetchJson("/api/study/comprehension", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(submission),

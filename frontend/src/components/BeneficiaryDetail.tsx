@@ -87,6 +87,7 @@ export function BeneficiaryDetail({
               summary={groundedSummary}
               loading={summaryLoading}
               unavailable={summaryUnavailable}
+              condition={condition}
             />
           ) : null}
 
