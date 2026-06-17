@@ -865,6 +865,57 @@ button {
   gap: 4px;
 }
 
+.study-manipulation-note.facilitator-only {
+  color: var(--warn);
+  font-size: 0.9rem;
+}
+
+.study-warning {
+  color: var(--warn);
+  margin-top: 0.35rem;
+}
+
+.study-comprehension fieldset {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  margin: 0.75rem 0;
+  padding: 0.75rem;
+}
+
+.comprehension-choice {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0.35rem 0;
+}
+
+.study-limitations .limitations-list {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.priority-rule-box {
+  margin-top: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.03);
+}
+
+.study-recommendation ol {
+  margin: 0.5rem 0 0;
+  padding-left: 1.2rem;
+}
+
+.study-recommendation .priority-score {
+  margin-left: 0.5rem;
+  color: var(--muted);
+  font-size: 0.85rem;
+}
+
+.priority-inline {
+  margin-bottom: 0.75rem;
+}
+
 @media (max-width: 1100px) {
   .dashboard-grid.with-detail {
     grid-template-columns: 1fr;

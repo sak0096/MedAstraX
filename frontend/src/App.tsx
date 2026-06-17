@@ -7,11 +7,13 @@ import {
   getGlobalImportance,
   getGroundedSummary,
   getMeta,
+  getStudySession,
 } from "./api/client";
 import { BeneficiaryDetail } from "./components/BeneficiaryDetail";
 import { CohortOverview } from "./components/CohortOverview";
 import { ExportMenu } from "./components/ExportMenu";
 import { GlobalImportancePanel } from "./components/GlobalImportancePanel";
+import { ModelLimitationsPanel } from "./components/ModelLimitationsPanel";
 import { QueryPanel } from "./components/QueryPanel";
 import { RiskTable, type SortKey } from "./components/RiskTable";
 import { StudyExportButton } from "./components/StudyExportButton";
@@ -41,6 +43,7 @@ const DEFAULT_TARGETS: RiskTargetShort[] = [
 
 export default function App() {
   const [meta, setMeta] = useState<ApiMeta | null>(null);
+  const [priorityRuleDescription, setPriorityRuleDescription] = useState<string>("");
   const [summary, setSummary] = useState<CohortSummary | null>(null);
   const [rows, setRows] = useState<BeneficiaryRow[]>([]);
   const [detail, setDetail] = useState<BeneficiaryDetailType | null>(null);
@@ -105,6 +108,17 @@ export default function App() {
   useEffect(() => {
     void loadDashboard();
   }, [loadDashboard]);
+
+  useEffect(() => {
+    if (!studyMode) return;
+    void getStudySession(getParticipantId())
+      .then((session) => {
+        setPriorityRuleDescription(String(session.priority_rule?.description ?? ""));
+      })
+      .catch(() => {
+        setPriorityRuleDescription("");
+      });
+  }, [studyMode]);
 
   useEffect(() => {
     if (!meta?.instrumentation_enabled) return;
@@ -323,6 +337,8 @@ export default function App() {
           onOpenCase={handleOpenStudyCase}
         />
       ) : null}
+
+      {studyMode ? <ModelLimitationsPanel priorityRuleDescription={priorityRuleDescription} /> : null}
 
       <main className={`dashboard-grid${detail || detailLoading ? " with-detail" : ""}`}>
         <div className="main-column">

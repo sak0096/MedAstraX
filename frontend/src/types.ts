@@ -6,11 +6,14 @@ export type StudyEventType =
   | "drill_down"
   | "explanation_view"
   | "explanation_toggle"
+  | "evidence_link_open"
   | "query_submit"
   | "query_confirm"
   | "query_reject"
   | "task_start"
+  | "task_initial_response"
   | "task_response"
+  | "comprehension_complete"
   | "export"
   | "latency";
 
@@ -30,6 +33,13 @@ export interface StudyCaseRef {
   analytic_year: string;
 }
 
+export interface ComprehensionQuestion {
+  question_id: string;
+  prompt: string;
+  choices: string[];
+  correct_index: number;
+}
+
 export interface StudyTaskDefinition {
   task_id: string;
   study: "study1" | "study2";
@@ -41,6 +51,7 @@ export interface StudyTaskDefinition {
   manipulation_slot?: "study1" | "study2" | null;
   conditions: string[];
   suggested_query?: string | null;
+  sequential_judgment?: boolean;
 }
 
 export interface StudySession {
@@ -50,6 +61,22 @@ export interface StudySession {
   manipulation_catalog: Record<string, string>;
   task_sets: Record<string, string[]>;
   cases: StudyCaseRef[];
+  case_set?: string;
+  priority_rule?: { description?: string; weights?: Record<string, number> };
+  comprehension?: {
+    pass_threshold?: number;
+    questions?: ComprehensionQuestion[];
+  };
+}
+
+export interface OutreachRecommendation {
+  rule_description: string;
+  case_ids: string[];
+  priority_scores: Record<string, number>;
+  correct_ranking: string[];
+  recommended_ranking: string[];
+  manipulated: boolean;
+  rationale: string;
 }
 
 export interface ApiMeta {
