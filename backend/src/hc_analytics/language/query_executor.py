@@ -14,6 +14,9 @@ def _apply_beneficiary_filters(frame: pd.DataFrame, parameters: Dict[str, Any]) 
     if chronic_filter and chronic_filter in frame.columns:
         chronic_value = parameters.get("chronic_value", 1)
         frame = frame.loc[frame[chronic_filter] == chronic_value]
+    min_total_claims = parameters.get("min_total_claims")
+    if min_total_claims is not None and "total_claims" in frame.columns:
+        frame = frame.loc[frame["total_claims"] >= int(min_total_claims)]
     return frame
 
 

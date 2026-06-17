@@ -76,7 +76,14 @@ def grounded_summary(
             status_code=404,
             detail=f"No evidence bundle found for {bene_id} ({analytic_year}).",
         )
-    summary = generate_grounded_summary(bundle, settings=settings)
+
+    summary = None
+    if settings.study_mode:
+        from hc_analytics.study.frozen import load_frozen_summary
+
+        summary = load_frozen_summary(bene_id, analytic_year, settings=settings)
+    if summary is None:
+        summary = generate_grounded_summary(bundle, settings=settings)
     if study_ctx.study_mode and study_ctx.active_manipulations:
         case = get_case_for_beneficiary(bene_id, analytic_year, settings=settings)
         summary = apply_summary_manipulations(
