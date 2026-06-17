@@ -1,23 +1,36 @@
 #!/usr/bin/env python3
-"""Regenerate study/study_cases.json from local feature store and SHAP artifacts."""
+"""Regenerate study/study_cases.json for dissertation study v2."""
 
 from __future__ import annotations
 
 import json
+import sys
 from pathlib import Path
 
 import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-CASE_IDS = {
-    "B-01": "-10000010263023",
-    "B-02": "-10000010266687",
-    "B-03": "-10000010279991",
-    "B-04": "-10000010259786",
+sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
+
+from hc_analytics.study.priority import PRIORITY_RULE_DESCRIPTION, PRIORITY_RULE_WEIGHTS, compute_priority_score
+
+SHARED_CASE_IDS = {
     "B-07": "-10000010260449",
     "B-09": "-10000010271299",
     "B-12": "-10000010273042",
     "B-15": "-10000010266211",
+}
+ALPHA_OUTREACH = {
+    "B-01": "-10000010263023",
+    "B-02": "-10000010266687",
+    "B-03": "-10000010279991",
+    "B-04": "-10000010259786",
+}
+BETA_OUTREACH = {
+    "B-01b": "-10000010275202",
+    "B-02b": "-10000010262670",
+    "B-03b": "-10000010256636",
+    "B-04b": "-10000010265432",
 }
 
 
@@ -36,6 +49,83 @@ def top_features(topk: pd.DataFrame, bene_id: str, year: int, n: int = 3) -> lis
         }
         for _, row in frame.head(n).iterrows()
     ]
+
+
+def false_narrative_config(row: pd.Series) -> dict:
+    if int(row["has_diabetes"]) == 0:
+        return {
+            "type": "false_narrative_claim",
+            "statement": "Beneficiary had two inpatient admissions in the analytic year.",
+            "source_fields": ["inpatient_claims"],
+            "contradicts_field": "inpatient_claims",
+            "contradicts_expected": 0,
+        }
+    return {
+        "type": "false_narrative_claim",
+        "statement": "Heart failure is the dominant chronic driver for this beneficiary.",
+        "source_fields": ["has_chf"],
+        "contradicts_field": "has_chf",
+        "contradicts_expected": 0,
+    }
+
+
+def build_case(
+    case_id: str,
+    bene_id: str,
+    row: pd.Series,
+    year: int,
+    topk: pd.DataFrame,
+    *,
+    case_set: str,
+) -> dict:
+    ground_truth = {
+        "hospitalization_risk": round(float(row["hospitalization_risk"]), 6),
+        "high_utilization_risk": round(float(row["high_utilization_risk"]), 6),
+        "elevated_cost_risk": round(float(row["elevated_cost_risk"]), 6),
+        "chronic_condition_count": int(row["chronic_condition_count"]),
+        "has_diabetes": int(row["has_diabetes"]),
+        "has_chf": int(row["has_chf"]),
+        "inpatient_claims": int(row["inpatient_claims"]),
+        "outpatient_claims": int(row["outpatient_claims"]),
+        "total_claims": int(row["total_claims"]),
+        "top_hospitalization_features": top_features(topk, bene_id, year),
+    }
+    ground_truth["priority_score"] = compute_priority_score(ground_truth)
+    return {
+        "case_id": case_id,
+        "label": f"Case {case_id}",
+        "bene_id": bene_id,
+        "analytic_year": int(row["analytic_year"]),
+        "case_set": case_set,
+        "ground_truth": ground_truth,
+        "manipulations": {
+            "M2": {"type": "incorrect_outreach_recommendation"},
+            "M3": false_narrative_config(row),
+            "M4": {
+                "type": "incorrect_query_filter",
+                "substitute_filter": "has_hypertension",
+            },
+            "M6": {
+                "type": "incorrect_query_time_window",
+                "displayed_months": 6,
+                "actual_months": 12,
+            },
+            "M7": {"type": "omitted_query_threshold"},
+        },
+    }
+
+
+def rank_outreach_cases(cases: list[dict]) -> list[str]:
+    scored = sorted(
+        cases,
+        key=lambda case: case["ground_truth"]["priority_score"],
+        reverse=True,
+    )
+    ranking = [case["case_id"] for case in scored]
+    for case in cases:
+        case["ground_truth"]["outreach_rank"] = ranking.index(case["case_id"]) + 1
+        case["ground_truth"]["outreach_set_ranking"] = ranking
+    return ranking
 
 
 def main() -> None:
@@ -57,83 +147,269 @@ def main() -> None:
     year = 2022
     subset = merged[merged["analytic_year"] == year]
 
-    cases = []
-    for case_id, bene_id in CASE_IDS.items():
-        row = subset[subset["bene_id"] == bene_id].iloc[0]
-        m3 = (
-            {
-                "type": "false_narrative_claim",
-                "statement": "Beneficiary has active diabetes management needs driving utilization.",
-                "source_fields": ["has_diabetes"],
-                "contradicts_field": "has_diabetes",
-                "contradicts_expected": 0,
-            }
-            if int(row["has_diabetes"]) == 0
-            else {
-                "type": "false_narrative_claim",
-                "statement": "Heart failure is the dominant chronic driver for this beneficiary.",
-                "source_fields": ["has_chf"],
-                "contradicts_field": "has_chf",
-                "contradicts_expected": 0,
-            }
-        )
-        cases.append(
-            {
-                "case_id": case_id,
-                "label": f"Case {case_id}",
-                "bene_id": bene_id,
-                "analytic_year": int(row["analytic_year"]),
-                "ground_truth": {
-                    "hospitalization_risk": round(float(row["hospitalization_risk"]), 6),
-                    "high_utilization_risk": round(float(row["high_utilization_risk"]), 6),
-                    "elevated_cost_risk": round(float(row["elevated_cost_risk"]), 6),
-                    "chronic_condition_count": int(row["chronic_condition_count"]),
-                    "has_diabetes": int(row["has_diabetes"]),
-                    "has_chf": int(row["has_chf"]),
-                    "top_hospitalization_features": top_features(topk, bene_id, year),
-                },
-                "manipulations": {
-                    "M1": {"type": "inverted_shap", "target": "next_year_hospitalization"},
-                    "M2": {"type": "misleading_risk", "risk_column": "hospitalization_risk", "delta": -0.25},
-                    "M3": m3,
-                    "M5": {
-                        "type": "low_confidence",
-                        "risk_columns": ["hospitalization_risk"],
-                        "force_stability": "red",
-                    },
-                },
-            }
-        )
+    cases: list[dict] = []
+    alpha_outreach: list[dict] = []
+    beta_outreach: list[dict] = []
 
-    existing_path = REPO_ROOT / "study" / "study_cases.json"
-    tasks = []
-    task_sets = {}
-    manipulation_catalog = {}
-    if existing_path.exists():
-        existing = json.loads(existing_path.read_text(encoding="utf-8"))
-        tasks = existing.get("tasks", [])
-        task_sets = existing.get("task_sets", {})
-        manipulation_catalog = existing.get("manipulation_catalog", {})
+    for case_id, bene_id in ALPHA_OUTREACH.items():
+        row = subset[subset["bene_id"] == bene_id].iloc[0]
+        case = build_case(case_id, bene_id, row, year, topk, case_set="alpha")
+        alpha_outreach.append(case)
+        cases.append(case)
+
+    for case_id, bene_id in BETA_OUTREACH.items():
+        row = subset[subset["bene_id"] == bene_id].iloc[0]
+        case = build_case(case_id, bene_id, row, year, topk, case_set="beta")
+        beta_outreach.append(case)
+        cases.append(case)
+
+    rank_outreach_cases(alpha_outreach)
+    rank_outreach_cases(beta_outreach)
+
+    for case_id, bene_id in SHARED_CASE_IDS.items():
+        row = subset[subset["bene_id"] == bene_id].iloc[0]
+        cases.append(build_case(case_id, bene_id, row, year, topk, case_set="shared"))
+
+    tasks = [
+        {
+            "task_id": "S1-T0",
+            "study": "study1",
+            "title": "Priority rule tutorial",
+            "time_limit_min": 4,
+            "instructions": "Review the operational priority rule panel, then complete the comprehension check before continuing.",
+            "response_type": "comprehension",
+            "requires_cases": [],
+        },
+        {
+            "task_id": "S1-T1",
+            "study": "study1",
+            "title": "Cohort situational awareness",
+            "time_limit_min": 4,
+            "instructions": "Using the cohort overview only, answer: (a) Which age band has the highest next-year hospitalization rate? (b) Which chronic condition is most prevalent? (c) Approximate average total claims per beneficiary-year.",
+            "response_type": "free_text",
+            "requires_cases": [],
+        },
+        {
+            "task_id": "S1-T2",
+            "study": "study1",
+            "title": "High-risk identification",
+            "time_limit_min": 5,
+            "instructions": "Sort the risk table by hospitalization risk (descending). Select the top 5 beneficiaries and record their IDs and risk percentages.",
+            "response_type": "beneficiary_list",
+            "requires_cases": [],
+        },
+        {
+            "task_id": "S1-T3",
+            "study": "study1",
+            "title": "Risk driver interpretation",
+            "time_limit_min": 6,
+            "instructions": "Open Case B-07. What are the top 3 drivers of hospitalization risk? For each, state whether it increases or decreases risk. SHAP explanations are faithful in this task.",
+            "response_type": "feature_list",
+            "requires_cases": ["B-07"],
+        },
+        {
+            "task_id": "S1-T4a",
+            "study": "study1",
+            "title": "Global model literacy (tutorial)",
+            "time_limit_min": 5,
+            "instructions": "Tutorial only: switch the global importance view across risk targets. Which feature is most important for elevated cost risk at the cohort level?",
+            "response_type": "free_text",
+            "requires_cases": [],
+            "conditions": ["xai"],
+        },
+        {
+            "task_id": "S1-T4b",
+            "study": "study1",
+            "title": "Clinical judgment (Baseline)",
+            "time_limit_min": 5,
+            "instructions": "For Case B-12, using only profile panels, list three factors you would weigh for hospitalization risk and why.",
+            "response_type": "free_text",
+            "requires_cases": ["B-12"],
+            "conditions": ["baseline"],
+        },
+        {
+            "task_id": "S1-T5",
+            "study": "study1",
+            "title": "Outreach prioritization",
+            "time_limit_min": 8,
+            "instructions": "Your assigned outreach quartet needs ranking. Submit an initial priority order, review the AI recommendation, then submit a final order with confidence.",
+            "response_type": "sequential_ranking",
+            "requires_cases": [],
+            "manipulation_slot": "study1",
+            "sequential_judgment": True,
+        },
+        {
+            "task_id": "S1-T6",
+            "study": "study1",
+            "title": "Explanation density (exploratory)",
+            "time_limit_min": 4,
+            "instructions": "For Case B-09, compare concise (top-3) vs expanded (top-5) explanations. Which helped more for an outreach decision?",
+            "response_type": "preference",
+            "requires_cases": ["B-09"],
+            "conditions": ["xai"],
+        },
+        {
+            "task_id": "S2-T1",
+            "study": "study2",
+            "title": "Manual cohort filtering",
+            "time_limit_min": 5,
+            "instructions": "Without the query box, find beneficiaries with diabetes flagged in the top 25 by hospitalization risk. Record the count and highest-risk ID.",
+            "response_type": "beneficiary_list",
+            "requires_cases": [],
+            "conditions": ["baseline"],
+        },
+        {
+            "task_id": "S2-T2",
+            "study": "study2",
+            "title": "Natural-language cohort query",
+            "time_limit_min": 5,
+            "instructions": "Use the query box: 'Top 25 hospitalization risk with diabetes in the last 12 months with at least 50 claims.' Review the interpretation, confirm, and verify one result via drill-down.",
+            "response_type": "query_flow",
+            "requires_cases": [],
+            "conditions": ["llm"],
+            "manipulation_slot": "study2",
+            "suggested_query": "Top 25 hospitalization risk with diabetes in the last 12 months with at least 50 claims",
+        },
+        {
+            "task_id": "S2-T3",
+            "study": "study2",
+            "title": "Summary validation",
+            "time_limit_min": 8,
+            "instructions": "Open Case B-15. Decide whether the summary is supported, flag any unsupported claim, then review the summary and submit a final judgment with confidence.",
+            "response_type": "sequential_claim_review",
+            "requires_cases": ["B-15"],
+            "conditions": ["llm"],
+            "manipulation_slot": "study2",
+            "sequential_judgment": True,
+        },
+        {
+            "task_id": "S2-T4",
+            "study": "study2",
+            "title": "Cross-check summary vs record",
+            "time_limit_min": 5,
+            "instructions": "Using Case B-15, decide whether utilization is a key driver based on the summary and underlying panels.",
+            "response_type": "free_text",
+            "requires_cases": ["B-15"],
+        },
+        {
+            "task_id": "S2-T5",
+            "study": "study2",
+            "title": "Cohort analytics query",
+            "time_limit_min": 6,
+            "instructions": "Ask: 'Cohort summary for chronic prevalence and hospitalization rate.' Answer which chronic condition is most prevalent.",
+            "response_type": "free_text",
+            "requires_cases": [],
+            "conditions": ["llm"],
+            "suggested_query": "Cohort summary for chronic prevalence and hospitalization rate",
+        },
+        {
+            "task_id": "S2-T6",
+            "study": "study2",
+            "title": "Query control check",
+            "time_limit_min": 5,
+            "instructions": "Run: 'Top 10 elevated cost risk with heart failure in the last 12 months with at least 30 claims.' Cancel and rephrase if the interpretation looks wrong before confirming.",
+            "response_type": "query_flow",
+            "requires_cases": [],
+            "conditions": ["llm"],
+            "manipulation_slot": "study2",
+            "suggested_query": "Top 10 elevated cost risk with heart failure in the last 12 months with at least 30 claims",
+        },
+        {
+            "task_id": "S2-T7",
+            "study": "study2",
+            "title": "Export and handoff",
+            "time_limit_min": 3,
+            "instructions": "Export the current risk table to CSV and generate a printable cohort summary.",
+            "response_type": "completion",
+            "requires_cases": [],
+        },
+    ]
 
     payload = {
-        "schema_version": "1.0",
+        "schema_version": "2.0",
         "default_analytic_year": year,
-        "manipulation_catalog": manipulation_catalog
-        or {
-            "M1": "Inverted local SHAP ranking (swap top 2 contributors)",
-            "M2": "Misleading hospitalization risk display (±0.25)",
-            "M3": "False grounded narrative claim contradicting record",
+        "manipulation_catalog": {
+            "M2": "Incorrect outreach recommendation vs operational priority rule",
+            "M3": "Unsupported grounded narrative claim contradicting record",
             "M4": "Incorrect NL query chronic filter",
-            "M5": "Low-confidence risk framing + forced red stability",
+            "M6": "Incorrect NL query time window on interpretation card",
+            "M7": "Omitted utilization threshold on interpretation card",
+        },
+        "priority_rule": {
+            "description": PRIORITY_RULE_DESCRIPTION,
+            "weights": PRIORITY_RULE_WEIGHTS,
+        },
+        "comprehension": {
+            "pass_threshold": 2,
+            "questions": [
+                {
+                    "question_id": "Q1",
+                    "prompt": "Which signal receives the highest weight in the outreach priority rule?",
+                    "choices": [
+                        "Inpatient claims",
+                        "Outpatient claims only",
+                        "Beneficiary age",
+                        "State code",
+                    ],
+                    "correct_index": 0,
+                },
+                {
+                    "question_id": "Q2",
+                    "prompt": "When two cases tie on utilization signals, what should you consult next?",
+                    "choices": [
+                        "Chronic condition burden and total claims in the analytic year",
+                        "Beneficiary name alphabetically",
+                        "Random selection",
+                        "Model version number",
+                    ],
+                    "correct_index": 0,
+                },
+                {
+                    "question_id": "Q3",
+                    "prompt": "Before accepting an AI outreach recommendation you should:",
+                    "choices": [
+                        "Compare it against the priority rule and visible record fields",
+                        "Always accept the top model score",
+                        "Ignore chronic flags",
+                        "Skip verification when the interface looks confident",
+                    ],
+                    "correct_index": 0,
+                },
+            ],
+        },
+        "case_sets": {
+            "alpha": list(ALPHA_OUTREACH.keys()),
+            "beta": list(BETA_OUTREACH.keys()),
         },
         "cases": cases,
         "tasks": tasks,
-        "task_sets": task_sets,
+        "task_sets": {
+            "study1": [
+                "S1-T0",
+                "S1-T1",
+                "S1-T2",
+                "S1-T3",
+                "S1-T4a",
+                "S1-T4b",
+                "S1-T5",
+                "S1-T6",
+            ],
+            "study2": [
+                "S2-T1",
+                "S2-T2",
+                "S2-T3",
+                "S2-T4",
+                "S2-T5",
+                "S2-T6",
+                "S2-T7",
+            ],
+        },
     }
+
     output = REPO_ROOT / "study" / "study_cases.json"
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(payload, indent=2), encoding="utf-8")
-    print(f"Wrote {output}")
+    print(f"Wrote {output} ({len(cases)} cases, {len(tasks)} tasks)")
 
 
 if __name__ == "__main__":
