@@ -8,8 +8,8 @@ from hc_analytics.config import Settings, get_settings
 from hc_analytics.study.loader import get_study_catalog, get_task_by_id
 from hc_analytics.study.models import StudySessionResponse
 
-# Revised proposal Appendix D primary manipulations only.
-STUDY1_MANIPULATION_POOL = ("M2",)
+# Study 1 outreach: 50% faithful vs 50% incorrect recommendation (M2).
+STUDY1_OUTREACH_OUTCOMES = ("correct", "incorrect")
 STUDY2_MANIPULATION_POOL = ("M3", "M4", "M6", "M7")
 CASE_SETS = ("alpha", "beta")
 
@@ -24,10 +24,15 @@ def assign_case_set(participant_id: str) -> str:
 
 def assign_manipulations(participant_id: str) -> Dict[str, str]:
     digest = _participant_digest(participant_id)
+    study1_outreach = STUDY1_OUTREACH_OUTCOMES[digest % len(STUDY1_OUTREACH_OUTCOMES)]
     return {
-        "study1": STUDY1_MANIPULATION_POOL[digest % len(STUDY1_MANIPULATION_POOL)],
+        "study1": "M2" if study1_outreach == "incorrect" else "correct",
         "study2": STUDY2_MANIPULATION_POOL[(digest // 3) % len(STUDY2_MANIPULATION_POOL)],
     }
+
+
+def study1_recommendation_is_manipulated(participant_id: str) -> bool:
+    return assign_manipulations(participant_id)["study1"] == "M2"
 
 
 def active_manipulations_for_task(
@@ -45,9 +50,9 @@ def active_manipulations_for_task(
 
     assignments = assign_manipulations(participant_id)
     manipulation_id = assignments.get(task.manipulation_slot)
-    if manipulation_id:
-        return [manipulation_id]
-    return []
+    if not manipulation_id or manipulation_id == "correct":
+        return []
+    return [manipulation_id]
 
 
 def new_trial_id() -> str:

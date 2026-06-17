@@ -416,7 +416,12 @@ export function TaskPanel({
         <>
           {facilitatorMode ? (
             <div className="study-assignments facilitator-only">
-              <span>Study 1 assignment: {assignments.study1 ?? "—"}</span>
+              <span>
+                Study 1 outreach:{" "}
+                {assignments.study1 === "correct"
+                  ? "faithful recommendation"
+                  : (assignments.study1 ?? "—")}
+              </span>
               <span>Study 2 assignment: {assignments.study2 ?? "—"}</span>
             </div>
           ) : null}

@@ -81,15 +81,15 @@ Record in secure spreadsheet (not in event logs):
 
 | Participant | Study | Condition order | Case set | Manipulation (facilitator) | Date |
 |-------------|-------|-----------------|----------|---------------------------|------|
-| P001 | study1 | Baseline → XAI | α | study1=M2 | |
-| P002 | study1 | XAI → Baseline | β | study1=M2 | |
+| P001 | study1 | Baseline → XAI | α | faithful or M2 | |
+| P002 | study1 | XAI → Baseline | β | faithful or M2 | |
 | P003 | study2 | Baseline → LLM | α | study2=M4 | |
 
 **Rules:**
 
 - Alternate condition order across consecutive participants.
 - Case set (α/β) is auto-assigned by participant ID hash — verify in facilitator panel.
-- Manipulation ID is deterministic — visible only with `facilitator=1`.
+- Manipulation ID is deterministic — visible only with `facilitator=1` as **faithful recommendation** or **M2**.
 
 ---
 

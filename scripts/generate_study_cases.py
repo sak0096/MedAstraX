@@ -329,6 +329,7 @@ def main() -> None:
         "schema_version": "2.0",
         "default_analytic_year": year,
         "manipulation_catalog": {
+            "correct": "Faithful outreach recommendation matching operational priority rule",
             "M2": "Incorrect outreach recommendation vs operational priority rule",
             "M3": "Unsupported grounded narrative claim contradicting record",
             "M4": "Incorrect NL query chronic filter",

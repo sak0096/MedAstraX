@@ -26,7 +26,8 @@ Companion to the revised dissertation proposal Appendices A, D, E, and F.
 
 | Category | Example in MedAstraX | Validity requirement | Status |
 |----------|---------------------|----------------------|--------|
-| Incorrect outreach recommendation | M2 on S1-T5 — promotes low-priority case | Rule + record fields visible; initial/final ranks logged | **Primary** |
+| Incorrect outreach recommendation | M2 on S1-T5 — promotes low-priority case | Rule + record fields visible; initial/final ranks logged | **Primary** (~50% of participants) |
+| Faithful outreach recommendation | `correct` on S1-T5 — matches priority rule | Same procedure; enables beneficial-correction analysis | **Primary** (~50% of participants) |
 | Unsupported narrative claim | M3 on S2-T3 — false inpatient claim | Contradicts `inpatient_claims` etc.; evidence links work | **Primary** |
 | Incorrect query condition | M4 — hypertension for diabetes | Interpretation card shows filter before execute | **Primary** |
 | Incorrect query time window | M6 — shows 6 mo vs 12 mo requested | Task text + interpretation card | **Primary** |

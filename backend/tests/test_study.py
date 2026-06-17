@@ -13,7 +13,7 @@ from hc_analytics.study.manipulations import apply_query_manipulations, apply_su
 from hc_analytics.study.models import StudyCaseDefinition
 from hc_analytics.study.priority import compute_priority_score, incorrect_recommendation_ranking, rank_case_ids
 from hc_analytics.study.recommendations import build_outreach_recommendation
-from hc_analytics.study.scoring import score_outreach_trial
+from hc_analytics.study.scoring import score_outreach_trial, score_session_events
 from hc_analytics.study.session import assign_case_set, assign_manipulations
 
 
@@ -153,8 +153,14 @@ def test_assign_manipulations_v2_is_deterministic() -> None:
     first = assign_manipulations("P001")
     second = assign_manipulations("P001")
     assert first == second
-    assert first["study1"] == "M2"
+    assert first["study1"] in {"M2", "correct"}
     assert first["study2"] in {"M3", "M4", "M6", "M7"}
+
+
+def test_study1_outreach_counterbalancing() -> None:
+    outcomes = {assign_manipulations(f"P{i:03d}")["study1"] for i in range(32)}
+    assert "M2" in outcomes
+    assert "correct" in outcomes
 
 
 def test_assign_case_set() -> None:
@@ -222,6 +228,52 @@ def test_score_outreach_trial_harmful_switch() -> None:
     )
     assert metrics["harmful_switching"] is True
     assert metrics["incorrect_ai_adherence"] is True
+
+
+def test_score_outreach_trial_beneficial_correction() -> None:
+    metrics = score_outreach_trial(
+        initial_ranking=["B-01", "B-02"],
+        final_ranking=["B-02", "B-01"],
+        correct_ranking=["B-02", "B-01"],
+        recommendation_ranking=["B-02", "B-01"],
+        manipulated=False,
+    )
+    assert metrics["beneficial_correction"] is True
+    assert metrics["harmful_switching"] is False
+
+
+def test_score_session_events_reads_initial_response_event() -> None:
+    events = [
+        {
+            "event_type": "task_initial_response",
+            "timestamp": "2026-01-01T00:00:00",
+            "task_id": "S1-T5",
+            "payload": {
+                "trial_id": "trial-1",
+                "phase": "initial",
+                "responses": {"ranking": ["B-01", "B-02"]},
+            },
+        },
+        {
+            "event_type": "task_response",
+            "timestamp": "2026-01-01T00:05:00",
+            "task_id": "S1-T5",
+            "payload": {
+                "trial_id": "trial-1",
+                "phase": "final",
+                "responses": {"ranking": ["B-02", "B-01"]},
+                "manipulated": False,
+                "ground_truth": {
+                    "correct_ranking": ["B-02", "B-01"],
+                    "recommendation_ranking": ["B-02", "B-01"],
+                },
+            },
+        },
+    ]
+    report = score_session_events(events)
+    assert report["trial_count"] == 1
+    assert report["faithful_trial_count"] == 1
+    assert report["trials"][0]["beneficial_correction"] is True
 
 
 def test_study_api_session_and_sequential_response(study_settings: Settings, monkeypatch: pytest.MonkeyPatch) -> None:

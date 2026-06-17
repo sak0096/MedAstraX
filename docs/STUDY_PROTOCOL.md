@@ -94,7 +94,7 @@ http://localhost:5173/?participant=P001&study=study2
 - **Study 1:** 50% Baseline→XAI, 50% XAI→Baseline (facilitator assignment sheet).
 - **Study 2:** 50% Baseline→LLM, 50% LLM→Baseline.
 - **Case set:** α vs β assigned automatically per `participant` ID (parallel outreach quadruplets).
-- **Manipulations:** one primary error trial per study arm, deterministically assigned per participant (facilitator sees via `facilitator=1`).
+- **Manipulations:** one primary error trial per study arm on average — Study 1 outreach is **50% faithful / 50% incorrect (M2)** per participant; Study 2 query/narrative errors assigned per participant from M3/M4/M6/M7.
 
 ### 3.4 Facilitator script anchors
 
@@ -119,6 +119,8 @@ http://localhost:5173/?participant=P001&study=study2
 **Excluded from primary design:** inverted SHAP, arbitrary wrong risk scores, confidence-framing-only manipulations.
 
 **Faithful stimuli:** local SHAP on S1-T3; frozen summaries on S2-T3+; priority rule fields on beneficiary panels.
+
+**Study 1 outreach counterbalancing:** each participant receives either a **faithful** AI recommendation (`correct`, ~50%) or an **incorrect** recommendation (`M2`, ~50%) on S1-T5. Assignment is deterministic from `participant` ID. Enables harmful-switching (incorrect AI) and beneficial-correction (faithful AI) contrasts.
 
 ### 4.1 Sequential judgment (S1-T5, S2-T3)
 
@@ -163,7 +165,7 @@ Participants treat the dashboard as **decision support**, not bedside diagnosis.
 | **S1-T3** | Risk driver interpretation | 6 min | All | Case **B-07**; **faithful SHAP** in XAI; no manipulation |
 | **S1-T4a** | Global model literacy | 5 min | XAI only | **Tutorial/exploratory** — not primary RQ |
 | **S1-T4b** | Clinical judgment | 5 min | Baseline only | Case **B-12**; profile panels only |
-| **S1-T5** | Outreach prioritization | 8 min | All | **Sequential ranking**; α/β case quartet; **M2** on manipulation sessions |
+| **S1-T5** | Outreach prioritization | 8 min | All | **Sequential ranking**; α/β case quartet; **faithful or M2** recommendation (~50/50) |
 | **S1-T6** | Explanation density | 4 min | XAI only | **Exploratory** — Case B-09 |
 
 ### S1-T5 procedure (facilitator)

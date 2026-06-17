@@ -10,7 +10,13 @@ from hc_analytics.study.loader import get_study_catalog, get_task_by_id, tasks_f
 from hc_analytics.study.models import ComprehensionSubmission, TaskResponseSubmission
 from hc_analytics.study.recommendations import build_outreach_recommendation, outreach_case_ids_for_participant
 from hc_analytics.study.scoring import score_session_events
-from hc_analytics.study.session import active_manipulations_for_task, new_trial_id, resolve_study_session
+from hc_analytics.study.session import (
+    active_manipulations_for_task,
+    assign_manipulations,
+    new_trial_id,
+    resolve_study_session,
+    study1_recommendation_is_manipulated,
+)
 
 router = APIRouter(prefix="/api/study", tags=["study"])
 
@@ -121,6 +127,11 @@ def start_task(
         outreach_case_ids = outreach_case_ids_for_participant(participant_id, settings=settings)
 
     trial_id = new_trial_id() if task.sequential_judgment else None
+    recommendation_correctness = None
+    if task.task_id == "S1-T5" or task.manipulation_slot == "study1":
+        recommendation_correctness = (
+            "incorrect" if study1_recommendation_is_manipulated(participant_id) else "faithful"
+        )
 
     if settings.log_events:
         log_event(
@@ -132,6 +143,7 @@ def start_task(
                 payload={
                     "study": task.study,
                     "active_manipulation": active_manipulation,
+                    "recommendation_correctness": recommendation_correctness,
                     "requires_cases": task.requires_cases or outreach_case_ids,
                     "trial_id": trial_id,
                     "sequential_judgment": task.sequential_judgment,
@@ -143,6 +155,7 @@ def start_task(
     return {
         "task": _public_task(task),
         "active_manipulation": active_manipulation,
+        "recommendation_correctness": recommendation_correctness,
         "trial_id": trial_id,
         "outreach_case_ids": outreach_case_ids,
         "cases": [case for case in session.cases if case["case_id"] in case_ids],
@@ -165,8 +178,7 @@ def outreach_recommendation(
     if not case_ids:
         raise HTTPException(status_code=404, detail="No outreach cases assigned.")
 
-    active = active_manipulations_for_task(participant_id, task_id, settings=settings)
-    manipulated = "M2" in active
+    manipulated = study1_recommendation_is_manipulated(participant_id)
     recommendation = build_outreach_recommendation(
         case_ids,
         manipulated=manipulated,
@@ -192,7 +204,7 @@ def submit_task_response(task_id: str, submission: TaskResponseSubmission) -> Di
     ground_truth: Dict[str, Any] = {}
     if task.response_type in {"sequential_ranking", "ranking"} and submission.phase == "final":
         case_ids = outreach_case_ids_for_participant(submission.participant_id, settings=settings)
-        manipulated = active_manipulation == "M2"
+        manipulated = study1_recommendation_is_manipulated(submission.participant_id)
         recommendation = build_outreach_recommendation(
             case_ids,
             manipulated=manipulated,
@@ -202,7 +214,8 @@ def submit_task_response(task_id: str, submission: TaskResponseSubmission) -> Di
             "correct_ranking": recommendation["correct_ranking"],
             "recommendation_ranking": recommendation["recommended_ranking"],
             "manipulated": recommendation["manipulated"],
-            "manipulation_type": active_manipulation,
+            "manipulation_type": "M2" if manipulated else "correct",
+            "recommendation_correctness": "incorrect" if manipulated else "faithful",
         }
 
     event_type = (
@@ -224,7 +237,18 @@ def submit_task_response(task_id: str, submission: TaskResponseSubmission) -> Di
         "reliance_source": submission.reliance_source,
         "ground_truth": ground_truth or None,
         "manipulated": ground_truth.get("manipulated") if ground_truth else None,
-        "manipulation_type": active_manipulation,
+        "manipulation_type": (
+            "M2"
+            if task.manipulation_slot == "study1" and study1_recommendation_is_manipulated(submission.participant_id)
+            else active_manipulation
+        ),
+        "recommendation_correctness": (
+            "incorrect"
+            if task.manipulation_slot == "study1" and study1_recommendation_is_manipulated(submission.participant_id)
+            else "faithful"
+            if task.manipulation_slot == "study1"
+            else None
+        ),
     }
 
     if settings.log_events:

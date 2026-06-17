@@ -56,20 +56,22 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
             continue
         bucket = trials.setdefault(str(trial_id), {"events": []})
         bucket["events"].append(event)
-        if event.get("event_type") == "task_response":
-            phase = payload.get("phase")
-            if phase == "initial":
-                bucket["initial_ranking"] = _normalize_ranking(
-                    (payload.get("responses") or {}).get("ranking")
-                )
-                bucket["initial_confidence"] = payload.get("confidence")
-            elif phase == "final":
-                bucket["final_ranking"] = _normalize_ranking(
-                    (payload.get("responses") or {}).get("ranking")
-                )
-                bucket["final_confidence"] = payload.get("confidence")
-                bucket["ground_truth"] = payload.get("ground_truth")
-                bucket["manipulated"] = payload.get("manipulated")
+        event_type = event.get("event_type")
+        if event_type not in {"task_response", "task_initial_response"}:
+            continue
+        phase = payload.get("phase")
+        if event_type == "task_initial_response" or phase == "initial":
+            bucket["initial_ranking"] = _normalize_ranking(
+                (payload.get("responses") or {}).get("ranking")
+            )
+            bucket["initial_confidence"] = payload.get("confidence")
+        elif phase == "final":
+            bucket["final_ranking"] = _normalize_ranking(
+                (payload.get("responses") or {}).get("ranking")
+            )
+            bucket["final_confidence"] = payload.get("confidence")
+            bucket["ground_truth"] = payload.get("ground_truth")
+            bucket["manipulated"] = payload.get("manipulated")
 
     scored: List[Dict[str, Any]] = []
     for trial_id, trial in trials.items():
@@ -87,7 +89,7 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
             recommendation_ranking=recommendation,
             manipulated=bool(trial.get("manipulated")),
         )
-        scored.append({"trial_id": trial_id, **metrics})
+        scored.append({"trial_id": trial_id, "manipulated": bool(trial.get("manipulated")), **metrics})
 
     return {
         "trial_count": len(scored),
@@ -95,6 +97,16 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
         "harmful_switching_rate": _rate(scored, "harmful_switching"),
         "appropriate_rejection_rate": _rate(scored, "appropriate_rejection"),
         "beneficial_correction_rate": _rate(scored, "beneficial_correction"),
+        "incorrect_trial_count": sum(1 for row in scored if row.get("manipulated")),
+        "faithful_trial_count": sum(1 for row in scored if row.get("manipulated") is False),
+        "harmful_switching_rate_incorrect_trials": _rate(
+            [row for row in scored if row.get("manipulated")],
+            "harmful_switching",
+        ),
+        "beneficial_correction_rate_faithful_trials": _rate(
+            [row for row in scored if not row.get("manipulated")],
+            "beneficial_correction",
+        ),
     }
 
 
