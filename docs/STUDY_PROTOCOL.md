@@ -3,7 +3,7 @@
 **Dissertation:** *Human-Centered Explainable AI for Healthcare Analytics*  
 **Instrument:** MedAstraX research prototype (CMS Synthetic RIF, ~8,671 beneficiaries, 2015–2023 claims)  
 **Conditions:** `baseline` · `xai` · `llm`  
-**Version:** 1.0 (aligned with proposal Chapter 3 and prototype Phases 5–8)
+**Version:** 2.0 (aligned with revised dissertation proposal — sequential judgments, Appendix D error catalog)
 
 ---
 
@@ -20,19 +20,9 @@ This protocol operationalizes the dissertation’s two within-subjects experimen
 
 **Session length:** 50–65 minutes (tutorial 5 min · Study 1 block ~20 min · break 5 min · Study 2 block ~20 min · surveys 10 min · interview 10–15 min).
 
-**Sample:** *n* ≈ 40–50 per study arm (or *n* ≈ 40–50 total if each participant completes both studies in one session). Eligibility: ≥2 years in healthcare analytics, care coordination, utilization management, or clinical decision support; basic dashboard/EHR familiarity.
+**Sample:** Separate participant samples per study (*n* ≈ 40–50 Study 1; *n* ≈ 40–50 Study 2). Do **not** use `study=full` in production sessions — facilitator/dev only.
 
----
-
-## 2. Materials participants receive
-
-1. **Consent & data-use notice** — synthetic CMS data only; no PHI; screen recording optional.
-2. **Scenario booklet** — care-management framing (see §5).
-3. **Case packets** — pre-selected `bene_id` + `analytic_year` pairs with ground-truth answer keys (prepared by research team from feature store).
-4. **Task response form** — paper or Qualtrics/Google Form for decisions not captured in-app (outreach priority ranks, explanation judgments, error-detection flags).
-5. **Post-condition surveys** — see [SURVEY_INSTRUMENTS.md](./SURVEY_INSTRUMENTS.md).
-
-**URL convention:** `http://localhost:5173/?participant=P###` (instrumentation pseudonymizes on export).
+**URL convention:** `http://localhost:5173/?participant=P###&study=study1` (or `study2`). Add `&facilitator=1` for manipulation visibility (facilitators only).
 
 **Condition switching:** Restart backend with `HC_EXPERIMENTAL_CONDITION=baseline|xai|llm` between blocks (or deploy three fixed URLs for multi-machine setup).
 
@@ -62,29 +52,36 @@ This protocol operationalizes the dissertation’s two within-subjects experimen
 
 ---
 
-## 4. Manipulation trials (overreliance & trust calibration)
+## 4. Controlled errors (revised Appendix D)
 
-> **Prototype status:** The proposal calls for ~25% of trials with intentionally incorrect or low-confidence AI outputs (§3.5). **This is not yet implemented in MedAstraX.** See §9 for required engineering.
+### 4.1 Primary manipulations (v2)
 
-### 4.1 Purpose
+| ID | Error | Study | Measurement |
+|----|-------|-------|-------------|
+| **M2** | Incorrect **outreach recommendation** vs operational priority rule | Study 1 | Initial→final ranking; harmful switching |
+| **M3** | Unsupported grounded narrative claim | Study 2 | Claim validation; evidence-link opens |
+| **M4** | Incorrect NL chronic filter | Study 2 | Query reject/revise |
+| **M6** | Incorrect query time window on interpretation card | Study 2 | Query reject/revise |
+| **M7** | Omitted utilization threshold on interpretation card | Study 2 | Query reject/revise |
 
-Measure **appropriate reliance** — agreement with correct AI outputs minus agreement with incorrect outputs — and **error detection** when explanations increase fluency without improving judgment (H2c; Bucinca et al.; Bansal et al.).
+**Excluded from primary design:** inverted SHAP (M1), arbitrary wrong risk scores, confidence-framing-only trials. SHAP is **faithful** during interpretation tasks; errors target recommendations, claims, and query interpretations.
 
-### 4.2 Trial types (2 manipulation trials per 8-task session ≈ 25%)
+### 4.2 Sequential judgment workflow
 
-| Trial ID | Manipulation | Applies in | Participant decision measured |
-|----------|--------------|------------|------------------------------|
-| **M1** | **Inverted local explanation** — top SHAP contributor swapped with 2nd contributor (direction flipped) | XAI, LLM | “Which feature most increases hospitalization risk?” (multiple choice) |
-| **M2** | **Misleading risk band** — displayed hospitalization risk ±0.25 (capped 0–1) while table sort uses true score | All | Outreach priority rank vs ground truth |
-| **M3** | **False narrative claim** — one grounded LLM sentence cites a chronic condition the beneficiary does not have | LLM | “Flag any statement not supported by the record” (yes/no + which) |
-| **M4** | **Incorrect NL interpretation** — parser returns wrong chronic filter (e.g., diabetes→hypertension) | LLM | Reject vs confirm on query confirmation step |
-| **M5** | **Low-confidence framing** — risk pill labeled “Low confidence” + stability badge forced red | XAI | Reliance vs skepticism on outreach task |
+Outreach (S1-T5) and summary validation (S2-T3) require:
+1. **Initial** judgment + confidence (before AI assistance)
+2. AI assistance (recommendation or frozen summary)
+3. **Final** judgment + confidence + reliance source
 
-Each participant receives **one M-trial in Study 1** and **one M-trial in Study 2**, drawn from {M1,M2,M5} and {M2,M3,M4} respectively, counterbalanced.
+Logged events: `task_initial_response`, `task_response`, `evidence_link_open`, `comprehension_complete`.
 
-### 4.3 Logging requirements for M-trials
+### 4.3 Operational priority rule
 
-Each manipulation trial must log: `task_id`, `trial_type`, `manipulation_version`, `ground_truth`, `participant_response`, `time_to_decision_ms`, `revision_count`, `condition`.
+Taught in S1-T0 comprehension gate. Scoring weights: inpatient claims (×3), outpatient claims (×0.5), chronic conditions (×2), total claims (×0.1). Parallel case sets **α** and **β** reduce memory effects across conditions.
+
+### 4.4 Facilitator-only disclosure
+
+Manipulation assignments are hidden from participants. Use `?facilitator=1` during pilot facilitation. Debrief discloses intentional errors post-session.
 
 ---
 
