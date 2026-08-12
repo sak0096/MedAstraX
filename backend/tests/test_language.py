@@ -3,6 +3,7 @@ from __future__ import annotations
 from pathlib import Path
 
 import json
+import httpx
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
@@ -12,7 +13,7 @@ from hc_analytics.config import Settings
 from hc_analytics.explainability.pipeline import run_explainability
 from hc_analytics.language.query_cache import load_result
 from hc_analytics.language.query_parser import parse_natural_language_query
-from hc_analytics.language.summaries import build_grounded_summary
+from hc_analytics.language.summaries import build_grounded_summary, build_template_narrative
 from hc_analytics.modeling.pipeline import run_training
 
 
@@ -200,7 +201,7 @@ def test_openai_polish_and_claim_guard(language_settings: Settings, monkeypatch)
     run_training(language_settings, test_year_count=2)
     run_explainability(language_settings, top_k=3, max_rows=8)
     from hc_analytics.explainability.pipeline import load_cached_bundle
-    from hc_analytics.language.provider import generate_grounded_summary
+    from hc_analytics.language.provider import generate_grounded_summary, prompt_fingerprint
 
     bundle = load_cached_bundle("B1", 2019, settings=language_settings)
     assert bundle is not None
@@ -212,6 +213,21 @@ def test_openai_polish_and_claim_guard(language_settings: Settings, monkeypatch)
             "llm_model": "gpt-test",
             "llm_temperature": 0.0,
         }
+    )
+
+    from hc_analytics.language.openai_provider import build_polish_prompt
+
+    template = build_template_narrative(bundle)
+    prompt = build_polish_prompt(bundle, template)
+    assert prompt["prompt_version"] == "grounded-polish-v4"
+    assert "exactly three short sentences" in prompt["system"]
+    assert "only numbers" in prompt["system"]
+    assert "Describe effects on the prediction" in prompt["system"]
+    template_settings = configured.model_copy(
+        update={"llm_provider": None, "llm_api_key": None, "llm_model": None}
+    )
+    assert prompt_fingerprint(bundle, settings=configured) != prompt_fingerprint(
+        bundle, settings=template_settings
     )
 
     class _FakeResponse:
@@ -265,3 +281,43 @@ def test_openai_polish_and_claim_guard(language_settings: Settings, monkeypatch)
     monkeypatch.setattr("hc_analytics.language.openai_provider.httpx.Client", _DriftClient)
     fallback = generate_grounded_summary(bundle, settings=configured, allow_llm=True)
     assert fallback.provider == "template_fallback"
+
+    class _RateLimitClient(_FakeClient):
+        calls = 0
+
+        def post(self, *args, **kwargs):
+            self.__class__.calls += 1
+            if self.__class__.calls == 1:
+                request = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+                return httpx.Response(
+                    429,
+                    headers={"retry-after": "0"},
+                    json={"error": {"type": "rate_limit_error", "code": "rate_limit_exceeded"}},
+                    request=request,
+                )
+            return _FakeResponse()
+
+    retry_settings = configured.model_copy(
+        update={"llm_max_attempts": 2, "llm_retry_base_seconds": 0.0}
+    )
+    monkeypatch.setattr("hc_analytics.language.openai_provider.httpx.Client", _RateLimitClient)
+    retried = generate_grounded_summary(bundle, settings=retry_settings, allow_llm=True)
+    assert retried.provider == "openai"
+    assert _RateLimitClient.calls == 2
+
+    class _NoCreditClient(_FakeClient):
+        calls = 0
+
+        def post(self, *args, **kwargs):
+            self.__class__.calls += 1
+            request = httpx.Request("POST", "https://api.openai.com/v1/chat/completions")
+            return httpx.Response(
+                429,
+                json={"error": {"type": "insufficient_quota", "code": "credit_balance_exhausted"}},
+                request=request,
+            )
+
+    monkeypatch.setattr("hc_analytics.language.openai_provider.httpx.Client", _NoCreditClient)
+    with pytest.raises(RuntimeError, match="credit_balance_exhausted"):
+        generate_grounded_summary(bundle, settings=retry_settings, allow_llm=True)
+    assert _NoCreditClient.calls == 1

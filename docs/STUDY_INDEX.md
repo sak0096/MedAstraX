@@ -22,6 +22,7 @@ Start here for human-participant research using the prototype.
 | `study/adjudication_queue.json` | Human review queue when `HC_LLM_*` generates candidates |
 | `scripts/generate_study_cases.py` | Regenerate catalog from parquet/SHAP |
 | `scripts/generate_frozen_summaries.py` | Regenerate frozen summaries (`--require-llm` / `--allow-template`) |
+| `scripts/audit_frozen_summaries.py` | Validate the three-outcome evidence contract; optional AI-assisted precheck |
 | `scripts/apply_adjudication.py` | Apply accept/use_template decisions into frozen summaries |
 | `scripts/score_study_session.py` | Behavioral reliance metrics from export |
 
@@ -31,5 +32,7 @@ Start here for human-participant research using the prototype.
 |-----------|--------------|
 | **Formative pilot** | IRB submitted or exempt; facilitator runbook; `HC_STUDY_MODE=true`; Qualtrics draft |
 | **Confirmatory collection** | IRB approved; pilot complete; preregistration; frozen protocol + survey versions |
+
+Current Study 2 narratives are pinned to the model and prompt version recorded in `study/frozen_summaries.json`. The AI-assisted evidence audit is complete; `human_adjudication_required` remains true until a person reviews every queue item, records `reviewer_type: "human"`, and reruns `scripts/apply_adjudication.py --require-complete`.
 
 Participant URLs: `?participant=P001&study=study1&condition=baseline` (then the other condition without restarting the API).

@@ -34,6 +34,7 @@ def main() -> None:
     queue = json.loads(args.queue.read_text(encoding="utf-8"))
     summaries = json.loads(args.summaries.read_text(encoding="utf-8"))
     pending = []
+    human_review_pending = []
     accepted = 0
     rejected_to_template = 0
 
@@ -44,7 +45,7 @@ def main() -> None:
         if status == "auto_accepted_template":
             accepted += 1
             continue
-        if status == "pending" or not decision:
+        if not decision:
             pending.append(key)
             continue
         if decision == "accept_candidate":
@@ -66,15 +67,28 @@ def main() -> None:
         else:
             pending.append(key)
 
-    if args.require_complete and pending:
-        raise SystemExit(f"Adjudication incomplete for: {', '.join(pending)}")
+        reviewer_type = item.get("reviewer_type")
+        if reviewer_type is None and item.get("reviewer"):
+            # Backward compatibility: queues created before reviewer_type existed
+            # could only be completed through the documented human workflow.
+            reviewer_type = "human"
+        if reviewer_type != "human":
+            human_review_pending.append(key)
+
+    incomplete = pending + human_review_pending
+    if args.require_complete and incomplete:
+        raise SystemExit(f"Adjudication incomplete for: {', '.join(dict.fromkeys(incomplete))}")
 
     summaries["adjudication_applied_at"] = datetime.now(timezone.utc).isoformat()
-    summaries["adjudication_required"] = bool(pending)
+    summaries["technical_adjudication_required"] = bool(pending)
+    summaries["human_adjudication_required"] = bool(human_review_pending)
+    summaries["adjudication_required"] = bool(incomplete)
+    queue["human_review"] = "pending" if human_review_pending else "complete"
     args.summaries.write_text(json.dumps(summaries, indent=2), encoding="utf-8")
     args.queue.write_text(json.dumps(queue, indent=2), encoding="utf-8")
     print(
-        f"Applied adjudication: accepted={accepted}, template_selected={rejected_to_template}, pending={len(pending)}"
+        f"Applied adjudication: accepted={accepted}, template_selected={rejected_to_template}, "
+        f"technical_pending={len(pending)}, human_review_pending={len(human_review_pending)}"
     )
 
 

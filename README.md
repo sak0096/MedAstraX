@@ -128,7 +128,7 @@ Pass `condition=baseline|xai|llm` on the participant URL (and `X-Study-Condition
 | XAI | `xai` | Baseline + global SHAP importance, local SHAP bars, stability badges, layered disclosure (top 3 / 5), fairness cues |
 | NL-assisted (`llm` key) | `llm` | Baseline + grounded summaries with evidence links, NL query (interpret → confirm → execute) |
 
-The Study 2 URL key remains `llm` for compatibility. Stimuli are grounded natural-language augmentation (frozen templates by default). Optional named-model polish requires `HC_LLM_*`, `scripts/generate_frozen_summaries.py --require-llm`, human adjudication via `study/adjudication_queue.json`, and `scripts/apply_adjudication.py` before confirmatory use.
+The Study 2 URL key remains `llm` for compatibility. The committed stimuli are grounded natural-language augmentation polished with the named model recorded in `study/frozen_summaries.json`. The automated evidence audit does not replace human adjudication: confirmatory use still requires a human to review `study/adjudication_queue.json` and run `scripts/apply_adjudication.py --require-complete`.
 
 XAI and NL-assisted conditions require cached explanations (`python -m hc_analytics.explainability`). More UI detail: [frontend/README.md](frontend/README.md).
 
@@ -172,7 +172,8 @@ python scripts/generate_study_cases.py
 python scripts/generate_frozen_summaries.py --allow-template
 # Optional named-model polish (requires HC_LLM_* + human review):
 # python scripts/generate_frozen_summaries.py --require-llm
-# edit study/adjudication_queue.json decisions, then:
+# python scripts/audit_frozen_summaries.py --record-decisions  # AI-assisted precheck only
+# have a person review every item; set reviewer_type="human", then:
 # python scripts/apply_adjudication.py --require-complete
 ```
 

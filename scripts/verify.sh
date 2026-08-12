@@ -15,6 +15,9 @@ activate_backend_venv
 log "Running backend tests..."
 (cd "$BACKEND" && pytest -q)
 
+log "Auditing frozen Study 2 summaries..."
+(cd "$ROOT" && python scripts/audit_frozen_summaries.py)
+
 load_nvm 2>/dev/null || true
 log "Building frontend (TypeScript + Vite)..."
 (cd "$FRONTEND" && npm run build)

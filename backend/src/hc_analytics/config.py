@@ -42,6 +42,9 @@ class Settings(BaseSettings):
     llm_api_key: Optional[str] = None
     llm_model: Optional[str] = None
     llm_temperature: float = 0.0
+    llm_max_attempts: int = 8
+    llm_retry_base_seconds: float = 1.0
+    llm_retry_cap_seconds: float = 30.0
 
     stability_method: str = "bootstrap"  # bootstrap | margin
     bootstrap_iterations: int = 5

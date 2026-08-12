@@ -37,6 +37,17 @@ def _feature_label(feature: str) -> str:
     return FEATURE_LABELS.get(feature, feature.replace("_", " "))
 
 
+def _feature_value(feature: str, value: object) -> str:
+    if isinstance(value, (int, float)) and not isinstance(value, bool):
+        numeric = float(value)
+        if feature.endswith("_payment_amt"):
+            return f"${numeric:,.2f}"
+        if numeric.is_integer():
+            return f"{int(numeric):,}"
+        return f"{numeric:,.2f}"
+    return str(value)
+
+
 def _target_sentence(target: TargetExplanation) -> str:
     risk_text = (
         f"{target.target_short.replace('_', ' ')} risk is {target.risk_score:.0%}"
@@ -51,7 +62,7 @@ def _target_sentence(target: TargetExplanation) -> str:
         direction = "raised" if contributor.direction == "increases_risk" else "lowered"
         value_text = ""
         if contributor.feature_value is not None:
-            value_text = f" (value: {contributor.feature_value})"
+            value_text = f" (value: {_feature_value(contributor.feature, contributor.feature_value)})"
         contributor_bits.append(
             f"{_feature_label(contributor.feature)}{value_text} {direction} risk"
         )

@@ -73,7 +73,7 @@ def main() -> None:
         )
         key = f"{bene_id}:{YEAR}"
         summaries[key] = summary.model_dump(mode="json")
-        prompt_hash = prompt_fingerprint(bundle)
+        prompt_hash = prompt_fingerprint(bundle, settings=settings)
         prompt_hashes[key] = prompt_hash
         adjudication.append(
             adjudication_record(
@@ -105,10 +105,12 @@ def main() -> None:
     queue_path.write_text(
         json.dumps(
             {
-                "schema_version": "1.0",
+                "schema_version": "1.1",
                 "generated_at": meta["generated_at"],
                 "provider": meta["provider"],
                 "llm_model": meta.get("llm_model"),
+                "ai_evidence_audit": "pending" if meta["provider"] != "template" else "not_required",
+                "human_review": "pending" if meta["provider"] != "template" else "not_required",
                 "items": adjudication,
             },
             indent=2,

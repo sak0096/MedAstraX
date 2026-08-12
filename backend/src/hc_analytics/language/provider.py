@@ -24,12 +24,25 @@ def provider_configured(settings: Optional[Settings] = None) -> bool:
     return bool(settings.llm_provider and settings.llm_api_key and settings.llm_model)
 
 
-def prompt_fingerprint(bundle: EvidenceBundle) -> str:
+def prompt_fingerprint(
+    bundle: EvidenceBundle,
+    settings: Optional[Settings] = None,
+) -> str:
+    settings = settings or get_settings()
     payload = {
         "bene_id": bundle.bene_id,
         "analytic_year": bundle.analytic_year,
         "targets": [target.model_dump() for target in bundle.targets],
     }
+    if provider_configured(settings):
+        from hc_analytics.language.openai_provider import build_polish_prompt
+
+        payload["prompt"] = build_polish_prompt(bundle, build_template_narrative(bundle))
+    else:
+        payload["prompt"] = {
+            "prompt_version": "grounded-template-v1",
+            "template": build_template_narrative(bundle),
+        }
     digest = hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode("utf-8")).hexdigest()
     return digest[:16]
 
@@ -90,6 +103,12 @@ def freeze_metadata(settings: Optional[Settings] = None) -> dict:
     settings = settings or get_settings()
     configured = provider_configured(settings)
     provider = active_provider_name(settings) if configured else "template"
+    if configured:
+        from hc_analytics.language.openai_provider import PROMPT_VERSION
+
+        prompt_version = PROMPT_VERSION
+    else:
+        prompt_version = "grounded-template-v1"
     return {
         "schema_version": "1.2",
         "generated_at": datetime.now(timezone.utc).isoformat(),
@@ -97,11 +116,13 @@ def freeze_metadata(settings: Optional[Settings] = None) -> dict:
         "provider": provider,
         "llm_model": settings.llm_model if configured else None,
         "llm_temperature": settings.llm_temperature if configured else None,
-        "prompt_version": "grounded-polish-v1" if configured else "grounded-template-v1",
+        "prompt_version": prompt_version,
         "model_version": (
             f"frozen-{settings.llm_model}" if configured and settings.llm_model else "frozen-template-v1"
         ),
         "adjudication_required": configured,
+        "technical_adjudication_required": configured,
+        "human_adjudication_required": configured,
         "notes": (
             "When HC_LLM_* is configured, narratives are LLM-polished over grounded claims and "
             "must be human-adjudicated via study/adjudication_queue.json before confirmatory use. "
@@ -132,6 +153,7 @@ def adjudication_record(
         "status": "pending" if summary.provider != "template" else "auto_accepted_template",
         "decision": None,
         "reviewer": None,
+        "reviewer_type": None,
         "reviewed_at": None,
         "notes": None,
     }
