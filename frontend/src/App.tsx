@@ -10,6 +10,7 @@ import {
   getStudySession,
 } from "./api/client";
 import { BeneficiaryDetail } from "./components/BeneficiaryDetail";
+import { CohortFilterBar, type CohortFilterState } from "./components/CohortFilterBar";
 import { CohortOverview } from "./components/CohortOverview";
 import { ExportMenu } from "./components/ExportMenu";
 import { GlobalImportancePanel } from "./components/GlobalImportancePanel";
@@ -56,6 +57,10 @@ export default function App() {
   const [studyPhase, setStudyPhase] = useState<"initial" | "awaiting_ai" | "final" | "single" | null>(null);
   const [sortBy, setSortBy] = useState<SortKey>("hospitalization_risk");
   const [descending, setDescending] = useState(true);
+  const [filters, setFilters] = useState<CohortFilterState>({
+    chronicFilter: null,
+    minTotalClaims: null,
+  });
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [explanationLoading, setExplanationLoading] = useState(false);
@@ -91,7 +96,13 @@ export default function App() {
       const [metaResponse, summaryResponse, beneficiaryResponse] = await Promise.all([
         getMeta(),
         getCohortSummary(),
-        getBeneficiaries({ limit: ROW_LIMIT, sort_by: sortBy, descending }),
+        getBeneficiaries({
+          limit: ROW_LIMIT,
+          sort_by: sortBy,
+          descending,
+          chronic_filter: filters.chronicFilter,
+          min_total_claims: filters.minTotalClaims,
+        }),
       ]);
       setMeta(metaResponse);
       setSummary(summaryResponse);
@@ -109,7 +120,7 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [sortBy, descending]);
+  }, [sortBy, descending, filters.chronicFilter, filters.minTotalClaims]);
 
   useEffect(() => {
     void loadDashboard();
@@ -180,6 +191,18 @@ export default function App() {
     void trackEvent(
       "filter_change",
       { sort_by: nextSortBy, descending: nextDescending },
+      condition,
+    );
+  };
+
+  const handleFilterChange = (next: CohortFilterState) => {
+    setFilters(next);
+    void trackEvent(
+      "filter_change",
+      {
+        chronic_filter: next.chronicFilter,
+        min_total_claims: next.minTotalClaims,
+      },
       condition,
     );
   };
@@ -396,6 +419,7 @@ export default function App() {
       <main className={`dashboard-grid${detail || detailLoading ? " with-detail" : ""}`}>
         <div className="main-column">
           {summary ? <CohortOverview summary={summary} /> : null}
+          <CohortFilterBar filters={filters} onChange={handleFilterChange} />
           {isLlm ? <QueryPanel onResults={handleQueryResults} condition={condition} /> : null}
           {showGlobalImportance && globalImportance ? (
             <GlobalImportancePanel

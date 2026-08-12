@@ -731,10 +731,28 @@ button {
   overflow: auto;
 }
 
-.query-actions {
+.filter-controls {
   display: flex;
-  gap: 10px;
   flex-wrap: wrap;
+  gap: 12px;
+  align-items: end;
+}
+
+.filter-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.filter-chip {
+  display: inline-flex;
+  align-items: center;
+  padding: 4px 10px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  font-size: 0.85rem;
+  background: #fff;
 }
 
 .query-error {

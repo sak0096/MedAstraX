@@ -33,6 +33,8 @@ def list_beneficiaries(
     limit: int = Query(default=100, ge=1, le=1000),
     sort_by: str = Query(default="hospitalization_risk"),
     descending: bool = Query(default=True),
+    chronic_filter: Optional[str] = Query(default=None),
+    min_total_claims: Optional[int] = Query(default=None, ge=0),
     study_ctx: StudyRequestContext = Depends(get_study_context),
 ) -> Dict[str, Any]:
     frame = load_merged_dashboard_frame()
@@ -40,6 +42,10 @@ def list_beneficiaries(
         frame = frame.loc[frame["bene_id"] == bene_id]
     if analytic_year is not None:
         frame = frame.loc[frame["analytic_year"] == analytic_year]
+    if chronic_filter and chronic_filter in frame.columns:
+        frame = frame.loc[frame[chronic_filter] == 1]
+    if min_total_claims is not None and "total_claims" in frame.columns:
+        frame = frame.loc[frame["total_claims"] >= min_total_claims]
 
     if frame.empty:
         raise HTTPException(status_code=404, detail="No matching beneficiaries found.")
@@ -53,6 +59,8 @@ def list_beneficiaries(
     payload = {
         "count": len(records),
         "sort_by": sort_by,
+        "chronic_filter": chronic_filter,
+        "min_total_claims": min_total_claims,
         "rows": records,
     }
     if study_ctx.study_mode and study_ctx.active_manipulations:

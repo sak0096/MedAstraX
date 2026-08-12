@@ -66,12 +66,18 @@ export function getBeneficiaries(params: {
   limit?: number;
   sort_by?: string;
   descending?: boolean;
+  chronic_filter?: string | null;
+  min_total_claims?: number | null;
 }): Promise<{ count: number; sort_by: string; rows: BeneficiaryRow[] }> {
   const search = new URLSearchParams();
   if (params.limit !== undefined) search.set("limit", String(params.limit));
   if (params.sort_by) search.set("sort_by", params.sort_by);
   if (params.descending !== undefined) {
     search.set("descending", String(params.descending));
+  }
+  if (params.chronic_filter) search.set("chronic_filter", params.chronic_filter);
+  if (params.min_total_claims !== undefined && params.min_total_claims !== null) {
+    search.set("min_total_claims", String(params.min_total_claims));
   }
   const query = search.toString();
   return fetchJson(`/api/beneficiaries${query ? `?${query}` : ""}`);

@@ -1003,7 +1003,7 @@
       "study": "study2",
       "title": "Manual cohort filtering",
       "time_limit_min": 5,
-      "instructions": "Without the query box, find beneficiaries with diabetes flagged in the top 25 by hospitalization risk. Record the count and highest-risk ID.",
+            "instructions": "Using the cohort filters and risk table, find beneficiaries with diabetes flagged, at least 50 claims, in the top 25 by hospitalization risk. Record the count and the highest-risk ID.",
       "response_type": "beneficiary_list",
       "requires_cases": [],
       "conditions": [
