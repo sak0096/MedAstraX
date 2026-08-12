@@ -1,17 +1,19 @@
 {
-  "schema_version": "1.0",
-  "generated_at": "2026-08-12T20:15:57.703885+00:00",
-  "provider": "template",
-  "llm_model": null,
+  "schema_version": "1.1",
+  "generated_at": "2026-08-12T22:19:13.957198+00:00",
+  "provider": "openai",
+  "llm_model": "gpt-4.1-2025-04-14",
+  "ai_evidence_audit": "complete",
+  "human_review": "pending",
   "items": [
     {
       "case_id": "B-01",
       "bene_id": "-10000010255633",
       "analytic_year": 2022,
-      "provider": "template",
-      "prompt_hash": "de374b506e4dc725",
-      "template_narrative": "Beneficiary -10000010255633 (2022). hospitalization risk is 23%, primarily driven by ESRD indicator (value: Y) raised risk, Age (value: 78) raised risk, Outpatient claims (value: 0.0) lowered risk. high utilization risk is 30%, primarily driven by Outpatient claims (value: 0.0) lowered risk, Total claims (value: 18.0) lowered risk, Age (value: 78) raised risk. elevated cost risk is 18%, primarily driven by Total payment (value: 23614.74) lowered risk, ESRD indicator (value: Y) raised risk, Outpatient claims (value: 0.0) lowered risk.",
-      "candidate_narrative": "Beneficiary -10000010255633 (2022). hospitalization risk is 23%, primarily driven by ESRD indicator (value: Y) raised risk, Age (value: 78) raised risk, Outpatient claims (value: 0.0) lowered risk. high utilization risk is 30%, primarily driven by Outpatient claims (value: 0.0) lowered risk, Total claims (value: 18.0) lowered risk, Age (value: 78) raised risk. elevated cost risk is 18%, primarily driven by Total payment (value: 23614.74) lowered risk, ESRD indicator (value: Y) raised risk, Outpatient claims (value: 0.0) lowered risk.",
+      "provider": "openai",
+      "prompt_hash": "df469f7abe340fc8",
+      "template_narrative": "Beneficiary -10000010255633 (2022). hospitalization risk is 23%, primarily driven by ESRD indicator (value: Y) raised risk, Age (value: 78) raised risk, Outpatient claims (value: 0) lowered risk. high utilization risk is 30%, primarily driven by Outpatient claims (value: 0) lowered risk, Total claims (value: 18) lowered risk, Age (value: 78) raised risk. elevated cost risk is 18%, primarily driven by Total payment (value: $23,614.74) lowered risk, ESRD indicator (value: Y) raised risk, Outpatient claims (value: 0) lowered risk.",
+      "candidate_narrative": "The risk of hospitalization is 23%, with ESRD indicator and Age raising risk, and Outpatient claims lowering risk. The risk of high utilization is 30%, with Outpatient claims and Total claims lowering risk, and Age raising risk. The risk of elevated cost is 18%, with Total payment and Outpatient claims lowering risk, and ESRD indicator raising risk.",
       "claims": [
         {
           "statement": "esrd_ind increased predicted hospitalization risk (contribution +0.328).",
@@ -86,20 +88,21 @@
           "shap_value": -0.134027
         }
       ],
-      "status": "auto_accepted_template",
-      "decision": null,
-      "reviewer": null,
-      "reviewed_at": null,
-      "notes": null
+      "status": "accepted",
+      "decision": "accept_candidate",
+      "reviewer": "Codex AI evidence audit",
+      "reviewer_type": "ai_assisted",
+      "reviewed_at": "2026-08-12T22:19:41.625699+00:00",
+      "notes": "AI-assisted evidence audit verified three outcomes, exact risk percentages, all grounded driver labels and directions, and absence of prohibited causal/model jargon. Independent human co-review remains required before confirmatory use."
     },
     {
       "case_id": "B-02",
       "bene_id": "-10000010256731",
       "analytic_year": 2022,
-      "provider": "template",
-      "prompt_hash": "e05e35c708d221b0",
-      "template_narrative": "Beneficiary -10000010256731 (2022). hospitalization risk is 23%, primarily driven by Outpatient claims (value: 19.0) raised risk, Total claims (value: 33.0) lowered risk, Rx days supply (value: 864.0) raised risk. high utilization risk is 82%, primarily driven by Outpatient claims (value: 19.0) raised risk, Distinct diagnoses (value: 2.0) raised risk, Rx days supply (value: 864.0) raised risk. elevated cost risk is 25%, primarily driven by Total payment (value: 26290.91) lowered risk, Age (value: 69) raised risk, Outpatient claims (value: 19.0) raised risk.",
-      "candidate_narrative": "Beneficiary -10000010256731 (2022). hospitalization risk is 23%, primarily driven by Outpatient claims (value: 19.0) raised risk, Total claims (value: 33.0) lowered risk, Rx days supply (value: 864.0) raised risk. high utilization risk is 82%, primarily driven by Outpatient claims (value: 19.0) raised risk, Distinct diagnoses (value: 2.0) raised risk, Rx days supply (value: 864.0) raised risk. elevated cost risk is 25%, primarily driven by Total payment (value: 26290.91) lowered risk, Age (value: 69) raised risk, Outpatient claims (value: 19.0) raised risk.",
+      "provider": "openai",
+      "prompt_hash": "8aaf832a0c6331ff",
+      "template_narrative": "Beneficiary -10000010256731 (2022). hospitalization risk is 23%, primarily driven by Outpatient claims (value: 19) raised risk, Total claims (value: 33) lowered risk, Rx days supply (value: 864) raised risk. high utilization risk is 82%, primarily driven by Outpatient claims (value: 19) raised risk, Distinct diagnoses (value: 2) raised risk, Rx days supply (value: 864) raised risk. elevated cost risk is 25%, primarily driven by Total payment (value: $26,290.91) lowered risk, Age (value: 69) raised risk, Outpatient claims (value: 19) raised risk.",
+      "candidate_narrative": "The risk of hospitalization is 23%, with Outpatient claims and Rx days supply raising risk, while Total claims lowered risk. The risk of high utilization is 82%, with Outpatient claims, Distinct diagnoses, and Rx days supply all raising risk. The risk of elevated cost is 25%, with Total payment lowering risk and both Age and Outpatient claims raising risk.",
       "claims": [
         {
           "statement": "outpatient_claims increased predicted hospitalization risk (contribution +0.418).",
@@ -174,20 +177,21 @@
           "shap_value": 0.20572
         }
       ],
-      "status": "auto_accepted_template",
-      "decision": null,
-      "reviewer": null,
-      "reviewed_at": null,
-      "notes": null
+      "status": "accepted",
+      "decision": "accept_candidate",
+      "reviewer": "Codex AI evidence audit",
+      "reviewer_type": "ai_assisted",
+      "reviewed_at": "2026-08-12T22:19:41.625699+00:00",
+      "notes": "AI-assisted evidence audit verified three outcomes, exact risk percentages, all grounded driver labels and directions, and absence of prohibited causal/model jargon. Independent human co-review remains required before confirmatory use."
     },
     {
       "case_id": "B-03",
       "bene_id": "-10000010265628",
       "analytic_year": 2022,
-      "provider": "template",
-      "prompt_hash": "654b09c4bb9c9797",
-      "template_narrative": "Beneficiary -10000010265628 (2022). hospitalization risk is 38%, primarily driven by Inpatient payment (value: 295.34) raised risk, Outpatient claims (value: 20.0) raised risk, Rx days supply (value: 2095.0) lowered risk. high utilization risk is 96%, primarily driven by Total claims (value: 97.0) raised risk, Outpatient claims (value: 20.0) raised risk, Unique drugs (value: 46.0) raised risk. elevated cost risk is 48%, primarily driven by Total payment (value: 69996.42) raised risk, Total claims (value: 97.0) raised risk, Outpatient claims (value: 20.0) raised risk.",
-      "candidate_narrative": "Beneficiary -10000010265628 (2022). hospitalization risk is 38%, primarily driven by Inpatient payment (value: 295.34) raised risk, Outpatient claims (value: 20.0) raised risk, Rx days supply (value: 2095.0) lowered risk. high utilization risk is 96%, primarily driven by Total claims (value: 97.0) raised risk, Outpatient claims (value: 20.0) raised risk, Unique drugs (value: 46.0) raised risk. elevated cost risk is 48%, primarily driven by Total payment (value: 69996.42) raised risk, Total claims (value: 97.0) raised risk, Outpatient claims (value: 20.0) raised risk.",
+      "provider": "openai",
+      "prompt_hash": "cd07d0768f129f48",
+      "template_narrative": "Beneficiary -10000010265628 (2022). hospitalization risk is 38%, primarily driven by Inpatient payment (value: $295.34) raised risk, Outpatient claims (value: 20) raised risk, Rx days supply (value: 2,095) lowered risk. high utilization risk is 96%, primarily driven by Total claims (value: 97) raised risk, Outpatient claims (value: 20) raised risk, Unique drugs (value: 46) raised risk. elevated cost risk is 48%, primarily driven by Total payment (value: $69,996.42) raised risk, Total claims (value: 97) raised risk, Outpatient claims (value: 20) raised risk.",
+      "candidate_narrative": "This person has a 38% risk of hospitalization, with Inpatient payment and Outpatient claims raising risk and Rx days supply lowering risk. The high utilization risk is 96%, with Total claims, Outpatient claims, and Unique drugs all raising risk. The elevated cost risk is 48%, with Total payment, Total claims, and Outpatient claims raising risk.",
       "claims": [
         {
           "statement": "inpatient_payment_amt increased predicted hospitalization risk (contribution +0.479).",
@@ -262,20 +266,21 @@
           "shap_value": 0.277661
         }
       ],
-      "status": "auto_accepted_template",
-      "decision": null,
-      "reviewer": null,
-      "reviewed_at": null,
-      "notes": null
+      "status": "accepted",
+      "decision": "accept_candidate",
+      "reviewer": "Codex AI evidence audit",
+      "reviewer_type": "ai_assisted",
+      "reviewed_at": "2026-08-12T22:19:41.625699+00:00",
+      "notes": "AI-assisted evidence audit verified three outcomes, exact risk percentages, all grounded driver labels and directions, and absence of prohibited causal/model jargon. Independent human co-review remains required before confirmatory use."
     },
     {
       "case_id": "B-04",
       "bene_id": "-10000010269348",
       "analytic_year": 2022,
-      "provider": "template",
-      "prompt_hash": "24ca9a29c40a719e",
-      "template_narrative": "Beneficiary -10000010269348 (2022). hospitalization risk is 35%, primarily driven by Outpatient claims (value: 74.0) raised risk, Inpatient claims (value: 3.0) raised risk, Inpatient payment (value: 4648.0199999999995) lowered risk. high utilization risk is 72%, primarily driven by Total claims (value: 92.0) raised risk, Outpatient claims (value: 74.0) raised risk, Distinct diagnoses (value: 5.0) lowered risk. elevated cost risk is 48%, primarily driven by Outpatient claims (value: 74.0) raised risk, Total payment (value: 79150.66) raised risk, Inpatient claims (value: 3.0) lowered risk.",
-      "candidate_narrative": "Beneficiary -10000010269348 (2022). hospitalization risk is 35%, primarily driven by Outpatient claims (value: 74.0) raised risk, Inpatient claims (value: 3.0) raised risk, Inpatient payment (value: 4648.0199999999995) lowered risk. high utilization risk is 72%, primarily driven by Total claims (value: 92.0) raised risk, Outpatient claims (value: 74.0) raised risk, Distinct diagnoses (value: 5.0) lowered risk. elevated cost risk is 48%, primarily driven by Outpatient claims (value: 74.0) raised risk, Total payment (value: 79150.66) raised risk, Inpatient claims (value: 3.0) lowered risk.",
+      "provider": "openai",
+      "prompt_hash": "2de45b508ec0b895",
+      "template_narrative": "Beneficiary -10000010269348 (2022). hospitalization risk is 35%, primarily driven by Outpatient claims (value: 74) raised risk, Inpatient claims (value: 3) raised risk, Inpatient payment (value: $4,648.02) lowered risk. high utilization risk is 72%, primarily driven by Total claims (value: 92) raised risk, Outpatient claims (value: 74) raised risk, Distinct diagnoses (value: 5) lowered risk. elevated cost risk is 48%, primarily driven by Outpatient claims (value: 74) raised risk, Total payment (value: $79,150.66) raised risk, Inpatient claims (value: 3) lowered risk.",
+      "candidate_narrative": "The predicted risk of hospitalization is 35%, with Outpatient claims and Inpatient claims raising risk and Inpatient payment lowering risk. The predicted risk of high utilization is 72%, with Total claims and Outpatient claims raising risk and Distinct diagnoses lowering risk. The predicted risk of elevated cost is 48%, with Outpatient claims and Total payment raising risk and Inpatient claims lowering risk.",
       "claims": [
         {
           "statement": "outpatient_claims increased predicted hospitalization risk (contribution +0.359).",
@@ -350,20 +355,21 @@
           "shap_value": -0.348254
         }
       ],
-      "status": "auto_accepted_template",
-      "decision": null,
-      "reviewer": null,
-      "reviewed_at": null,
-      "notes": null
+      "status": "accepted",
+      "decision": "accept_candidate",
+      "reviewer": "Codex AI evidence audit",
+      "reviewer_type": "ai_assisted",
+      "reviewed_at": "2026-08-12T22:19:41.625699+00:00",
+      "notes": "AI-assisted evidence audit verified three outcomes, exact risk percentages, all grounded driver labels and directions, and absence of prohibited causal/model jargon. Independent human co-review remains required before confirmatory use."
     },
     {
       "case_id": "B-01b",
       "bene_id": "-10000010264547",
       "analytic_year": 2022,
-      "provider": "template",
-      "prompt_hash": "a961d3a5130cc47c",
-      "template_narrative": "Beneficiary -10000010264547 (2022). hospitalization risk is 21%, primarily driven by Outpatient claims (value: 7.0) raised risk, Age (value: 73) raised risk, Total claims (value: 27.0) lowered risk. high utilization risk is 21%, primarily driven by Distinct diagnoses (value: 6.0) lowered risk, dme claims (value: 2.0) lowered risk, Rx days supply (value: 840.0) raised risk. elevated cost risk is 14%, primarily driven by Total payment (value: 23420.87) lowered risk, Distinct diagnoses (value: 6.0) lowered risk, Total claims (value: 27.0) lowered risk.",
-      "candidate_narrative": "Beneficiary -10000010264547 (2022). hospitalization risk is 21%, primarily driven by Outpatient claims (value: 7.0) raised risk, Age (value: 73) raised risk, Total claims (value: 27.0) lowered risk. high utilization risk is 21%, primarily driven by Distinct diagnoses (value: 6.0) lowered risk, dme claims (value: 2.0) lowered risk, Rx days supply (value: 840.0) raised risk. elevated cost risk is 14%, primarily driven by Total payment (value: 23420.87) lowered risk, Distinct diagnoses (value: 6.0) lowered risk, Total claims (value: 27.0) lowered risk.",
+      "provider": "openai",
+      "prompt_hash": "bcd4fa350077ea86",
+      "template_narrative": "Beneficiary -10000010264547 (2022). hospitalization risk is 21%, primarily driven by Outpatient claims (value: 7) raised risk, Age (value: 73) raised risk, Total claims (value: 27) lowered risk. high utilization risk is 21%, primarily driven by Distinct diagnoses (value: 6) lowered risk, dme claims (value: 2) lowered risk, Rx days supply (value: 840) raised risk. elevated cost risk is 14%, primarily driven by Total payment (value: $23,420.87) lowered risk, Distinct diagnoses (value: 6) lowered risk, Total claims (value: 27) lowered risk.",
+      "candidate_narrative": "The risk of hospitalization is 21%, with Outpatient claims and Age raising risk, and Total claims lowering risk. The risk of high utilization is 21%, with Rx days supply raising risk, and Distinct diagnoses and dme claims lowering risk. The risk of elevated cost is 14%, with Total payment, Distinct diagnoses, and Total claims all lowering risk.",
       "claims": [
         {
           "statement": "outpatient_claims increased predicted hospitalization risk (contribution +0.257).",
@@ -438,20 +444,21 @@
           "shap_value": -0.201092
         }
       ],
-      "status": "auto_accepted_template",
-      "decision": null,
-      "reviewer": null,
-      "reviewed_at": null,
-      "notes": null
+      "status": "accepted",
+      "decision": "accept_candidate",
+      "reviewer": "Codex AI evidence audit",
+      "reviewer_type": "ai_assisted",
+      "reviewed_at": "2026-08-12T22:19:41.625699+00:00",
+      "notes": "AI-assisted evidence audit verified three outcomes, exact risk percentages, all grounded driver labels and directions, and absence of prohibited causal/model jargon. Independent human co-review remains required before confirmatory use."
     },
     {
       "case_id": "B-02b",
       "bene_id": "-10000010277656",
       "analytic_year": 2022,
-      "provider": "template",
-      "prompt_hash": "6d545c66155b27b4",
-      "template_narrative": "Beneficiary -10000010277656 (2022). hospitalization risk is 25%, primarily driven by Total payment (value: 462819.69) raised risk, Inpatient payment (value: 40482.29) lowered risk, Outpatient claims (value: 5.0) raised risk. high utilization risk is 39%, primarily driven by Total claims (value: 60.0) raised risk, Distinct diagnoses (value: 4.0) lowered risk, Inpatient payment (value: 40482.29) lowered risk. elevated cost risk is 45%, primarily driven by Total payment (value: 462819.69) raised risk, Inpatient payment (value: 40482.29) lowered risk, Total claims (value: 60.0) lowered risk.",
-      "candidate_narrative": "Beneficiary -10000010277656 (2022). hospitalization risk is 25%, primarily driven by Total payment (value: 462819.69) raised risk, Inpatient payment (value: 40482.29) lowered risk, Outpatient claims (value: 5.0) raised risk. high utilization risk is 39%, primarily driven by Total claims (value: 60.0) raised risk, Distinct diagnoses (value: 4.0) lowered risk, Inpatient payment (value: 40482.29) lowered risk. elevated cost risk is 45%, primarily driven by Total payment (value: 462819.69) raised risk, Inpatient payment (value: 40482.29) lowered risk, Total claims (value: 60.0) lowered risk.",
+      "provider": "openai",
+      "prompt_hash": "dedd391482e9aee3",
+      "template_narrative": "Beneficiary -10000010277656 (2022). hospitalization risk is 25%, primarily driven by Total payment (value: $462,819.69) raised risk, Inpatient payment (value: $40,482.29) lowered risk, Outpatient claims (value: 5) raised risk. high utilization risk is 39%, primarily driven by Total claims (value: 60) raised risk, Distinct diagnoses (value: 4) lowered risk, Inpatient payment (value: $40,482.29) lowered risk. elevated cost risk is 45%, primarily driven by Total payment (value: $462,819.69) raised risk, Inpatient payment (value: $40,482.29) lowered risk, Total claims (value: 60) lowered risk.",
+      "candidate_narrative": "The risk of hospitalization is 25%, with Total payment raised risk, Inpatient payment lowered risk, and Outpatient claims raised risk. The risk of high utilization is 39%, with Total claims raised risk, Distinct diagnoses lowered risk, and Inpatient payment lowered risk. The risk of elevated cost is 45%, with Total payment raised risk, Inpatient payment lowered risk, and Total claims lowered risk.",
       "claims": [
         {
           "statement": "total_payment_amt increased predicted hospitalization risk (contribution +0.358).",
@@ -526,20 +533,21 @@
           "shap_value": -0.399825
         }
       ],
-      "status": "auto_accepted_template",
-      "decision": null,
-      "reviewer": null,
-      "reviewed_at": null,
-      "notes": null
+      "status": "accepted",
+      "decision": "accept_candidate",
+      "reviewer": "Codex AI evidence audit",
+      "reviewer_type": "ai_assisted",
+      "reviewed_at": "2026-08-12T22:19:41.625699+00:00",
+      "notes": "AI-assisted evidence audit verified three outcomes, exact risk percentages, all grounded driver labels and directions, and absence of prohibited causal/model jargon. Independent human co-review remains required before confirmatory use."
     },
     {
       "case_id": "B-03b",
       "bene_id": "-10000010272076",
       "analytic_year": 2022,
-      "provider": "template",
-      "prompt_hash": "66b2d2a99731f53e",
-      "template_narrative": "Beneficiary -10000010272076 (2022). hospitalization risk is 25%, primarily driven by Inpatient payment (value: 165.0) raised risk, Age (value: 13) lowered risk, Outpatient claims (value: 16.0) raised risk. high utilization risk is 28%, primarily driven by Age (value: 13) lowered risk, Outpatient claims (value: 16.0) raised risk, Distinct diagnoses (value: 2.0) raised risk. elevated cost risk is 92%, primarily driven by Total payment (value: 275281.29) raised risk, Age (value: 13) raised risk, Outpatient claims (value: 16.0) raised risk.",
-      "candidate_narrative": "Beneficiary -10000010272076 (2022). hospitalization risk is 25%, primarily driven by Inpatient payment (value: 165.0) raised risk, Age (value: 13) lowered risk, Outpatient claims (value: 16.0) raised risk. high utilization risk is 28%, primarily driven by Age (value: 13) lowered risk, Outpatient claims (value: 16.0) raised risk, Distinct diagnoses (value: 2.0) raised risk. elevated cost risk is 92%, primarily driven by Total payment (value: 275281.29) raised risk, Age (value: 13) raised risk, Outpatient claims (value: 16.0) raised risk.",
+      "provider": "openai",
+      "prompt_hash": "528d3dad81773fa9",
+      "template_narrative": "Beneficiary -10000010272076 (2022). hospitalization risk is 25%, primarily driven by Inpatient payment (value: $165.00) raised risk, Age (value: 13) lowered risk, Outpatient claims (value: 16) raised risk. high utilization risk is 28%, primarily driven by Age (value: 13) lowered risk, Outpatient claims (value: 16) raised risk, Distinct diagnoses (value: 2) raised risk. elevated cost risk is 92%, primarily driven by Total payment (value: $275,281.29) raised risk, Age (value: 13) raised risk, Outpatient claims (value: 16) raised risk.",
+      "candidate_narrative": "The predicted risk of hospitalization is 25%, with Inpatient payment and Outpatient claims raising risk and Age lowering risk. The predicted risk of high utilization is 28%, with Outpatient claims and Distinct diagnoses raising risk and Age lowering risk. The predicted risk of elevated cost is 92%, with Total payment, Age, and Outpatient claims all raising risk.",
       "claims": [
         {
           "statement": "inpatient_payment_amt increased predicted hospitalization risk (contribution +0.404).",
@@ -614,20 +622,21 @@
           "shap_value": 0.339282
         }
       ],
-      "status": "auto_accepted_template",
-      "decision": null,
-      "reviewer": null,
-      "reviewed_at": null,
-      "notes": null
+      "status": "accepted",
+      "decision": "accept_candidate",
+      "reviewer": "Codex AI evidence audit",
+      "reviewer_type": "ai_assisted",
+      "reviewed_at": "2026-08-12T22:19:41.625699+00:00",
+      "notes": "AI-assisted evidence audit verified three outcomes, exact risk percentages, all grounded driver labels and directions, and absence of prohibited causal/model jargon. Independent human co-review remains required before confirmatory use."
     },
     {
       "case_id": "B-04b",
       "bene_id": "-10000010280669",
       "analytic_year": 2022,
-      "provider": "template",
-      "prompt_hash": "b1ce855c96faac96",
-      "template_narrative": "Beneficiary -10000010280669 (2022). hospitalization risk is 32%, primarily driven by Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk, dme claims (value: 44.0) lowered risk. high utilization risk is 98%, primarily driven by Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk, dme claims (value: 44.0) raised risk. elevated cost risk is 92%, primarily driven by Total payment (value: 160728.47) raised risk, Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk.",
-      "candidate_narrative": "Beneficiary -10000010280669 (2022). hospitalization risk is 32%, primarily driven by Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk, dme claims (value: 44.0) lowered risk. high utilization risk is 98%, primarily driven by Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk, dme claims (value: 44.0) raised risk. elevated cost risk is 92%, primarily driven by Total payment (value: 160728.47) raised risk, Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk.",
+      "provider": "openai",
+      "prompt_hash": "ebc66aefddda28af",
+      "template_narrative": "Beneficiary -10000010280669 (2022). hospitalization risk is 32%, primarily driven by Total claims (value: 174) raised risk, Outpatient claims (value: 34) raised risk, dme claims (value: 44) lowered risk. high utilization risk is 98%, primarily driven by Total claims (value: 174) raised risk, Outpatient claims (value: 34) raised risk, dme claims (value: 44) raised risk. elevated cost risk is 92%, primarily driven by Total payment (value: $160,728.47) raised risk, Total claims (value: 174) raised risk, Outpatient claims (value: 34) raised risk.",
+      "candidate_narrative": "The predicted risk of hospitalization is 32%, with Total claims and Outpatient claims raising risk and dme claims lowering risk. The predicted risk of high utilization is 98%, with Total claims, Outpatient claims, and dme claims all raising risk. The predicted risk of elevated cost is 92%, with Total payment, Total claims, and Outpatient claims raising risk.",
       "claims": [
         {
           "statement": "total_claims increased predicted hospitalization risk (contribution +0.625).",
@@ -702,20 +711,21 @@
           "shap_value": 0.52952
         }
       ],
-      "status": "auto_accepted_template",
-      "decision": null,
-      "reviewer": null,
-      "reviewed_at": null,
-      "notes": null
+      "status": "accepted",
+      "decision": "accept_candidate",
+      "reviewer": "Codex AI evidence audit",
+      "reviewer_type": "ai_assisted",
+      "reviewed_at": "2026-08-12T22:19:41.625699+00:00",
+      "notes": "AI-assisted evidence audit verified three outcomes, exact risk percentages, all grounded driver labels and directions, and absence of prohibited causal/model jargon. Independent human co-review remains required before confirmatory use."
     },
     {
       "case_id": "B-07",
       "bene_id": "-10000010260449",
       "analytic_year": 2022,
-      "provider": "template",
-      "prompt_hash": "0222bddc83c88196",
-      "template_narrative": "Beneficiary -10000010260449 (2022). hospitalization risk is 78%, primarily driven by Total claims (value: 301.0) raised risk, Inpatient claims (value: 31.0) raised risk, 30-day readmissions (value: 8.0) raised risk. high utilization risk is 100%, primarily driven by Total claims (value: 301.0) raised risk, Outpatient claims (value: 28.0) raised risk, Carrier claims (value: 242.0) raised risk. elevated cost risk is 97%, primarily driven by Total payment (value: 293773.5) raised risk, Total claims (value: 301.0) raised risk, Age (value: 74) raised risk.",
-      "candidate_narrative": "Beneficiary -10000010260449 (2022). hospitalization risk is 78%, primarily driven by Total claims (value: 301.0) raised risk, Inpatient claims (value: 31.0) raised risk, 30-day readmissions (value: 8.0) raised risk. high utilization risk is 100%, primarily driven by Total claims (value: 301.0) raised risk, Outpatient claims (value: 28.0) raised risk, Carrier claims (value: 242.0) raised risk. elevated cost risk is 97%, primarily driven by Total payment (value: 293773.5) raised risk, Total claims (value: 301.0) raised risk, Age (value: 74) raised risk.",
+      "provider": "openai",
+      "prompt_hash": "be84d7e6fb084f95",
+      "template_narrative": "Beneficiary -10000010260449 (2022). hospitalization risk is 78%, primarily driven by Total claims (value: 301) raised risk, Inpatient claims (value: 31) raised risk, 30-day readmissions (value: 8) raised risk. high utilization risk is 100%, primarily driven by Total claims (value: 301) raised risk, Outpatient claims (value: 28) raised risk, Carrier claims (value: 242) raised risk. elevated cost risk is 97%, primarily driven by Total payment (value: $293,773.50) raised risk, Total claims (value: 301) raised risk, Age (value: 74) raised risk.",
+      "candidate_narrative": "Hospitalization risk is 78%, with Total claims, Inpatient claims, and 30-day readmissions raising the prediction. High utilization risk is 100%, with Total claims, Outpatient claims, and Carrier claims raising the prediction. Elevated cost risk is 97%, with Total payment, Total claims, and Age raising the prediction.",
       "claims": [
         {
           "statement": "total_claims increased predicted hospitalization risk (contribution +1.028).",
@@ -790,20 +800,21 @@
           "shap_value": 1.005576
         }
       ],
-      "status": "auto_accepted_template",
-      "decision": null,
-      "reviewer": null,
-      "reviewed_at": null,
-      "notes": null
+      "status": "accepted",
+      "decision": "accept_candidate",
+      "reviewer": "Codex AI evidence audit",
+      "reviewer_type": "ai_assisted",
+      "reviewed_at": "2026-08-12T22:19:41.625699+00:00",
+      "notes": "AI-assisted evidence audit verified three outcomes, exact risk percentages, all grounded driver labels and directions, and absence of prohibited causal/model jargon. Independent human co-review remains required before confirmatory use."
     },
     {
       "case_id": "B-09",
       "bene_id": "-10000010271299",
       "analytic_year": 2022,
-      "provider": "template",
-      "prompt_hash": "6e3a64aaf682ecd6",
-      "template_narrative": "Beneficiary -10000010271299 (2022). hospitalization risk is 25%, primarily driven by Total claims (value: 143.0) raised risk, Outpatient claims (value: 41.0) raised risk, dme claims (value: 15.0) lowered risk. high utilization risk is 99%, primarily driven by Total claims (value: 143.0) raised risk, Outpatient claims (value: 41.0) raised risk, dme claims (value: 15.0) raised risk. elevated cost risk is 97%, primarily driven by Total payment (value: 204296.82) raised risk, Total claims (value: 143.0) raised risk, Outpatient claims (value: 41.0) raised risk.",
-      "candidate_narrative": "Beneficiary -10000010271299 (2022). hospitalization risk is 25%, primarily driven by Total claims (value: 143.0) raised risk, Outpatient claims (value: 41.0) raised risk, dme claims (value: 15.0) lowered risk. high utilization risk is 99%, primarily driven by Total claims (value: 143.0) raised risk, Outpatient claims (value: 41.0) raised risk, dme claims (value: 15.0) raised risk. elevated cost risk is 97%, primarily driven by Total payment (value: 204296.82) raised risk, Total claims (value: 143.0) raised risk, Outpatient claims (value: 41.0) raised risk.",
+      "provider": "openai",
+      "prompt_hash": "a01771136f235046",
+      "template_narrative": "Beneficiary -10000010271299 (2022). hospitalization risk is 25%, primarily driven by Total claims (value: 143) raised risk, Outpatient claims (value: 41) raised risk, dme claims (value: 15) lowered risk. high utilization risk is 99%, primarily driven by Total claims (value: 143) raised risk, Outpatient claims (value: 41) raised risk, dme claims (value: 15) raised risk. elevated cost risk is 97%, primarily driven by Total payment (value: $204,296.82) raised risk, Total claims (value: 143) raised risk, Outpatient claims (value: 41) raised risk.",
+      "candidate_narrative": "This person has a 25% risk of hospitalization, with Total claims and Outpatient claims raising risk and dme claims lowering risk. The high utilization risk is 99%, with Total claims, Outpatient claims, and dme claims all raising risk. The elevated cost risk is 97%, with Total payment, Total claims, and Outpatient claims raising risk.",
       "claims": [
         {
           "statement": "total_claims increased predicted hospitalization risk (contribution +0.481).",
@@ -878,20 +889,21 @@
           "shap_value": 0.524196
         }
       ],
-      "status": "auto_accepted_template",
-      "decision": null,
-      "reviewer": null,
-      "reviewed_at": null,
-      "notes": null
+      "status": "accepted",
+      "decision": "accept_candidate",
+      "reviewer": "Codex AI evidence audit",
+      "reviewer_type": "ai_assisted",
+      "reviewed_at": "2026-08-12T22:19:41.625699+00:00",
+      "notes": "AI-assisted evidence audit verified three outcomes, exact risk percentages, all grounded driver labels and directions, and absence of prohibited causal/model jargon. Independent human co-review remains required before confirmatory use."
     },
     {
       "case_id": "B-12",
       "bene_id": "-10000010273042",
       "analytic_year": 2022,
-      "provider": "template",
-      "prompt_hash": "22d4eb09e11b968a",
-      "template_narrative": "Beneficiary -10000010273042 (2022). hospitalization risk is 68%, primarily driven by Total claims (value: 260.0) raised risk, Unique drugs (value: 141.0) raised risk, Inpatient claims (value: 27.0) raised risk. high utilization risk is 97%, primarily driven by Total claims (value: 260.0) raised risk, Carrier claims (value: 118.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk. elevated cost risk is 92%, primarily driven by Total payment (value: 1152909.09) raised risk, Total claims (value: 260.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk.",
-      "candidate_narrative": "Beneficiary -10000010273042 (2022). hospitalization risk is 68%, primarily driven by Total claims (value: 260.0) raised risk, Unique drugs (value: 141.0) raised risk, Inpatient claims (value: 27.0) raised risk. high utilization risk is 97%, primarily driven by Total claims (value: 260.0) raised risk, Carrier claims (value: 118.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk. elevated cost risk is 92%, primarily driven by Total payment (value: 1152909.09) raised risk, Total claims (value: 260.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk.",
+      "provider": "openai",
+      "prompt_hash": "5ecf5ff59fec74e5",
+      "template_narrative": "Beneficiary -10000010273042 (2022). hospitalization risk is 68%, primarily driven by Total claims (value: 260) raised risk, Unique drugs (value: 141) raised risk, Inpatient claims (value: 27) raised risk. high utilization risk is 97%, primarily driven by Total claims (value: 260) raised risk, Carrier claims (value: 118) raised risk, Inpatient payment (value: $920,513.18) lowered risk. elevated cost risk is 92%, primarily driven by Total payment (value: $1,152,909.09) raised risk, Total claims (value: 260) raised risk, Inpatient payment (value: $920,513.18) lowered risk.",
+      "candidate_narrative": "The risk of hospitalization is 68%, with Total claims, Unique drugs, and Inpatient claims raising the risk. The risk of high utilization is 97%, with Total claims and Carrier claims raising the risk, and Inpatient payment lowering the risk. The risk of elevated cost is 92%, with Total payment and Total claims raising the risk, and Inpatient payment lowering the risk.",
       "claims": [
         {
           "statement": "total_claims increased predicted hospitalization risk (contribution +0.863).",
@@ -966,20 +978,21 @@
           "shap_value": -0.937334
         }
       ],
-      "status": "auto_accepted_template",
-      "decision": null,
-      "reviewer": null,
-      "reviewed_at": null,
-      "notes": null
+      "status": "accepted",
+      "decision": "accept_candidate",
+      "reviewer": "Codex AI evidence audit",
+      "reviewer_type": "ai_assisted",
+      "reviewed_at": "2026-08-12T22:19:41.625699+00:00",
+      "notes": "AI-assisted evidence audit verified three outcomes, exact risk percentages, all grounded driver labels and directions, and absence of prohibited causal/model jargon. Independent human co-review remains required before confirmatory use."
     },
     {
       "case_id": "B-15",
       "bene_id": "-10000010266211",
       "analytic_year": 2022,
-      "provider": "template",
-      "prompt_hash": "682a1efffb6040dc",
-      "template_narrative": "Beneficiary -10000010266211 (2022). hospitalization risk is 35%, primarily driven by Total claims (value: 118.0) raised risk, Outpatient claims (value: 66.0) raised risk, Unique drugs (value: 64.0) raised risk. high utilization risk is 96%, primarily driven by Total claims (value: 118.0) raised risk, Outpatient claims (value: 66.0) raised risk, Inpatient payment (value: 34213.11) lowered risk. elevated cost risk is 48%, primarily driven by Total payment (value: 129314.64) raised risk, Inpatient payment (value: 34213.11) lowered risk, Outpatient claims (value: 66.0) raised risk.",
-      "candidate_narrative": "Beneficiary -10000010266211 (2022). hospitalization risk is 35%, primarily driven by Total claims (value: 118.0) raised risk, Outpatient claims (value: 66.0) raised risk, Unique drugs (value: 64.0) raised risk. high utilization risk is 96%, primarily driven by Total claims (value: 118.0) raised risk, Outpatient claims (value: 66.0) raised risk, Inpatient payment (value: 34213.11) lowered risk. elevated cost risk is 48%, primarily driven by Total payment (value: 129314.64) raised risk, Inpatient payment (value: 34213.11) lowered risk, Outpatient claims (value: 66.0) raised risk.",
+      "provider": "openai",
+      "prompt_hash": "68b1142aa944fd16",
+      "template_narrative": "Beneficiary -10000010266211 (2022). hospitalization risk is 35%, primarily driven by Total claims (value: 118) raised risk, Outpatient claims (value: 66) raised risk, Unique drugs (value: 64) raised risk. high utilization risk is 96%, primarily driven by Total claims (value: 118) raised risk, Outpatient claims (value: 66) raised risk, Inpatient payment (value: $34,213.11) lowered risk. elevated cost risk is 48%, primarily driven by Total payment (value: $129,314.64) raised risk, Inpatient payment (value: $34,213.11) lowered risk, Outpatient claims (value: 66) raised risk.",
+      "candidate_narrative": "The predicted risk of hospitalization is 35%, with Total claims, Outpatient claims, and Unique drugs raising the risk. The predicted risk of high utilization is 96%, with Total claims and Outpatient claims raising the risk, and Inpatient payment lowering the risk. The predicted risk of elevated cost is 48%, with Total payment and Outpatient claims raising the risk, and Inpatient payment lowering the risk.",
       "claims": [
         {
           "statement": "total_claims increased predicted hospitalization risk (contribution +0.397).",
@@ -1054,11 +1067,13 @@
           "shap_value": 0.52767
         }
       ],
-      "status": "auto_accepted_template",
-      "decision": null,
-      "reviewer": null,
-      "reviewed_at": null,
-      "notes": null
+      "status": "accepted",
+      "decision": "accept_candidate",
+      "reviewer": "Codex AI evidence audit",
+      "reviewer_type": "ai_assisted",
+      "reviewed_at": "2026-08-12T22:19:41.625699+00:00",
+      "notes": "AI-assisted evidence audit verified three outcomes, exact risk percentages, all grounded driver labels and directions, and absence of prohibited causal/model jargon. Independent human co-review remains required before confirmatory use."
     }
-  ]
+  ],
+  "ai_evidence_audit_at": "2026-08-12T22:19:41.625699+00:00"
 }
