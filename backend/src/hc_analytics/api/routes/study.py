@@ -11,7 +11,7 @@ from hc_analytics.study.loader import get_case_by_id, get_study_catalog, get_tas
 from hc_analytics.study.models import ComprehensionSubmission, TaskResponseSubmission
 from hc_analytics.study.recommendations import build_outreach_recommendation, outreach_case_ids_for_participant
 from hc_analytics.study.scoring import score_session_events
-from hc_analytics.study.cohort_spec import PRIMARY_COHORT_SPEC, cohort_ground_truth
+from hc_analytics.study.cohort_spec import cohort_ground_truth, cohort_spec_for_task
 from hc_analytics.study.session import (
     active_manipulations_for_task,
     new_trial_id,
@@ -289,21 +289,9 @@ def submit_task_response(
             "manipulated": active_manipulation == "M3",
         }
     elif task.response_type in {"query_flow", "cohort_selection", "beneficiary_list"}:
-        params = dict(PRIMARY_COHORT_SPEC)
-        response_params = submission.responses.get("parameters") if isinstance(submission.responses, dict) else None
-        if isinstance(response_params, dict):
-            for key in ("chronic_filter", "min_total_claims", "limit", "sort_by", "months_window"):
-                if key in response_params and response_params[key] is not None:
-                    params[key] = response_params[key]
-        if task.task_id == "S2-T6":
-            params.update(
-                {
-                    "chronic_filter": "has_chf",
-                    "min_total_claims": 30,
-                    "limit": 10,
-                    "sort_by": "elevated_cost_risk",
-                }
-            )
+        # Ground truth is defined by the frozen task, never by participant- or
+        # manipulation-controlled execution parameters submitted in the response.
+        params = cohort_spec_for_task(task.task_id, settings=settings)
         ground_truth = cohort_ground_truth(params, settings=settings)
         ground_truth["manipulated"] = bool(active)
         ground_truth["manipulation_type"] = active_manipulation

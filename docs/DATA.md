@@ -63,6 +63,8 @@ Outputs:
 | `artifacts/cohort_summary.json` | Dashboard-ready cohort aggregates by state and age group |
 | `artifacts/feature_manifest.json` | Feature run provenance |
 
+Modeling joins each beneficiary-year to the immediately following analytic year. Years with fewer than 1% positive next-year claims are treated as lacking informative claims follow-up and excluded before the temporal split. The 75th-percentile thresholds for next-year high utilization and elevated cost are then derived from positive outcomes in the training years only and frozen for calibration and test years. Threshold values, source years, and the follow-up eligibility rule are recorded in each model's metadata and `artifacts/model_manifest.json`.
+
 ## Format notes
 
 - Raw files are **pipe-delimited** (`|`), not comma-separated.

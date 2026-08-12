@@ -108,14 +108,22 @@ def _apply_query_config(
                 str(chronic_filter).replace("has_", ""),
                 str(substitute).replace("has_", ""),
             )
-    elif manipulation_type == "incorrect_query_time_window":
-        displayed = int(config.get("displayed_months", 6))
-        actual = int(config.get("actual_months", 12))
-        mutated.parameters["months_window"] = actual
-        mutated.parameters["displayed_months_window"] = displayed
-        mutated.confirmation_message = (
-            f"{mutated.confirmation_message} Time window: last {displayed} months."
+    elif manipulation_type == "incorrect_query_analytic_year":
+        requested = int(
+            config.get("requested_year", mutated.parameters.get("analytic_year", 2022))
         )
+        substitute = int(config.get("substitute_year", requested - 1))
+        original = int(mutated.parameters.get("analytic_year", requested))
+        mutated.parameters["analytic_year"] = substitute
+        old_text = f"analytic year {original}"
+        new_text = f"analytic year {substitute}"
+        if old_text in mutated.confirmation_message:
+            mutated.confirmation_message = mutated.confirmation_message.replace(
+                old_text,
+                new_text,
+            )
+        else:
+            mutated.confirmation_message = f"{mutated.confirmation_message} Data period: {new_text}."
     elif manipulation_type == "omitted_query_threshold":
         threshold = mutated.parameters.pop("min_total_claims", None)
         if threshold is not None:
@@ -136,7 +144,11 @@ def _apply_query_config(
 
 _QUERY_DEFAULTS: Dict[str, Dict[str, Any]] = {
     "M4": {"type": "incorrect_query_filter", "substitute_filter": "has_hypertension"},
-    "M6": {"type": "incorrect_query_time_window", "displayed_months": 6, "actual_months": 12},
+    "M6": {
+        "type": "incorrect_query_analytic_year",
+        "requested_year": 2022,
+        "substitute_year": 2021,
+    },
     "M7": {"type": "omitted_query_threshold"},
 }
 
@@ -161,7 +173,10 @@ def apply_query_manipulations(
         manipulation_type = str(config.get("type", ""))
         if manipulation_type == "omitted_query_threshold" and "min_total_claims" not in interpreted.parameters:
             continue
-        if manipulation_type == "incorrect_query_time_window" and "months_window" not in interpreted.parameters:
+        if (
+            manipulation_type == "incorrect_query_analytic_year"
+            and "analytic_year" not in interpreted.parameters
+        ):
             continue
         return _apply_query_config(
             interpreted,

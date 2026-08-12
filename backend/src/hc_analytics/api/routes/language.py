@@ -23,6 +23,7 @@ from hc_analytics.language.query_cache import (
 )
 from hc_analytics.language.query_executor import execute_interpreted_query
 from hc_analytics.language.query_parser import parse_natural_language_query
+from hc_analytics.study.cohort_spec import study_analytic_year
 from hc_analytics.study.context import StudyRequestContext, get_study_context
 from hc_analytics.study.loader import get_case_for_beneficiary
 from hc_analytics.study.manipulations import apply_query_manipulations, apply_summary_manipulations
@@ -100,6 +101,14 @@ def interpret_query(
     study_ctx: StudyRequestContext = Depends(get_study_context),
 ) -> InterpretedQuery:
     interpreted = parse_natural_language_query(request.query)
+    if study_ctx.study_mode and interpreted.action == "list_beneficiaries":
+        year = study_analytic_year(get_settings())
+        if year is not None and "analytic_year" not in interpreted.parameters:
+            interpreted.parameters["analytic_year"] = year
+            interpreted.confirmation_message = (
+                f"{interpreted.confirmation_message} Data period: analytic year {year} "
+                "(annual beneficiary aggregates)."
+            )
     if study_ctx.study_mode and study_ctx.active_manipulations:
         interpreted = apply_query_manipulations(
             interpreted,

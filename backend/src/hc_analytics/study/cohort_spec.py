@@ -10,7 +10,9 @@ from hc_analytics.api.data_access import load_merged_dashboard_frame
 from hc_analytics.config import Settings, get_settings
 from hc_analytics.study.loader import get_study_catalog
 
-# Matched S2-T1 / S2-T2 primary cohort task.
+# Matched S2-T1 / S2-T2 primary cohort task. The source data are annual
+# beneficiary aggregates, so the study uses an explicit analytic year rather
+# than claiming a rolling month window that cannot be represented faithfully.
 PRIMARY_COHORT_SPEC: Dict[str, Any] = {
     "chronic_filter": "has_diabetes",
     "chronic_value": 1,
@@ -18,7 +20,6 @@ PRIMARY_COHORT_SPEC: Dict[str, Any] = {
     "sort_by": "hospitalization_risk",
     "descending": True,
     "limit": 25,
-    "months_window": 12,
 }
 
 
@@ -29,6 +30,38 @@ def study_analytic_year(settings: Optional[Settings] = None) -> Optional[int]:
     return int(catalog.default_analytic_year)
 
 
+def cohort_spec_for_task(
+    task_id: str,
+    *,
+    settings: Optional[Settings] = None,
+) -> Dict[str, Any]:
+    """Return the frozen canonical cohort definition for a scored study task."""
+    year = study_analytic_year(settings)
+    if task_id == "S1-T2":
+        return {
+            "chronic_filter": None,
+            "chronic_value": None,
+            "min_total_claims": None,
+            "sort_by": "hospitalization_risk",
+            "descending": True,
+            "limit": 5,
+            "analytic_year": year,
+        }
+    if task_id in {"S2-T1", "S2-T2"}:
+        return {**PRIMARY_COHORT_SPEC, "analytic_year": year}
+    if task_id == "S2-T6":
+        return {
+            "chronic_filter": "has_chf",
+            "chronic_value": 1,
+            "min_total_claims": 30,
+            "sort_by": "elevated_cost_risk",
+            "descending": True,
+            "limit": 10,
+            "analytic_year": year,
+        }
+    raise ValueError(f"No canonical cohort specification is defined for task {task_id}.")
+
+
 def apply_cohort_filters(
     frame: pd.DataFrame,
     parameters: Dict[str, Any],
@@ -36,11 +69,7 @@ def apply_cohort_filters(
     default_analytic_year: Optional[int] = None,
 ) -> pd.DataFrame:
     """Apply the same cohort filters used by baseline chips and NL execution."""
-    year = parameters.get("analytic_year")
-    if year is None and parameters.get("months_window") is not None:
-        year = default_analytic_year
-    if year is None:
-        year = default_analytic_year
+    year = parameters.get("analytic_year", default_analytic_year)
     if year is not None and "analytic_year" in frame.columns:
         frame = frame.loc[frame["analytic_year"] == int(year)]
 
@@ -97,11 +126,12 @@ def cohort_ground_truth(
         "expected_top_bene_id": ids[0] if ids else None,
         "parameters": {
             "chronic_filter": params.get("chronic_filter"),
+            "chronic_value": params.get("chronic_value"),
             "min_total_claims": params.get("min_total_claims"),
             "limit": params.get("limit"),
             "sort_by": params.get("sort_by"),
-            "months_window": params.get("months_window"),
-            "analytic_year": study_analytic_year(settings),
+            "descending": params.get("descending"),
+            "analytic_year": params.get("analytic_year", study_analytic_year(settings)),
         },
     }
 

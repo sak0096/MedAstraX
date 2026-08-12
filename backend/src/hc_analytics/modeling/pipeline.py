@@ -6,7 +6,7 @@ import json
 from dataclasses import asdict
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, Sequence
 
 import pandas as pd
 
@@ -58,8 +58,8 @@ def _rows_with_valid_next_year(frame: pd.DataFrame) -> pd.DataFrame:
     return ordered.loc[valid.fillna(False)].copy()
 
 
-def _frame_with_modeling_labels(frame: pd.DataFrame) -> pd.DataFrame:
-    """Derive next-year labels from explicit year+1 joins (more reliable than row shifts)."""
+def _frame_with_next_year_outcomes(frame: pd.DataFrame) -> pd.DataFrame:
+    """Join each beneficiary-year to outcomes in the immediate next analytic year."""
     next_year = frame[
         ["bene_id", "analytic_year", "inpatient_claims", "total_claims", "total_payment_amt"]
     ].copy()
@@ -72,11 +72,92 @@ def _frame_with_modeling_labels(frame: pd.DataFrame) -> pd.DataFrame:
         }
     )
 
-    labeled = frame.merge(next_year, on=["bene_id", "analytic_year"], how="inner")
-    claims_threshold = labeled["next_total_claims"][labeled["next_total_claims"] > 0].quantile(0.75)
-    cost_threshold = labeled["next_total_payment_amt"][
-        labeled["next_total_payment_amt"] > 0
-    ].quantile(0.75)
+    return frame.merge(next_year, on=["bene_id", "analytic_year"], how="inner")
+
+
+def _rows_with_informative_followup(
+    outcomes: pd.DataFrame,
+    *,
+    min_positive_rate: float = 0.01,
+) -> pd.DataFrame:
+    """Exclude years whose next-year claims are absent from the source extract."""
+    positive_rates = outcomes.groupby("analytic_year")["next_total_claims"].apply(
+        lambda values: float(values.gt(0).mean())
+    )
+    eligible_years = [
+        int(year) for year, rate in positive_rates.items() if rate >= min_positive_rate
+    ]
+    if not eligible_years:
+        raise ValueError("No analytic years have informative next-year claims follow-up.")
+    return outcomes.loc[outcomes["analytic_year"].isin(eligible_years)].copy()
+
+
+def _positive_quantile(series: pd.Series, *, quantile: float, label: str) -> float:
+    positive = series.loc[series > 0].dropna()
+    if positive.empty:
+        raise ValueError(f"Cannot derive {label}: training years contain no positive outcomes.")
+    return float(positive.quantile(quantile))
+
+
+def _derive_label_definitions(
+    outcomes: pd.DataFrame,
+    *,
+    threshold_years: Sequence[int],
+) -> Dict[str, Dict[str, Any]]:
+    """Freeze label thresholds using training years only."""
+    source_years = tuple(sorted(int(year) for year in threshold_years))
+    threshold_frame = outcomes.loc[outcomes["analytic_year"].isin(source_years)]
+    if threshold_frame.empty:
+        raise ValueError("Cannot derive label thresholds without training-year outcomes.")
+
+    quantile = 0.75
+    claims_threshold = _positive_quantile(
+        threshold_frame["next_total_claims"],
+        quantile=quantile,
+        label=RiskTarget.HIGH_UTILIZATION.value,
+    )
+    cost_threshold = _positive_quantile(
+        threshold_frame["next_total_payment_amt"],
+        quantile=quantile,
+        label=RiskTarget.ELEVATED_COST.value,
+    )
+    shared = {
+        "outcome_horizon": "immediate_next_analytic_year",
+        "threshold_source": "training_years_only",
+        "threshold_source_years": list(source_years),
+    }
+    return {
+        RiskTarget.HOSPITALIZATION.value: {
+            **shared,
+            "event_definition": "next_inpatient_claims > 0",
+            "threshold": 0.0,
+            "positive_only": False,
+        },
+        RiskTarget.HIGH_UTILIZATION.value: {
+            **shared,
+            "event_definition": "next_total_claims >= threshold",
+            "threshold": claims_threshold,
+            "quantile": quantile,
+            "positive_only": True,
+        },
+        RiskTarget.ELEVATED_COST.value: {
+            **shared,
+            "event_definition": "next_total_payment_amt >= threshold",
+            "threshold": cost_threshold,
+            "quantile": quantile,
+            "positive_only": True,
+        },
+    }
+
+
+def _apply_modeling_labels(
+    outcomes: pd.DataFrame,
+    *,
+    label_definitions: Dict[str, Dict[str, Any]],
+) -> pd.DataFrame:
+    labeled = outcomes.copy()
+    claims_threshold = float(label_definitions[RiskTarget.HIGH_UTILIZATION.value]["threshold"])
+    cost_threshold = float(label_definitions[RiskTarget.ELEVATED_COST.value]["threshold"])
 
     labeled[RiskTarget.HOSPITALIZATION.value] = labeled["next_inpatient_claims"].gt(0).astype(int)
     labeled[RiskTarget.HIGH_UTILIZATION.value] = (
@@ -88,16 +169,15 @@ def _frame_with_modeling_labels(frame: pd.DataFrame) -> pd.DataFrame:
     return labeled
 
 
-def _labeled_rows(frame: pd.DataFrame, target: RiskTarget) -> pd.DataFrame:
-    labeled = _frame_with_modeling_labels(frame)
-    labeled = labeled.dropna(subset=[target.value]).copy()
-    labeled[target.value] = labeled[target.value].astype(int)
-    # Drop analytic years with near-zero next-year event rates (incomplete follow-up).
-    year_rates = labeled.groupby("analytic_year")[target.value].mean()
-    eligible_years = [int(year) for year, rate in year_rates.items() if float(rate) >= 0.01]
-    if not eligible_years:
-        raise ValueError(f"No analytic years with informative labels for {target.value}.")
-    return labeled.loc[labeled["analytic_year"].isin(eligible_years)].copy()
+def _frame_with_modeling_labels(
+    frame: pd.DataFrame,
+    *,
+    threshold_years: Sequence[int],
+) -> pd.DataFrame:
+    """Derive next-year labels with thresholds frozen from explicit training years."""
+    outcomes = _frame_with_next_year_outcomes(frame)
+    definitions = _derive_label_definitions(outcomes, threshold_years=threshold_years)
+    return _apply_modeling_labels(outcomes, label_definitions=definitions)
 
 
 def _score_frame(
@@ -131,21 +211,30 @@ def train_all_models(
     targets = targets or list(RiskTarget)
     git_commit = git_commit_hash(settings.repo_root)
     trained_targets: List[str] = []
+    outcomes = _rows_with_informative_followup(_frame_with_next_year_outcomes(features))
+    _, _, split_spec = time_based_year_split(
+        outcomes,
+        test_year_count=test_year_count,
+        calibration_year_count=1,
+    )
+    label_definitions = _derive_label_definitions(
+        outcomes,
+        threshold_years=split_spec.train_years,
+    )
+    labeled = _apply_modeling_labels(outcomes, label_definitions=label_definitions)
+    split_payload = {
+        **asdict(split_spec),
+        "followup_eligibility": "next_total_claims_positive_rate >= 0.01",
+    }
 
     for target in targets:
-        labeled = _labeled_rows(features, target)
-        train, test, split_spec = time_based_year_split(
-            labeled,
-            label_column=target.value,
-            test_year_count=test_year_count,
-            calibration_year_count=1,
-        )
+        train = labeled.loc[labeled["analytic_year"].isin(split_spec.train_years)].copy()
+        test = labeled.loc[labeled["analytic_year"].isin(split_spec.test_years)].copy()
         calib = calibration_frame(
             labeled,
             year_column="analytic_year",
             calibration_years=split_spec.calibration_years,
         )
-        split_payload = asdict(split_spec)
 
         for family in _active_model_families():
             pipeline, metrics = train_model(
@@ -167,6 +256,7 @@ def train_all_models(
                 split_spec=split_payload,
                 feature_columns=FEATURE_COLUMNS,
                 git_commit=git_commit,
+                label_definition=label_definitions[target.value],
             )
         trained_targets.append(target.value)
 
@@ -176,6 +266,7 @@ def train_all_models(
         targets=trained_targets,
         git_commit=git_commit,
         test_year_count=test_year_count,
+        label_definitions={target: label_definitions[target] for target in trained_targets},
     )
 
     return {
@@ -221,6 +312,7 @@ def _write_model_manifest(
     targets: List[str],
     git_commit: Optional[str],
     test_year_count: int,
+    label_definitions: Dict[str, Dict[str, Any]],
 ) -> Path:
     manifest_path = settings.artifacts_path / "model_manifest.json"
     settings.artifacts_path.mkdir(parents=True, exist_ok=True)
@@ -237,6 +329,7 @@ def _write_model_manifest(
             "test_year_count": test_year_count,
         },
         "feature_columns": FEATURE_COLUMNS,
+        "label_definitions": label_definitions,
         "models_dir": str(models_dir),
         "predictions_output": str(settings.processed_data_path / "predictions.parquet"),
     }

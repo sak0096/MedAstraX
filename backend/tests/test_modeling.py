@@ -15,7 +15,9 @@ from hc_analytics.modeling.constants import (
     risk_score_column,
 )
 from hc_analytics.modeling.pipeline import (
+    _derive_label_definitions,
     _frame_with_modeling_labels,
+    _frame_with_next_year_outcomes,
     _rows_with_valid_next_year,
     build_predictions,
     run_training,
@@ -116,11 +118,29 @@ def test_frame_with_modeling_labels_uses_calendar_next_year() -> None:
             "next_year_elevated_cost": [0, 0, 0],
         }
     )
-    labeled = _frame_with_modeling_labels(frame)
+    labeled = _frame_with_modeling_labels(frame, threshold_years=(2021,))
     row_2021 = labeled.loc[labeled["analytic_year"] == 2021].iloc[0]
 
     assert row_2021[RiskTarget.HOSPITALIZATION.value] == 1
     assert len(labeled) == 2
+
+
+def test_label_thresholds_are_derived_from_training_years_only() -> None:
+    frame = pd.DataFrame(
+        {
+            "bene_id": ["B1", "B1", "B1", "B2", "B2", "B2"],
+            "analytic_year": [2019, 2020, 2021, 2019, 2020, 2021],
+            "inpatient_claims": [0, 0, 0, 0, 0, 0],
+            "total_claims": [1, 10, 1000, 1, 20, 2000],
+            "total_payment_amt": [1.0, 100.0, 10000.0, 1.0, 200.0, 20000.0],
+        }
+    )
+    outcomes = _frame_with_next_year_outcomes(frame)
+    definitions = _derive_label_definitions(outcomes, threshold_years=(2019,))
+
+    assert definitions[RiskTarget.HIGH_UTILIZATION.value]["threshold"] == 17.5
+    assert definitions[RiskTarget.ELEVATED_COST.value]["threshold"] == 175.0
+    assert definitions[RiskTarget.HIGH_UTILIZATION.value]["threshold_source_years"] == [2019]
 
 
 def test_rows_with_valid_next_year_requires_consecutive_followup() -> None:
@@ -182,6 +202,12 @@ def test_run_training_writes_models_predictions_and_manifest(
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["schema_version"] == "1.0"
     assert len(manifest["targets"]) == 3
+    assert manifest["label_definitions"][RiskTarget.HIGH_UTILIZATION.value][
+        "threshold_source"
+    ] == "training_years_only"
+    assert manifest["split"]["train_years"] == [2019]
+    assert manifest["split"]["calibration_years"] == [2020]
+    assert manifest["split"]["test_years"] == [2021, 2022]
 
 
 def test_build_predictions_scores_all_feature_rows(modeling_settings: Settings) -> None:

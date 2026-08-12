@@ -10,6 +10,7 @@ from hc_analytics.api.app import app
 from hc_analytics.config import Settings
 from hc_analytics.language.models import InterpretedQuery
 from hc_analytics.study.manipulations import apply_query_manipulations, apply_summary_manipulations
+from hc_analytics.study.cohort_spec import cohort_spec_for_task
 from hc_analytics.study.models import StudyCaseDefinition
 from hc_analytics.study.priority import compute_priority_score, incorrect_recommendation_ranking, rank_case_ids
 from hc_analytics.study.recommendations import build_outreach_recommendation
@@ -29,7 +30,7 @@ def study_settings(tmp_path: Path) -> Settings:
             "M2": "incorrect recommendation",
             "M3": "false claim",
             "M4": "wrong filter",
-            "M6": "wrong window",
+            "M6": "wrong analytic year",
             "M7": "omitted threshold",
         },
         "priority_rule": {
@@ -252,17 +253,61 @@ def test_query_filter_manipulation() -> None:
     assert mutated.parameters["chronic_filter"] == "has_hypertension"
 
 
-def test_query_time_window_manipulation() -> None:
+def test_query_analytic_year_manipulation_changes_execution_and_confirmation() -> None:
     interpreted = InterpretedQuery(
         query_id="q2",
-        natural_language="top 10 in last 12 months",
+        natural_language="top 10 in analytic year 2022",
         action="list_beneficiaries",
-        parameters={"limit": 10, "sort_by": "hospitalization_risk", "months_window": 12},
-        confirmation_message="sorted list",
+        parameters={"limit": 10, "sort_by": "hospitalization_risk", "analytic_year": 2022},
+        confirmation_message="sorted list during analytic year 2022",
     )
     mutated = apply_query_manipulations(interpreted, active_manipulations=["M6"])
-    assert mutated.parameters["displayed_months_window"] == 6
-    assert "6 months" in mutated.confirmation_message
+    assert mutated.parameters["analytic_year"] == 2021
+    assert "analytic year 2021" in mutated.confirmation_message
+
+
+def test_canonical_cohort_specs_are_frozen_by_task(study_settings: Settings) -> None:
+    assert cohort_spec_for_task("S1-T2", settings=study_settings)["limit"] == 5
+    assert cohort_spec_for_task("S1-T2", settings=study_settings)["chronic_filter"] is None
+    assert cohort_spec_for_task("S2-T2", settings=study_settings)["chronic_filter"] == "has_diabetes"
+    assert cohort_spec_for_task("S2-T6", settings=study_settings)["chronic_filter"] == "has_chf"
+    assert cohort_spec_for_task("S2-T6", settings=study_settings)["analytic_year"] == 2022
+
+
+def test_query_response_cannot_redefine_ground_truth(
+    study_settings: Settings,
+    monkeypatch: pytest.MonkeyPatch,
+) -> None:
+    monkeypatch.setattr("hc_analytics.config.get_settings", lambda: study_settings)
+    monkeypatch.setattr("hc_analytics.study.loader.get_settings", lambda: study_settings)
+    monkeypatch.setattr("hc_analytics.api.routes.study.get_settings", lambda: study_settings)
+    monkeypatch.setattr("hc_analytics.study.context.get_settings", lambda: study_settings)
+    captured: dict = {}
+
+    def fake_ground_truth(parameters, *, settings):
+        captured.update(parameters)
+        return {"expected_ids": [], "expected_count": 0, "parameters": parameters}
+
+    monkeypatch.setattr("hc_analytics.api.routes.study.cohort_ground_truth", fake_ground_truth)
+    client = TestClient(app)
+    response = client.post(
+        "/api/study/tasks/S2-T2/response",
+        json={
+            "participant_id": "P001",
+            "session_id": "session-12345678",
+            "phase": "final",
+            "responses": {
+                "parameters": {
+                    "chronic_filter": "has_hypertension",
+                    "analytic_year": 2021,
+                }
+            },
+        },
+    )
+
+    assert response.status_code == 200
+    assert captured["chronic_filter"] == "has_diabetes"
+    assert captured["analytic_year"] == 2022
 
 
 def test_score_outreach_trial_harmful_switch() -> None:

@@ -30,7 +30,7 @@ Companion to the revised dissertation proposal Appendices A, D, E, and F.
 | Faithful outreach recommendation | `correct` on S1-T5 — matches priority rule | Same procedure; enables beneficial-correction analysis | **Primary** (~50% of participants) |
 | Unsupported narrative claim | M3 on S2-T3 — false inpatient claim | Contradicts `inpatient_claims` etc.; evidence links work | **Primary** |
 | Incorrect query condition | M4 — hypertension for diabetes | Interpretation card shows filter before execute | **Primary** |
-| Incorrect query time window | M6 — shows 6 mo vs 12 mo requested | Task text + interpretation card | **Primary** |
+| Incorrect query analytic year | M6 — substitutes 2021 for requested 2022 | Task text + interpretation card; changes executed annual cohort | **Primary** |
 | Omitted query threshold | M7 — drops `min_total_claims` from card | Threshold in participant query string | **Primary** |
 | Altered SHAP ranking | — | Excluded from v2 primary design | **Not used** |
 | Arbitrary wrong risk score | — | Excluded from v2 primary design | **Not used** |

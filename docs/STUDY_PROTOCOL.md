@@ -118,7 +118,7 @@ Condition is session-scoped via the `condition` query param (and `X-Study-Condit
 | **M2** | Incorrect **outreach recommendation** vs operational priority rule | 1 | S1-T5 | Harmful switching, appropriate rejection |
 | **M3** | Unsupported grounded narrative claim | 2 | S2-T3 | Claim flagging, evidence-link opens |
 | **M4** | Wrong NL chronic filter (e.g., diabetes→hypertension) | 2 | S2-T2, S2-T6 | `query_reject`, correction |
-| **M6** | Wrong time window on interpretation card | 2 | S2-T2, S2-T6 | `query_reject` |
+| **M6** | Wrong analytic year (2021 substituted for requested 2022) | 2 | S2-T2, S2-T6 | `query_reject` |
 | **M7** | Omitted utilization threshold on interpretation card | 2 | S2-T2, S2-T6 | `query_reject` |
 
 **Excluded from primary design:** inverted SHAP, arbitrary wrong risk scores, confidence-framing-only manipulations.
@@ -191,7 +191,7 @@ Participants treat the dashboard as **decision support**, not bedside diagnosis.
 | ID | Title | Time | Conditions | Notes |
 |----|-------|------|------------|-------|
 | **S2-T1** | Manual cohort filtering | 5 min | Baseline | Top 25 by Hosp. risk + diabetes; no query box |
-| **S2-T2** | NL cohort query | 5 min | LLM | Suggested query includes 12-month window + claim threshold; **M4/M6/M7** |
+| **S2-T2** | NL cohort query | 5 min | LLM | Suggested query includes analytic year 2022 + claim threshold; **M4/M6/M7** |
 | **S2-T3** | Summary validation | 8 min | LLM | Case **B-15**; **sequential** claim review; **M3** |
 | **S2-T4** | Cross-check summary vs record | 5 min | All | Case B-15 |
 | **S2-T5** | Cohort analytics query | 6 min | LLM | Cohort summary NL query |
@@ -200,8 +200,10 @@ Participants treat the dashboard as **decision support**, not bedside diagnosis.
 
 ### S2-T2 / S2-T6 suggested queries (from catalog)
 
-- S2-T2: `Top 25 hospitalization risk with diabetes in the last 12 months with at least 50 claims`
-- S2-T6: `Top 10 elevated cost risk with heart failure in the last 12 months with at least 30 claims`
+- S2-T2: `Top 25 hospitalization risk with diabetes in analytic year 2022 with at least 50 claims`
+- S2-T6: `Top 10 elevated cost risk with heart failure in analytic year 2022 with at least 30 claims`
+
+The source features are beneficiary-year aggregates. Query tasks therefore use an explicit analytic year; they do not claim support for rolling month windows.
 
 Participant must review interpretation card before confirming. Cancel/rephrase logs `query_reject`.
 
@@ -266,6 +268,7 @@ See [STUDY_APPENDICES.md](./STUDY_APPENDICES.md) for behavioral metric definitio
 - Operational priority rule is frozen: inpatient×3, outpatient×0.5, chronic×2, total_claims×0.1.
 - Study 2 condition key remains `llm`, but participant-facing chrome stays neutral. Frozen stimuli are **grounded template** summaries / regex-parsed queries unless a named-model freeze + human adjudication pass is completed (`HC_LLM_*`, `scripts/generate_frozen_summaries.py --require-llm`, `scripts/apply_adjudication.py`). Treat confirmatory claims as grounded natural-language augmentation until that pass lands.
 - Risk percentages are produced from a **calibrated XGBoost** artifact (temporal calib year + isotonic). Keep `HC_ALLOW_LOGISTIC_FALLBACK=false`. On a fresh Mac without Homebrew OpenMP, run `./scripts/ensure_xgboost_libomp.sh` after `./scripts/setup.sh`.
+- High-utilization and elevated-cost label thresholds are frozen from the model training years only and recorded, with their source years, in model metadata and `artifacts/model_manifest.json`.
 - Study-case explanation badges use bootstrap top-feature agreement when `HC_STABILITY_METHOD=bootstrap`; bulk rows still use dominance margin for cost. SHAP background sampling uses train years from the model metadata.
 - Docker/`docker-compose` provides a localhost-to-cloud packaging scaffold; online recruitment still needs HTTPS, durable Postgres event storage, and auth.
 - Instrumentation `version_context` now records model family plus artifact hashes for models, explanations, and frozen study files.

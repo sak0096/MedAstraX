@@ -222,6 +222,7 @@ def save_model_artifact(
     split_spec: Dict[str, object],
     feature_columns: List[str],
     git_commit: Optional[str],
+    label_definition: Dict[str, object],
 ) -> Path:
     target_dir = models_dir / TARGET_SHORT_NAMES[target]
     target_dir.mkdir(parents=True, exist_ok=True)
@@ -239,6 +240,7 @@ def save_model_artifact(
         "categorical_columns": CATEGORICAL_COLUMNS,
         "metrics": metrics,
         "split": split_spec,
+        "label_definition": label_definition,
         "artifact_path": str(artifact_path),
         "trained_at": datetime.now(timezone.utc).isoformat(),
         "git_commit": git_commit,
@@ -257,6 +259,7 @@ def save_model_artifact(
         "target_short": TARGET_SHORT_NAMES[target],
         "feature_columns": feature_columns,
         "split": split_spec,
+        "label_definition": label_definition,
         "models": models,
         "updated_at": datetime.now(timezone.utc).isoformat(),
         "git_commit": git_commit,

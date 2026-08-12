@@ -119,6 +119,15 @@ def test_parse_natural_language_query_detects_chronic_filter() -> None:
     assert interpreted.parameters["sort_by"] == "elevated_cost_risk"
 
 
+def test_parse_natural_language_query_uses_explicit_analytic_year() -> None:
+    interpreted = parse_natural_language_query(
+        "top 25 hospitalization risk with diabetes in analytic year 2022"
+    )
+    assert interpreted.parameters["analytic_year"] == 2022
+    assert "months_window" not in interpreted.parameters
+    assert "analytic year 2022" in interpreted.confirmation_message
+
+
 def test_build_grounded_summary_uses_bundle_claims(language_settings: Settings) -> None:
     run_training(language_settings, test_year_count=2)
     run_explainability(language_settings, top_k=3, max_rows=8)

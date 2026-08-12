@@ -8,7 +8,7 @@ ManipulationType = Literal[
     "incorrect_outreach_recommendation",
     "false_narrative_claim",
     "incorrect_query_filter",
-    "incorrect_query_time_window",
+    "incorrect_query_analytic_year",
     "omitted_query_threshold",
     # Exploratory / deprecated — not assigned in v2 pools.
     "inverted_shap",
