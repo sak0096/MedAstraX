@@ -6,20 +6,20 @@
     "seed": 42,
     "risk_quantile_low": 0.7,
     "risk_quantile_high": 0.97,
-    "risk_lo": 0.18010291595197256,
-    "risk_hi": 0.43,
-    "eligible_rows": 2927,
+    "risk_lo": 0.2098061591386795,
+    "risk_hi": 0.5302013158798218,
+    "eligible_rows": 2871,
     "alpha_priority_scores": [
-      2.9,
-      10.9,
-      14.1,
-      33.0
+      1.8,
+      12.8,
+      22.7,
+      57.2
     ],
     "beta_priority_scores": [
-      2.9,
-      5.7,
-      11.0,
-      79.4
+      6.2,
+      11.5,
+      13.3,
+      67.4
     ]
   },
   "manipulation_catalog": {
@@ -133,40 +133,40 @@
     {
       "case_id": "B-01",
       "label": "Case B-01",
-      "bene_id": "-10000010263394",
+      "bene_id": "-10000010255633",
       "analytic_year": 2022,
       "case_set": "alpha",
       "ground_truth": {
-        "hospitalization_risk": 0.24838,
-        "high_utilization_risk": 0.451613,
-        "elevated_cost_risk": 0.550265,
+        "hospitalization_risk": 0.226891,
+        "high_utilization_risk": 0.295775,
+        "elevated_cost_risk": 0.166667,
         "chronic_condition_count": 0,
         "has_diabetes": 0,
         "has_chf": 0,
         "inpatient_claims": 0,
-        "outpatient_claims": 1,
-        "total_claims": 24,
+        "outpatient_claims": 0,
+        "total_claims": 18,
         "top_hospitalization_features": [
           {
-            "feature": "race",
-            "shap_value": 0.157668,
+            "feature": "esrd_ind",
+            "shap_value": 0.32766,
             "direction": "increases_risk",
             "rank": 1
           },
           {
-            "feature": "total_payment_amt",
-            "shap_value": 0.156585,
+            "feature": "age",
+            "shap_value": 0.214983,
             "direction": "increases_risk",
             "rank": 2
           },
           {
-            "feature": "rx_unique_drugs",
-            "shap_value": 0.144309,
-            "direction": "increases_risk",
+            "feature": "outpatient_claims",
+            "shap_value": -0.175575,
+            "direction": "decreases_risk",
             "rank": 3
           }
         ],
-        "priority_score": 2.9,
+        "priority_score": 1.8,
         "outreach_rank": 4,
         "outreach_set_ranking": [
           "B-04",
@@ -205,40 +205,40 @@
     {
       "case_id": "B-02",
       "label": "Case B-02",
-      "bene_id": "-10000010259298",
+      "bene_id": "-10000010256731",
       "analytic_year": 2022,
       "case_set": "alpha",
       "ground_truth": {
-        "hospitalization_risk": 0.413793,
-        "high_utilization_risk": 0.327193,
-        "elevated_cost_risk": 0.837838,
+        "hospitalization_risk": 0.226891,
+        "high_utilization_risk": 0.823529,
+        "elevated_cost_risk": 0.313636,
         "chronic_condition_count": 0,
         "has_diabetes": 0,
         "has_chf": 0,
-        "inpatient_claims": 1,
-        "outpatient_claims": 7,
-        "total_claims": 44,
+        "inpatient_claims": 0,
+        "outpatient_claims": 19,
+        "total_claims": 33,
         "top_hospitalization_features": [
           {
-            "feature": "total_payment_amt",
-            "shap_value": 1.207236,
+            "feature": "outpatient_claims",
+            "shap_value": 0.41783,
             "direction": "increases_risk",
             "rank": 1
           },
           {
-            "feature": "hospice_claims",
-            "shap_value": -0.376371,
+            "feature": "total_claims",
+            "shap_value": -0.09017,
             "direction": "decreases_risk",
             "rank": 2
           },
           {
-            "feature": "distinct_diagnosis_count",
-            "shap_value": 0.252354,
+            "feature": "rx_days_supply",
+            "shap_value": 0.081251,
             "direction": "increases_risk",
             "rank": 3
           }
         ],
-        "priority_score": 10.9,
+        "priority_score": 12.8,
         "outreach_rank": 3,
         "outreach_set_ranking": [
           "B-04",
@@ -277,40 +277,40 @@
     {
       "case_id": "B-03",
       "label": "Case B-03",
-      "bene_id": "-10000010276185",
+      "bene_id": "-10000010265628",
       "analytic_year": 2022,
       "case_set": "alpha",
       "ground_truth": {
-        "hospitalization_risk": 0.266272,
-        "high_utilization_risk": 0.15245,
-        "elevated_cost_risk": 0.33945,
+        "hospitalization_risk": 0.384615,
+        "high_utilization_risk": 0.955752,
+        "elevated_cost_risk": 0.55914,
         "chronic_condition_count": 0,
         "has_diabetes": 0,
         "has_chf": 0,
-        "inpatient_claims": 2,
-        "outpatient_claims": 10,
-        "total_claims": 31,
+        "inpatient_claims": 1,
+        "outpatient_claims": 20,
+        "total_claims": 97,
         "top_hospitalization_features": [
           {
-            "feature": "distinct_diagnosis_count",
-            "shap_value": 0.466214,
+            "feature": "inpatient_payment_amt",
+            "shap_value": 0.479127,
             "direction": "increases_risk",
             "rank": 1
           },
           {
-            "feature": "total_payment_amt",
-            "shap_value": 0.148115,
+            "feature": "outpatient_claims",
+            "shap_value": 0.282158,
             "direction": "increases_risk",
             "rank": 2
           },
           {
-            "feature": "inpatient_claims",
-            "shap_value": 0.059835,
-            "direction": "increases_risk",
+            "feature": "rx_days_supply",
+            "shap_value": -0.132264,
+            "direction": "decreases_risk",
             "rank": 3
           }
         ],
-        "priority_score": 14.1,
+        "priority_score": 22.7,
         "outreach_rank": 2,
         "outreach_set_ranking": [
           "B-04",
@@ -349,40 +349,40 @@
     {
       "case_id": "B-04",
       "label": "Case B-04",
-      "bene_id": "-10000010262776",
+      "bene_id": "-10000010269348",
       "analytic_year": 2022,
       "case_set": "alpha",
       "ground_truth": {
-        "hospitalization_risk": 0.4,
-        "high_utilization_risk": 0.896163,
-        "elevated_cost_risk": 0.735178,
-        "chronic_condition_count": 0,
+        "hospitalization_risk": 0.351648,
+        "high_utilization_risk": 0.719298,
+        "elevated_cost_risk": 0.517986,
+        "chronic_condition_count": 1,
         "has_diabetes": 0,
         "has_chf": 0,
-        "inpatient_claims": 1,
-        "outpatient_claims": 37,
-        "total_claims": 115,
+        "inpatient_claims": 3,
+        "outpatient_claims": 74,
+        "total_claims": 92,
         "top_hospitalization_features": [
           {
-            "feature": "rx_unique_drugs",
-            "shap_value": 0.600459,
+            "feature": "outpatient_claims",
+            "shap_value": 0.358809,
             "direction": "increases_risk",
             "rank": 1
           },
           {
-            "feature": "rx_fill_count",
-            "shap_value": -0.308619,
-            "direction": "decreases_risk",
+            "feature": "inpatient_claims",
+            "shap_value": 0.206559,
+            "direction": "increases_risk",
             "rank": 2
           },
           {
-            "feature": "outpatient_claims",
-            "shap_value": 0.270142,
-            "direction": "increases_risk",
+            "feature": "inpatient_payment_amt",
+            "shap_value": -0.174097,
+            "direction": "decreases_risk",
             "rank": 3
           }
         ],
-        "priority_score": 33.0,
+        "priority_score": 57.2,
         "outreach_rank": 1,
         "outreach_set_ranking": [
           "B-04",
@@ -421,40 +421,40 @@
     {
       "case_id": "B-01b",
       "label": "Case B-01b",
-      "bene_id": "-10000010267361",
+      "bene_id": "-10000010264547",
       "analytic_year": 2022,
       "case_set": "beta",
       "ground_truth": {
-        "hospitalization_risk": 0.266272,
-        "high_utilization_risk": 0.128125,
-        "elevated_cost_risk": 0.116393,
+        "hospitalization_risk": 0.209806,
+        "high_utilization_risk": 0.208278,
+        "elevated_cost_risk": 0.133545,
         "chronic_condition_count": 0,
         "has_diabetes": 0,
         "has_chf": 0,
         "inpatient_claims": 0,
-        "outpatient_claims": 3,
-        "total_claims": 14,
+        "outpatient_claims": 7,
+        "total_claims": 27,
         "top_hospitalization_features": [
           {
-            "feature": "state_code",
-            "shap_value": 0.352653,
+            "feature": "outpatient_claims",
+            "shap_value": 0.257207,
             "direction": "increases_risk",
             "rank": 1
           },
           {
-            "feature": "distinct_diagnosis_count",
-            "shap_value": 0.252354,
+            "feature": "age",
+            "shap_value": 0.153609,
             "direction": "increases_risk",
             "rank": 2
           },
           {
-            "feature": "rx_unique_drugs",
-            "shap_value": -0.042298,
+            "feature": "total_claims",
+            "shap_value": -0.114326,
             "direction": "decreases_risk",
             "rank": 3
           }
         ],
-        "priority_score": 2.9,
+        "priority_score": 6.2,
         "outreach_rank": 4,
         "outreach_set_ranking": [
           "B-04b",
@@ -493,40 +493,40 @@
     {
       "case_id": "B-02b",
       "label": "Case B-02b",
-      "bene_id": "-10000010273567",
+      "bene_id": "-10000010277656",
       "analytic_year": 2022,
       "case_set": "beta",
       "ground_truth": {
-        "hospitalization_risk": 0.180103,
-        "high_utilization_risk": 0.128125,
-        "elevated_cost_risk": 0.077766,
+        "hospitalization_risk": 0.245059,
+        "high_utilization_risk": 0.390625,
+        "elevated_cost_risk": 0.517857,
         "chronic_condition_count": 0,
         "has_diabetes": 0,
         "has_chf": 0,
         "inpatient_claims": 1,
-        "outpatient_claims": 2,
-        "total_claims": 17,
+        "outpatient_claims": 5,
+        "total_claims": 60,
         "top_hospitalization_features": [
           {
-            "feature": "distinct_diagnosis_count",
-            "shap_value": 0.252354,
+            "feature": "total_payment_amt",
+            "shap_value": 0.358437,
             "direction": "increases_risk",
             "rank": 1
           },
           {
-            "feature": "rx_unique_drugs",
-            "shap_value": -0.042298,
+            "feature": "inpatient_payment_amt",
+            "shap_value": -0.334475,
             "direction": "decreases_risk",
             "rank": 2
           },
           {
             "feature": "outpatient_claims",
-            "shap_value": -0.032127,
-            "direction": "decreases_risk",
+            "shap_value": 0.231632,
+            "direction": "increases_risk",
             "rank": 3
           }
         ],
-        "priority_score": 5.7,
+        "priority_score": 11.5,
         "outreach_rank": 3,
         "outreach_set_ranking": [
           "B-04b",
@@ -565,40 +565,40 @@
     {
       "case_id": "B-03b",
       "label": "Case B-03b",
-      "bene_id": "-10000010283601",
+      "bene_id": "-10000010272076",
       "analytic_year": 2022,
       "case_set": "beta",
       "ground_truth": {
-        "hospitalization_risk": 0.211268,
-        "high_utilization_risk": 0.263158,
-        "elevated_cost_risk": 0.115136,
-        "chronic_condition_count": 1,
-        "has_diabetes": 1,
+        "hospitalization_risk": 0.245059,
+        "high_utilization_risk": 0.282667,
+        "elevated_cost_risk": 0.938144,
+        "chronic_condition_count": 0,
+        "has_diabetes": 0,
         "has_chf": 0,
-        "inpatient_claims": 2,
-        "outpatient_claims": 1,
-        "total_claims": 25,
+        "inpatient_claims": 1,
+        "outpatient_claims": 16,
+        "total_claims": 23,
         "top_hospitalization_features": [
           {
-            "feature": "has_diabetes",
-            "shap_value": 0.316443,
+            "feature": "inpatient_payment_amt",
+            "shap_value": 0.404019,
             "direction": "increases_risk",
             "rank": 1
           },
           {
-            "feature": "distinct_diagnosis_count",
-            "shap_value": 0.145424,
-            "direction": "increases_risk",
+            "feature": "age",
+            "shap_value": -0.39867,
+            "direction": "decreases_risk",
             "rank": 2
           },
           {
-            "feature": "state_code",
-            "shap_value": -0.085717,
-            "direction": "decreases_risk",
+            "feature": "outpatient_claims",
+            "shap_value": 0.241459,
+            "direction": "increases_risk",
             "rank": 3
           }
         ],
-        "priority_score": 11.0,
+        "priority_score": 13.3,
         "outreach_rank": 2,
         "outreach_set_ranking": [
           "B-04b",
@@ -613,11 +613,11 @@
         },
         "M3": {
           "type": "false_narrative_claim",
-          "statement": "Heart failure is the dominant chronic driver for this beneficiary.",
+          "statement": "Beneficiary had two inpatient admissions in the analytic year.",
           "source_fields": [
-            "has_chf"
+            "inpatient_claims"
           ],
-          "contradicts_field": "has_chf",
+          "contradicts_field": "inpatient_claims",
           "contradicts_expected": 0
         },
         "M4": {
@@ -637,40 +637,40 @@
     {
       "case_id": "B-04b",
       "label": "Case B-04b",
-      "bene_id": "-10000010284659",
+      "bene_id": "-10000010280669",
       "analytic_year": 2022,
       "case_set": "beta",
       "ground_truth": {
-        "hospitalization_risk": 0.413793,
-        "high_utilization_risk": 0.928571,
-        "elevated_cost_risk": 0.912371,
-        "chronic_condition_count": 1,
+        "hospitalization_risk": 0.32,
+        "high_utilization_risk": 0.984375,
+        "elevated_cost_risk": 0.938144,
+        "chronic_condition_count": 0,
         "has_diabetes": 0,
         "has_chf": 0,
-        "inpatient_claims": 0,
-        "outpatient_claims": 127,
-        "total_claims": 139,
+        "inpatient_claims": 11,
+        "outpatient_claims": 34,
+        "total_claims": 174,
         "top_hospitalization_features": [
           {
-            "feature": "outpatient_claims",
-            "shap_value": 1.047405,
+            "feature": "total_claims",
+            "shap_value": 0.625029,
             "direction": "increases_risk",
             "rank": 1
           },
           {
-            "feature": "total_claims",
-            "shap_value": 0.240143,
+            "feature": "outpatient_claims",
+            "shap_value": 0.179594,
             "direction": "increases_risk",
             "rank": 2
           },
           {
-            "feature": "total_payment_amt",
-            "shap_value": 0.194536,
-            "direction": "increases_risk",
+            "feature": "dme_claims",
+            "shap_value": -0.152847,
+            "direction": "decreases_risk",
             "rank": 3
           }
         ],
-        "priority_score": 79.4,
+        "priority_score": 67.4,
         "outreach_rank": 1,
         "outreach_set_ranking": [
           "B-04b",
@@ -713,9 +713,9 @@
       "analytic_year": 2022,
       "case_set": "shared",
       "ground_truth": {
-        "hospitalization_risk": 0.475806,
-        "high_utilization_risk": 0.99061,
-        "elevated_cost_risk": 0.935135,
+        "hospitalization_risk": 0.782609,
+        "high_utilization_risk": 1.0,
+        "elevated_cost_risk": 0.971429,
         "chronic_condition_count": 2,
         "has_diabetes": 1,
         "has_chf": 0,
@@ -724,20 +724,20 @@
         "total_claims": 301,
         "top_hospitalization_features": [
           {
-            "feature": "inpatient_claims",
-            "shap_value": 1.045745,
+            "feature": "total_claims",
+            "shap_value": 1.027576,
             "direction": "increases_risk",
             "rank": 1
           },
           {
-            "feature": "total_claims",
-            "shap_value": 0.559728,
+            "feature": "inpatient_claims",
+            "shap_value": 0.579091,
             "direction": "increases_risk",
             "rank": 2
           },
           {
-            "feature": "total_payment_amt",
-            "shap_value": 0.392114,
+            "feature": "readmission_30d_count",
+            "shap_value": 0.258315,
             "direction": "increases_risk",
             "rank": 3
           }
@@ -778,9 +778,9 @@
       "analytic_year": 2022,
       "case_set": "shared",
       "ground_truth": {
-        "hospitalization_risk": 0.475806,
-        "high_utilization_risk": 0.99061,
-        "elevated_cost_risk": 0.912371,
+        "hospitalization_risk": 0.245059,
+        "high_utilization_risk": 0.992063,
+        "elevated_cost_risk": 0.973404,
         "chronic_condition_count": 1,
         "has_diabetes": 1,
         "has_chf": 0,
@@ -789,20 +789,20 @@
         "total_claims": 143,
         "top_hospitalization_features": [
           {
-            "feature": "rx_unique_drugs",
-            "shap_value": 0.932204,
+            "feature": "total_claims",
+            "shap_value": 0.480986,
             "direction": "increases_risk",
             "rank": 1
           },
           {
-            "feature": "distinct_diagnosis_count",
-            "shap_value": 0.573143,
+            "feature": "outpatient_claims",
+            "shap_value": 0.351871,
             "direction": "increases_risk",
             "rank": 2
           },
           {
-            "feature": "rx_fill_count",
-            "shap_value": -0.347943,
+            "feature": "dme_claims",
+            "shap_value": -0.191828,
             "direction": "decreases_risk",
             "rank": 3
           }
@@ -843,9 +843,9 @@
       "analytic_year": 2022,
       "case_set": "shared",
       "ground_truth": {
-        "hospitalization_risk": 0.75,
-        "high_utilization_risk": 0.99061,
-        "elevated_cost_risk": 0.935135,
+        "hospitalization_risk": 0.682963,
+        "high_utilization_risk": 0.971429,
+        "elevated_cost_risk": 0.855263,
         "chronic_condition_count": 2,
         "has_diabetes": 0,
         "has_chf": 1,
@@ -854,20 +854,20 @@
         "total_claims": 260,
         "top_hospitalization_features": [
           {
-            "feature": "rx_unique_drugs",
-            "shap_value": 2.881208,
+            "feature": "total_claims",
+            "shap_value": 0.862793,
             "direction": "increases_risk",
             "rank": 1
           },
           {
-            "feature": "inpatient_payment_amt",
-            "shap_value": -2.77135,
-            "direction": "decreases_risk",
+            "feature": "rx_unique_drugs",
+            "shap_value": 0.513895,
+            "direction": "increases_risk",
             "rank": 2
           },
           {
-            "feature": "total_payment_amt",
-            "shap_value": 1.678796,
+            "feature": "inpatient_claims",
+            "shap_value": 0.438381,
             "direction": "increases_risk",
             "rank": 3
           }
@@ -908,9 +908,9 @@
       "analytic_year": 2022,
       "case_set": "shared",
       "ground_truth": {
-        "hospitalization_risk": 0.43,
-        "high_utilization_risk": 0.990099,
-        "elevated_cost_risk": 0.912371,
+        "hospitalization_risk": 0.351648,
+        "high_utilization_risk": 0.955752,
+        "elevated_cost_risk": 0.734375,
         "chronic_condition_count": 1,
         "has_diabetes": 0,
         "has_chf": 1,
@@ -919,20 +919,20 @@
         "total_claims": 118,
         "top_hospitalization_features": [
           {
-            "feature": "rx_unique_drugs",
-            "shap_value": 1.284684,
+            "feature": "total_claims",
+            "shap_value": 0.396585,
             "direction": "increases_risk",
             "rank": 1
           },
           {
-            "feature": "rx_fill_count",
-            "shap_value": -0.552431,
-            "direction": "decreases_risk",
+            "feature": "outpatient_claims",
+            "shap_value": 0.307793,
+            "direction": "increases_risk",
             "rank": 2
           },
           {
-            "feature": "outpatient_claims",
-            "shap_value": 0.520593,
+            "feature": "rx_unique_drugs",
+            "shap_value": 0.191747,
             "direction": "increases_risk",
             "rank": 3
           }
