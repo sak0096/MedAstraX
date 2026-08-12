@@ -9,6 +9,7 @@ export type StudyEventType =
   | "explanation_view"
   | "explanation_toggle"
   | "evidence_link_open"
+  | "evidence_dwell"
   | "query_submit"
   | "query_confirm"
   | "query_reject"

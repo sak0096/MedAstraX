@@ -18,6 +18,7 @@ class EventType(str, Enum):
     EXPLANATION_VIEW = "explanation_view"
     EXPLANATION_TOGGLE = "explanation_toggle"
     EVIDENCE_LINK_OPEN = "evidence_link_open"
+    EVIDENCE_DWELL = "evidence_dwell"
     QUERY_SUBMIT = "query_submit"
     QUERY_CONFIRM = "query_confirm"
     QUERY_REJECT = "query_reject"

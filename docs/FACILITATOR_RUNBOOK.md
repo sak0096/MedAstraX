@@ -14,7 +14,8 @@
 # .env
 HC_STUDY_MODE=true
 HC_LOG_EVENTS=true
-HC_EXPERIMENTAL_CONDITION=baseline   # change per block
+# Condition is selected per participant URL, not by restarting the API:
+# ?participant=P001&study=study1&condition=baseline
 ```
 
 ```bash
@@ -110,7 +111,7 @@ Read scenario from STUDY_PROTOCOL §5. Open dashboard at **first condition**.
 
 - [ ] Export session log (toolbar **Export study session**).
 - [ ] Administer Qualtrics Part B for completed condition.
-- [ ] Change `HC_EXPERIMENTAL_CONDITION` to second arm; participant refreshes browser.
+- [ ] Change the participant URL `condition=` to the second arm; participant refreshes. Do not restart the API.
 - [ ] Repeat tasks (comprehension already passed in session).
 
 ### Close
@@ -127,13 +128,12 @@ Read scenario from STUDY_PROTOCOL §5. Open dashboard at **first condition**.
 
 ### Block A — Baseline
 
-- Condition: `HC_EXPERIMENTAL_CONDITION=baseline`
-- URL: `?participant=P###&study=study2`
+- URL: `?participant=P###&study=study2&condition=baseline`
 - Tasks: **S2-T1**, **S2-T4** (profile-only cross-check), **S2-T7** if time permits.
 
 ### Block B — LLM
 
-- Condition: `HC_EXPERIMENTAL_CONDITION=llm`
+- URL: `?participant=P###&study=study2&condition=llm`
 - Tasks: **S2-T2** through **S2-T7**
 - Emphasize: **read interpretation card** before confirming queries.
 - **S2-T3:** initial judgment before opening summary, then drill-down B-15, then final judgment.
@@ -153,7 +153,7 @@ Same as Study 1: surveys, interview, debrief, export.
 | Frozen summary missing | Run `python scripts/generate_frozen_summaries.py` |
 | Task Panel empty | Confirm `HC_STUDY_MODE=true` and `?study=study1` or `study2` |
 | Participant sees manipulation labels | Remove `facilitator=1` from their URL |
-| Backend wrong condition | Restart with correct `HC_EXPERIMENTAL_CONDITION` |
+| Backend wrong condition | Confirm `?condition=` on the participant URL; refresh. Do not restart the API. |
 
 ---
 

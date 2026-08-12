@@ -60,7 +60,7 @@ CMS Synthetic Data
 git clone <repo-url> MedAstraX && cd MedAstraX
 
 ./scripts/setup.sh          # .env, Python venv, pinned deps, npm ci (installs nvm/Node if needed)
-# optional: edit .env — set HC_EXPERIMENTAL_CONDITION=baseline|xai|llm
+# optional: edit .env — HC_EXPERIMENTAL_CONDITION is a fallback if the URL omits condition=
 
 # Stage CMS synthetic files under data/raw/ (see docs/DATA.md), then:
 source backend/.venv/bin/activate
@@ -75,7 +75,7 @@ python -m hc_analytics.explainability
 ./scripts/start-dashboard.sh
 ```
 
-Open http://localhost:5173 (`?participant=P001` for study sessions). Vite proxies `/api` and `/health` to the FastAPI service.
+Open http://localhost:5173 (`?participant=P001&study=study1&condition=baseline` for study sessions). Vite proxies `/api` and `/health` to the FastAPI service.
 
 Check readiness anytime: `GET http://127.0.0.1:8000/api/meta` (data, models, predictions, explanations, instrumentation flags).
 
@@ -120,10 +120,10 @@ cd ../frontend && npm ci
 
 ## Study conditions
 
-Set `HC_EXPERIMENTAL_CONDITION` in `.env` before starting the API. Restart the backend after changing condition.
+Pass `condition=baseline|xai|llm` on the participant URL (and `X-Study-Condition` from the dashboard). `HC_EXPERIMENTAL_CONDITION` is only a fallback when the URL/header is omitted — do not restart the API to switch blocks.
 
-| Condition | `.env` value | Dashboard affordances |
-|-----------|--------------|------------------------|
+| Condition | URL value | Dashboard affordances |
+|-----------|-----------|------------------------|
 | Control | `baseline` | Cohort charts, sortable risk table, beneficiary drill-down, CSV/PDF export |
 | XAI | `xai` | Baseline + global SHAP importance, local SHAP bars, stability badges, layered disclosure (top 3 / 5), fairness cues |
 | LLM | `llm` | Baseline + grounded summaries with evidence links, NL query (interpret → confirm → execute) |
@@ -152,7 +152,7 @@ HC_STUDY_MODE=true
 Open the dashboard with study query params:
 
 ```
-http://localhost:5173/?participant=P001&study=study1
+http://localhost:5173/?participant=P001&study=study1&condition=baseline
 ```
 
 | URL param | Values | Purpose |

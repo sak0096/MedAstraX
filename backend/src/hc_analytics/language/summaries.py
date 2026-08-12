@@ -7,8 +7,34 @@ from hc_analytics.language.grounding import FALLBACK_INSUFFICIENT_EVIDENCE, Grou
 from hc_analytics.language.models import GroundedSummaryResponse
 
 
+FEATURE_LABELS = {
+    "age": "Age",
+    "sex": "Sex",
+    "race": "Race",
+    "state_code": "State",
+    "esrd_ind": "ESRD indicator",
+    "inpatient_claims": "Inpatient claims",
+    "outpatient_claims": "Outpatient claims",
+    "carrier_claims": "Carrier claims",
+    "total_claims": "Total claims",
+    "total_payment_amt": "Total payment",
+    "inpatient_payment_amt": "Inpatient payment",
+    "rx_fill_count": "Rx fill count",
+    "rx_unique_drugs": "Unique drugs",
+    "rx_days_supply": "Rx days supply",
+    "distinct_diagnosis_count": "Distinct diagnoses",
+    "has_diabetes": "Diabetes",
+    "has_chf": "Heart failure",
+    "has_copd": "COPD",
+    "has_ckd": "Chronic kidney disease",
+    "has_hypertension": "Hypertension",
+    "chronic_condition_count": "Chronic conditions",
+    "readmission_30d_count": "30-day readmissions",
+}
+
+
 def _feature_label(feature: str) -> str:
-    return feature.replace("_", " ")
+    return FEATURE_LABELS.get(feature, feature.replace("_", " "))
 
 
 def _target_sentence(target: TargetExplanation) -> str:
@@ -27,8 +53,7 @@ def _target_sentence(target: TargetExplanation) -> str:
         if contributor.feature_value is not None:
             value_text = f" (value: {contributor.feature_value})"
         contributor_bits.append(
-            f"{_feature_label(contributor.feature)}{value_text} {direction} risk "
-            f"(SHAP {contributor.shap_value:+.3f})"
+            f"{_feature_label(contributor.feature)}{value_text} {direction} risk"
         )
     return f"{risk_text}, primarily driven by {', '.join(contributor_bits)}."
 

@@ -1,3 +1,4 @@
+import { useEffect, useRef } from "react";
 import { trackEvent } from "../instrumentation/logger";
 import type { GroundedSummary } from "../types";
 import { featureLabel } from "../utils/xai";
@@ -15,6 +16,27 @@ export function GroundedSummaryPanel({
   unavailable,
   condition,
 }: GroundedSummaryPanelProps) {
+  const dwell = useRef<{ field: string; claim: string; started: number } | null>(null);
+
+  const flushDwell = () => {
+    const current = dwell.current;
+    if (!current || !summary) return;
+    void trackEvent(
+      "evidence_dwell",
+      {
+        source_field: current.field,
+        claim: current.claim,
+        duration_ms: Date.now() - current.started,
+        bene_id: summary.bene_id,
+        analytic_year: summary.analytic_year,
+      },
+      condition,
+    );
+    dwell.current = null;
+  };
+
+  useEffect(() => () => flushDwell(), [summary, condition]);
+
   if (loading) {
     return (
       <section className="llm-section">
@@ -38,6 +60,8 @@ export function GroundedSummaryPanel({
   const fallback = summary.grounded.fallback;
 
   const handleEvidenceOpen = (field: string, claim: string) => {
+    flushDwell();
+    dwell.current = { field, claim, started: Date.now() };
     void trackEvent(
       "evidence_link_open",
       {

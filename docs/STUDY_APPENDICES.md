@@ -50,8 +50,13 @@ Implemented in `backend/src/hc_analytics/study/scoring.py` and `scripts/score_st
 | **Appropriate rejection** | Incorrect AI rejected; final response correct |
 | **Underreliance** | Correct AI available but final remains wrong |
 | **Evidence inspection** | `evidence_link_open` before final response on S2-T3 |
+| **Top-1 correct** | First-ranked ID matches the operational priority winner |
+| **Kendall tau distance** | Normalized pairwise inversions between final ranking and ground truth |
+| **Interpretation accuracy** | Feature+direction pairs vs SHAP top drivers (partial credit) |
+| **Claim detection** | Flagged unsupported statement on M3 trials |
+| **Query set match** | Exact ID set; precision/recall vs expected cohort |
 
-**Weight of Advice (WOA):** for outreach ranks, proportional shift from initial ranking toward AI recommendation (secondary; Panigutti et al., 2022).
+**Weight of Advice (WOA):** implemented in `scoring.py` for outreach ranks as movement from initial ranking toward the AI recommendation. Trials where the initial ranking equals the advice are left missing rather than given an arbitrary value.
 
 **Appropriate reliance index (session-level):** agreement with correct AI minus agreement with incorrect AI across manipulation trials.
 
@@ -68,7 +73,7 @@ Each stored event includes:
 | `participant_id` | URL `?participant=` |
 | `session_id` | Browser session storage |
 | `study_id` | Config |
-| `condition` | `HC_EXPERIMENTAL_CONDITION` |
+| `condition` | URL `?condition=` / `X-Study-Condition` (fallback: `HC_EXPERIMENTAL_CONDITION`) |
 | `task_id` | Active Task Panel task |
 | `payload` | Event-specific (includes `trial_id`, `phase`, `manipulation_type`, `ground_truth` when applicable) |
 | `version_context` | Model, explanation, API build (server-enriched) |
@@ -86,9 +91,11 @@ Each stored event includes:
 | `explanation_view` | SHAP loaded |
 | `explanation_toggle` | Concise/expanded toggle |
 | `evidence_link_open` | Summary source link clicked |
+| `evidence_dwell` | Time spent after opening a source link |
 | `query_submit` | NL query sent |
 | `query_confirm` | Query executed |
-| `query_reject` | Query cancelled / rejected |
+| `query_reject` | Query cancelled |
+| `query_revise` | Interpretation rejected in order to rephrase |
 | `filter_change` | Table sort changed |
 | `export` | CSV or summary export |
 | `latency` | Timed action wrapper |

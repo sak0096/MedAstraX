@@ -29,3 +29,5 @@ Start here for human-participant research using the prototype.
 |-----------|--------------|
 | **Formative pilot** | IRB submitted or exempt; facilitator runbook; `HC_STUDY_MODE=true`; Qualtrics draft |
 | **Confirmatory collection** | IRB approved; pilot complete; preregistration; frozen protocol + survey versions |
+
+Participant URLs: `?participant=P001&study=study1&condition=baseline` (then the other condition without restarting the API).

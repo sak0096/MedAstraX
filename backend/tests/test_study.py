@@ -262,6 +262,34 @@ def test_score_outreach_trial_beneficial_correction() -> None:
     )
     assert metrics["beneficial_correction"] is True
     assert metrics["harmful_switching"] is False
+    assert metrics["top1_correct"] is True
+    assert metrics["weight_of_advice"] == 1.0
+
+
+def test_kendall_and_interpretation_scoring() -> None:
+    from hc_analytics.study.scoring import kendall_tau_distance, score_claim_detection, score_interpretation, score_query_set
+
+    assert kendall_tau_distance(["A", "B", "C"], ["A", "B", "C"]) == 0.0
+    interpretation = score_interpretation(
+        [{"feature": "inpatient_claims", "direction": "increases_risk"}],
+        [
+            {"feature": "inpatient_claims", "direction": "increases_risk"},
+            {"feature": "age", "direction": "decreases_risk"},
+        ],
+    )
+    assert interpretation["correct_count"] == 1
+    assert interpretation["partial_credit"] == 0.5
+    claim = score_claim_detection(
+        supported="unsupported",
+        flagged_claim="two inpatient admissions",
+        manipulated=True,
+        unsupported_statement="Beneficiary had two inpatient admissions in the analytic year.",
+    )
+    assert claim["detected_unsupported_claim"] is True
+    query = score_query_set(["1", "2"], ["1", "2", "3"])
+    assert query["exact_match"] is False
+    assert query["precision"] == 1.0
+    assert query["recall"] == 0.6667
 
 
 def test_score_session_events_reads_initial_response_event() -> None:

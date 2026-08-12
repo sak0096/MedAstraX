@@ -52,7 +52,7 @@ Participants complete **one study only** — not both in the same session. Use t
 | Effort | Low | High |
 | Frustration | Low | High |
 
-**Analysis:** Compute weighted NASA-TLX per Hart & Staveland (1988) procedure.
+**Analysis:** Compute Raw TLX as the unweighted mean of the six subscale ratings (Hart, 2006), matching the dissertation proposal. Do not use pairwise weights unless a later preregistration explicitly changes this.
 
 ---
 

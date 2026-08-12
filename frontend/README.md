@@ -11,11 +11,11 @@ When `HC_LOG_EVENTS=true` (default), the dashboard records study events to `arti
 - Latency payloads for drill-down actions
 - Pseudonymized session export via **Export study session** (toolbar) or `POST /api/instrumentation/export`
 
-Pass `?participant=P001` in the URL to assign a participant ID for the session.
+Pass `?participant=P001&study=study1&condition=baseline` to assign a participant, study arm, and condition.
 
 ## Phase 7 — LLM-augmented dashboard
 
-Set `HC_EXPERIMENTAL_CONDITION=llm` in the backend `.env`.
+Open with `?condition=llm` (or set `HC_EXPERIMENTAL_CONDITION=llm` as a fallback).
 
 The LLM condition adds:
 
@@ -27,7 +27,7 @@ The LLM condition adds:
 
 ## Phase 6 — XAI-augmented dashboard
 
-Set `HC_EXPERIMENTAL_CONDITION=xai` in the backend `.env`.
+Open with `?condition=xai` (or set `HC_EXPERIMENTAL_CONDITION=xai` as a fallback).
 
 The XAI condition adds to the baseline layout:
 
@@ -63,4 +63,4 @@ API only: `./scripts/dev.sh`. Open http://localhost:5173. Vite proxies `/api` an
 - `xai` — SHAP bars, global importance, stability badges
 - `llm` — grounded summaries, NL query with confirmation
 
-Set `HC_EXPERIMENTAL_CONDITION` in the backend `.env` to match the study arm.
+Set `condition=` on the participant URL to match the study arm. `.env` is only a fallback.

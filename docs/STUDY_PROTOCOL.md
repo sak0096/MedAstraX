@@ -44,15 +44,19 @@ Two **separate** controlled component evaluations share the same prototype but u
 **Participant URL (production):**
 
 ```
-http://localhost:5173/?participant=P001&study=study1
-http://localhost:5173/?participant=P001&study=study2
+http://localhost:5173/?participant=P001&study=study1&condition=baseline
+http://localhost:5173/?participant=P001&study=study1&condition=xai
+http://localhost:5173/?participant=P001&study=study2&condition=baseline
+http://localhost:5173/?participant=P001&study=study2&condition=llm
 ```
+
+Condition is session-scoped via the `condition` query param (and `X-Study-Condition` header). Do not restart the API to switch blocks. Case set α/β flips across the two blocks. Study 1 assigns complementary faithful vs M2 outreach across the two conditions. Study 2 assigns M3, M4/M6/M7, and T6 independently per task.
 
 **Facilitator URL (shows manipulation assignments):** add `&facilitator=1`.
 
 **Do not use** `study=full` with participants — facilitator/engineering only.
 
-**Condition:** set `HC_EXPERIMENTAL_CONDITION=baseline|xai|llm` in `.env` before each within-study block. Restart backend or use separate deployed URLs per condition.
+**Condition:** pass `condition=baseline|xai|llm` on the participant URL. `HC_EXPERIMENTAL_CONDITION` is only a fallback when the URL/header is omitted.
 
 ---
 
@@ -67,7 +71,7 @@ http://localhost:5173/?participant=P001&study=study2
 | 2 | 5 min | **S1-T0** — priority rule tutorial + in-app comprehension check |
 | 3 | 20 min | Study 1 tasks (S1-T1 … S1-T6 per condition filter) |
 | 4 | 5 min | Post-condition survey (Qualtrics Part B) |
-| 5 | 5 min | Break; switch to **Condition B** (`HC_EXPERIMENTAL_CONDITION`) |
+| 5 | 5 min | Break; switch to **Condition B** (`?condition=` on the same participant URL) |
 | 6 | 20 min | Repeat tasks in second condition |
 | 7 | 5 min | Post-condition survey (Part B, second condition) |
 | 8 | 5 min | Study 1 post-study block (Qualtrics Part C — Study 1 version) |
@@ -79,22 +83,23 @@ http://localhost:5173/?participant=P001&study=study2
 | Step | Duration | Activity |
 |------|----------|----------|
 | 0 | 5 min | Consent, demographics (Part A) |
-| 1 | 3 min | Scenario orientation; **Baseline** condition |
-| 2 | 20 min | Study 2 tasks (S2-T1 baseline; manual navigation) |
-| 3 | 5 min | Post-condition survey (Part B) |
-| 4 | 5 min | Break; switch to **LLM** condition |
-| 5 | 25 min | Study 2 tasks (S2-T2 … S2-T7) |
-| 6 | 5 min | Post-condition survey (Part B) |
-| 7 | 5 min | Study 2 post-study block (Part C — Study 2 version) |
-| 8 | 10 min | Exit interview |
-| 9 | 3 min | Debrief; export session log |
+| 1 | 3 min | Scenario orientation; open dashboard **Condition A** |
+| 2 | 5 min | **S2-T0** — query/filter tutorial + in-app comprehension check |
+| 3 | 20 min | Study 2 tasks for Condition A |
+| 4 | 5 min | Post-condition survey (Part B) |
+| 5 | 5 min | Break; switch to **Condition B** (`?condition=` on the same participant URL) |
+| 6 | 20 min | Repeat Study 2 tasks in second condition |
+| 7 | 5 min | Post-condition survey (Part B) |
+| 8 | 5 min | Study 2 post-study block (Part C — Study 2 version) |
+| 9 | 10 min | Exit interview |
+| 10 | 3 min | Debrief; export session log |
 
 ### 3.3 Counterbalancing
 
-- **Study 1:** 50% Baseline→XAI, 50% XAI→Baseline (facilitator assignment sheet).
+- **Study 1:** 50% Baseline→XAI, 50% XAI→Baseline (shown as `recommended_first_condition` on the session API).
 - **Study 2:** 50% Baseline→LLM, 50% LLM→Baseline.
-- **Case set:** α vs β assigned automatically per `participant` ID (parallel outreach quadruplets).
-- **Manipulations:** one primary error trial per study arm on average — Study 1 outreach is **50% faithful / 50% incorrect (M2)** per participant; Study 2 query/narrative errors assigned per participant from M3/M4/M6/M7.
+- **Case set:** α vs β assigned to block 1 vs block 2 (not reused across conditions).
+- **Manipulations:** Study 1 complementary faithful/M2 across conditions; Study 2 per-task M3 / query error / optional second query error.
 
 ### 3.4 Facilitator script anchors
 
@@ -120,7 +125,7 @@ http://localhost:5173/?participant=P001&study=study2
 
 **Faithful stimuli:** local SHAP on S1-T3; frozen summaries on S2-T3+; priority rule fields on beneficiary panels.
 
-**Study 1 outreach counterbalancing:** each participant receives either a **faithful** AI recommendation (`correct`, ~50%) or an **incorrect** recommendation (`M2`, ~50%) on S1-T5. Assignment is deterministic from `participant` ID. Enables harmful-switching (incorrect AI) and beneficial-correction (faithful AI) contrasts.
+**Study 1 outreach counterbalancing:** each participant sees a **faithful** recommendation in one condition and **M2** in the other (XOR across blocks). Enables harmful-switching (incorrect AI) and beneficial-correction (faithful AI) within the same person.
 
 ### 4.1 Sequential judgment (S1-T5, S2-T3)
 
@@ -236,12 +241,13 @@ python scripts/generate_frozen_summaries.py
 | Drill-down | Yes | `drill_down`, `latency` |
 | Explanation view | Yes | `explanation_view`, `explanation_toggle` |
 | Evidence link click | Yes | `evidence_link_open` |
-| NL query | Yes | `query_submit`, `query_confirm`, `query_reject` |
+| Evidence dwell | Yes | `evidence_dwell` (`duration_ms`) |
+| NL query | Yes | `query_submit`, `query_confirm`, `query_reject`, `query_revise` |
 | Export | Yes | `export` |
 | Active task context | Yes | `X-Study-Task-Id` header on API calls |
 | Manipulation type | Yes | Server-side in event payload; hidden from participant UI |
 
-**End of session:** Export study session (toolbar) → `artifacts/logs/exports/`.
+**End of session:** Events autosave every 30s; the toolbar button downloads a snapshot. Files land in `artifacts/logs/exports/`.
 
 **Scoring:**
 
@@ -253,9 +259,11 @@ See [STUDY_APPENDICES.md](./STUDY_APPENDICES.md) for behavioral metric definitio
 
 ### Known limitations
 
-- Panel dwell time not logged (only discrete events).
 - Surveys are external (Qualtrics), not embedded in-app.
-- Condition switching is manual (restart backend or separate URL).
+- Time limits are logged (`timed_out`) but not hard-stopped in the UI.
+- Explanation density (S1-T6) remains exploratory; confirmatory XAI uses the concise top-3 display plus optional expansion.
+- Stability badges remain in the XAI UI (documented perturbation/margin in `stability.py`).
+- Operational priority rule is frozen: inpatient×3, outpatient×0.5, chronic×2, total_claims×0.1.
 
 ---
 

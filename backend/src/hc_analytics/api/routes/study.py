@@ -7,7 +7,7 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 from hc_analytics.config import get_settings
 from hc_analytics.instrumentation.events import EventType, StudyEvent, log_event
 from hc_analytics.study.context import StudyRequestContext, get_study_context
-from hc_analytics.study.loader import get_study_catalog, get_task_by_id, tasks_for_study
+from hc_analytics.study.loader import get_case_by_id, get_study_catalog, get_task_by_id, tasks_for_study
 from hc_analytics.study.models import ComprehensionSubmission, TaskResponseSubmission
 from hc_analytics.study.recommendations import build_outreach_recommendation, outreach_case_ids_for_participant
 from hc_analytics.study.scoring import score_session_events
@@ -267,6 +267,25 @@ def submit_task_response(
             "manipulation_type": "M2" if manipulated_outreach else "correct",
             "recommendation_correctness": "incorrect" if manipulated_outreach else "faithful",
         }
+    elif task.response_type == "feature_list":
+        case_id = (task.requires_cases or [None])[0]
+        case = get_case_by_id(case_id, settings=settings) if case_id else None
+        if case is not None:
+            ground_truth = {
+                "expected_drivers": case.ground_truth.get("top_hospitalization_features", [])[:3],
+            }
+    elif task.response_type == "sequential_claim_review" and submission.phase == "final":
+        case_id = (task.requires_cases or [None])[0]
+        case = get_case_by_id(case_id, settings=settings) if case_id else None
+        m3 = (case.manipulations.get("M3") if case else None) or {}
+        ground_truth = {
+            "unsupported_statement": m3.get("statement"),
+            "manipulated": active_manipulation == "M3",
+        }
+
+    timed_out = False
+    if submission.time_ms is not None and task.time_limit_min:
+        timed_out = submission.time_ms > task.time_limit_min * 60 * 1000
 
     event_type = (
         EventType.TASK_INITIAL_RESPONSE
@@ -277,6 +296,8 @@ def submit_task_response(
     payload = {
         "responses": submission.responses,
         "time_ms": submission.time_ms,
+        "timed_out": timed_out,
+        "time_limit_min": task.time_limit_min,
         "notes": submission.notes,
         "study": task.study,
         "response_type": task.response_type,
