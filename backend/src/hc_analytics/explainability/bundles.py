@@ -37,7 +37,7 @@ def _statement_for_contributor(target_short: str, contributor: LocalContributor)
     direction = "increased" if contributor.direction == "increases_risk" else "decreased"
     return (
         f"{contributor.feature} {direction} predicted {target_short.replace('_', ' ')} risk "
-        f"(SHAP {contributor.shap_value:+.3f})."
+        f"(contribution {contributor.shap_value:+.3f})."
     )
 
 

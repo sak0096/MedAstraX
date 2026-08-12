@@ -2,6 +2,7 @@ from __future__ import annotations
 
 from pathlib import Path
 
+import json
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
@@ -184,3 +185,74 @@ def test_meta_reports_phase_seven(language_settings: Settings, monkeypatch) -> N
     payload = response.json()
     assert payload["prototype_phase"] == "8"
     assert payload["language_ready"] is False
+
+
+def test_openai_polish_and_claim_guard(language_settings: Settings, monkeypatch) -> None:
+    run_training(language_settings, test_year_count=2)
+    run_explainability(language_settings, top_k=3, max_rows=8)
+    from hc_analytics.explainability.pipeline import load_cached_bundle
+    from hc_analytics.language.provider import generate_grounded_summary
+
+    bundle = load_cached_bundle("B1", 2019, settings=language_settings)
+    assert bundle is not None
+
+    configured = language_settings.model_copy(
+        update={
+            "llm_provider": "openai",
+            "llm_api_key": "test-key",
+            "llm_model": "gpt-test",
+            "llm_temperature": 0.0,
+        }
+    )
+
+    class _FakeResponse:
+        def raise_for_status(self) -> None:
+            return None
+
+        def json(self) -> dict:
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": json.dumps(
+                                {
+                                    "narrative": (
+                                        "Care review for B1 emphasizes the same drivers already "
+                                        + " ".join(claim.statement for claim in bundle.grounded.claims[:2])
+                                    )
+                                }
+                            )
+                        }
+                    }
+                ]
+            }
+
+    class _FakeClient:
+        def __init__(self, *args, **kwargs) -> None:
+            pass
+
+        def __enter__(self):
+            return self
+
+        def __exit__(self, *args) -> None:
+            return None
+
+        def post(self, *args, **kwargs):
+            return _FakeResponse()
+
+    monkeypatch.setattr("hc_analytics.language.openai_provider.httpx.Client", _FakeClient)
+    polished = generate_grounded_summary(bundle, settings=configured, allow_llm=True)
+    assert polished.provider == "openai"
+    assert "B1" in polished.narrative or polished.narrative
+
+    class _DriftResponse(_FakeResponse):
+        def json(self) -> dict:
+            return {"choices": [{"message": {"content": json.dumps({"narrative": "Invented sepsis crisis tomorrow."})}}]}
+
+    class _DriftClient(_FakeClient):
+        def post(self, *args, **kwargs):
+            return _DriftResponse()
+
+    monkeypatch.setattr("hc_analytics.language.openai_provider.httpx.Client", _DriftClient)
+    fallback = generate_grounded_summary(bundle, settings=configured, allow_llm=True)
+    assert fallback.provider == "template_fallback"

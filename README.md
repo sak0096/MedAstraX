@@ -126,9 +126,11 @@ Pass `condition=baseline|xai|llm` on the participant URL (and `X-Study-Condition
 |-----------|-----------|------------------------|
 | Control | `baseline` | Cohort charts, sortable risk table, beneficiary drill-down, CSV/PDF export |
 | XAI | `xai` | Baseline + global SHAP importance, local SHAP bars, stability badges, layered disclosure (top 3 / 5), fairness cues |
-| LLM | `llm` | Baseline + grounded summaries with evidence links, NL query (interpret → confirm → execute) |
+| NL-assisted (`llm` key) | `llm` | Baseline + grounded summaries with evidence links, NL query (interpret → confirm → execute) |
 
-XAI and LLM conditions require cached explanations (`python -m hc_analytics.explainability`). More UI detail: [frontend/README.md](frontend/README.md).
+The Study 2 URL key remains `llm` for compatibility. Stimuli are grounded natural-language augmentation (frozen templates by default). Optional named-model polish requires `HC_LLM_*`, `scripts/generate_frozen_summaries.py --require-llm`, human adjudication via `study/adjudication_queue.json`, and `scripts/apply_adjudication.py` before confirmatory use.
+
+XAI and NL-assisted conditions require cached explanations (`python -m hc_analytics.explainability`). More UI detail: [frontend/README.md](frontend/README.md).
 
 ## Study instrumentation
 
@@ -161,12 +163,17 @@ http://localhost:5173/?participant=P001&study=study1&condition=baseline
 | `study` | `study1`, `study2` | Participant study block (`full` = facilitator/dev only) |
 | `facilitator` | `1` | Show manipulation assignments (facilitators only) |
 
-Case packets live in [`study/study_cases.json`](study/study_cases.json) (schema v2). Frozen LLM stimuli: [`study/frozen_summaries.json`](study/frozen_summaries.json). Regenerate after pipeline runs:
+Case packets live in [`study/study_cases.json`](study/study_cases.json) (schema v2). Frozen Study 2 narratives: [`study/frozen_summaries.json`](study/frozen_summaries.json). Regenerate after pipeline runs:
 
 ```bash
 source backend/.venv/bin/activate
+python -m hc_analytics.explainability --study-cases-only   # or full cohort without the flag
 python scripts/generate_study_cases.py
-python scripts/generate_frozen_summaries.py
+python scripts/generate_frozen_summaries.py --allow-template
+# Optional named-model polish (requires HC_LLM_* + human review):
+# python scripts/generate_frozen_summaries.py --require-llm
+# edit study/adjudication_queue.json decisions, then:
+# python scripts/apply_adjudication.py --require-complete
 ```
 
 Score a completed session:

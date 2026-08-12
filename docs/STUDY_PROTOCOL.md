@@ -264,11 +264,14 @@ See [STUDY_APPENDICES.md](./STUDY_APPENDICES.md) for behavioral metric definitio
 - Explanation density (S1-T6) remains exploratory; confirmatory XAI uses the concise top-3 display plus optional expansion.
 - Feature-dominance badges remain in the XAI UI (top-contribution gap; not perturbation stability). Bootstrap stability code exists but is not the production method.
 - Operational priority rule is frozen: inpatient×3, outpatient×0.5, chronic×2, total_claims×0.1.
-- Study 2 “LLM” condition currently serves **frozen template** grounded summaries / regex-parsed queries. Treat as grounded natural-language augmentation unless a named-model freeze pipeline is completed and artifacts regenerated.
-- Risk percentages are now produced from a **calibrated XGBoost** artifact locally (temporal calib year + isotonic). Keep `HC_ALLOW_LOGISTIC_FALLBACK=false`. On a fresh Mac without Homebrew OpenMP, run `./scripts/ensure_xgboost_libomp.sh` after `./scripts/setup.sh`.
-- Study-case explanation badges use bootstrap top-feature agreement when `HC_STABILITY_METHOD=bootstrap`; bulk rows still use dominance margin for cost.
+- Study 2 condition key remains `llm`, but participant-facing chrome stays neutral. Frozen stimuli are **grounded template** summaries / regex-parsed queries unless a named-model freeze + human adjudication pass is completed (`HC_LLM_*`, `scripts/generate_frozen_summaries.py --require-llm`, `scripts/apply_adjudication.py`). Treat confirmatory claims as grounded natural-language augmentation until that pass lands.
+- Risk percentages are produced from a **calibrated XGBoost** artifact (temporal calib year + isotonic). Keep `HC_ALLOW_LOGISTIC_FALLBACK=false`. On a fresh Mac without Homebrew OpenMP, run `./scripts/ensure_xgboost_libomp.sh` after `./scripts/setup.sh`.
+- Study-case explanation badges use bootstrap top-feature agreement when `HC_STABILITY_METHOD=bootstrap`; bulk rows still use dominance margin for cost. SHAP background sampling uses train years from the model metadata.
 - Docker/`docker-compose` provides a localhost-to-cloud packaging scaffold; online recruitment still needs HTTPS, durable Postgres event storage, and auth.
-- Frozen summaries remain **grounded templates** until a named-model generation + human adjudication pass is completed.
+- Instrumentation `version_context` now records model family plus artifact hashes for models, explanations, and frozen study files.
+- Prefer Python 3.12 (CI/Docker/`.python-version`). Local 3.9 still runs tests; several audited package fixes require ≥3.10 and should be applied when upgrading the local venv.
+- Remaining npm audit findings are Vite/esbuild dev-server advisories; leave Vite 5 unless you intentionally upgrade to Vite 8.
+- Cloud hosting (HTTPS, Postgres events, auth) remains deferred.
 
 ---
 

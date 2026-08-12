@@ -13,17 +13,17 @@ When `HC_LOG_EVENTS=true` (default), the dashboard records study events to `arti
 
 Pass `?participant=P001&study=study1&condition=baseline` to assign a participant, study arm, and condition.
 
-## Phase 7 — LLM-augmented dashboard
+## Phase 7 — NL-assisted dashboard (`condition=llm`)
 
 Open with `?condition=llm` (or set `HC_EXPERIMENTAL_CONDITION=llm` as a fallback).
 
-The LLM condition adds:
+This condition adds:
 
-- Grounded beneficiary summaries from SHAP evidence bundles
-- Evidence links showing source fields behind each claim
+- Grounded beneficiary summaries from evidence bundles (frozen in study mode)
+- Evidence drawer showing source fields behind each claim
 - Natural-language query box with interpret → confirm → execute flow
 - SQLite query cache (`artifacts/query_cache/`)
-- Template provider by default; set `HC_LLM_*` env vars for external LLM config
+- Grounded template narratives by default; optional freeze-time LLM polish via `HC_LLM_*` + adjudication scripts
 
 ## Phase 6 — XAI-augmented dashboard
 

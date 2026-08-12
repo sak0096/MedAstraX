@@ -19,13 +19,23 @@ def main() -> None:
         action="store_true",
         help="Explain only beneficiaries listed in study/study_cases.json.",
     )
+    parser.add_argument(
+        "--batch-size",
+        type=int,
+        default=None,
+        help="Rows per SHAP batch (default: 2000). Lower if memory constrained.",
+    )
     args = parser.parse_args()
 
-    result = run_explainability(
-        top_k=args.top_k,
-        max_rows=args.max_rows,
-        study_cases_only=args.study_cases_only,
-    )
+    kwargs = {
+        "top_k": args.top_k,
+        "max_rows": args.max_rows,
+        "study_cases_only": args.study_cases_only,
+    }
+    if args.batch_size is not None:
+        kwargs["batch_size"] = args.batch_size
+
+    result = run_explainability(**kwargs)
     print("Explainability pipeline complete.")
     print(f"Model family: {result['model_family']}")
     print(f"Rows explained: {result['row_count']}")

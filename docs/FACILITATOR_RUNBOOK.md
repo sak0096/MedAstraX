@@ -131,7 +131,7 @@ Read scenario from STUDY_PROTOCOL §5. Open dashboard at **first condition**.
 - URL: `?participant=P###&study=study2&condition=baseline`
 - Tasks: **S2-T1**, **S2-T4** (profile-only cross-check), **S2-T7** if time permits.
 
-### Block B — LLM
+### Block B — NL-assisted (`llm`)
 
 - URL: `?participant=P###&study=study2&condition=llm`
 - Tasks: **S2-T2** through **S2-T7**

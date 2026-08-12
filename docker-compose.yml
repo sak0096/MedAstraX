@@ -7,8 +7,9 @@ services:
       HC_STUDY_MODE: "true"
       HC_LOG_EVENTS: "true"
       HC_EXPERIMENTAL_CONDITION: baseline
-      # Remove after OpenMP/XGBoost artifacts are baked into the image:
-      HC_ALLOW_LOGISTIC_FALLBACK: "true"
+      HC_ALLOW_LOGISTIC_FALLBACK: "false"
+      HC_STABILITY_METHOD: bootstrap
+      HC_BOOTSTRAP_ITERATIONS: "5"
     volumes:
       - ./data/processed:/app/data/processed:ro
       - ./artifacts:/app/artifacts

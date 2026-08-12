@@ -18,9 +18,11 @@ Start here for human-participant research using the prototype.
 | File | Role |
 |------|------|
 | `study/study_cases.json` | Tasks, cases, ground truth, manipulations (v2.0) |
-| `study/frozen_summaries.json` | Pre-generated LLM narratives |
+| `study/frozen_summaries.json` | Frozen Study 2 narratives (template or adjudicated LLM polish) |
+| `study/adjudication_queue.json` | Human review queue when `HC_LLM_*` generates candidates |
 | `scripts/generate_study_cases.py` | Regenerate catalog from parquet/SHAP |
-| `scripts/generate_frozen_summaries.py` | Regenerate frozen summaries |
+| `scripts/generate_frozen_summaries.py` | Regenerate frozen summaries (`--require-llm` / `--allow-template`) |
+| `scripts/apply_adjudication.py` | Apply accept/use_template decisions into frozen summaries |
 | `scripts/score_study_session.py` | Behavioral reliance metrics from export |
 
 ## Readiness checklist

@@ -17,6 +17,7 @@ from hc_analytics.explainability.bundles import (
 )
 from hc_analytics.explainability.constants import (
     DEFAULT_BACKGROUND_SIZE,
+    DEFAULT_BATCH_SIZE,
     DEFAULT_TOP_K,
     EXPLANATION_SCHEMA_VERSION,
 )
@@ -46,6 +47,20 @@ RowKey = Tuple[str, int]
 
 def _primary_model_family() -> str:
     return require_primary_model_family()
+
+
+def _reference_background_years(settings: Settings) -> Optional[List[int]]:
+    """Prefer train-year rows for SHAP background (exclude incomplete label years)."""
+    metadata_path = settings.artifacts_path / "models" / "hospitalization" / "metadata.json"
+    if not metadata_path.exists():
+        return None
+    try:
+        payload = json.loads(metadata_path.read_text(encoding="utf-8"))
+    except (OSError, json.JSONDecodeError):
+        return None
+    split = payload.get("split") or {}
+    years = [int(year) for year in (split.get("train_years") or [])]
+    return years or None
 
 
 def _study_case_keys(settings: Settings) -> set[RowKey]:
@@ -223,6 +238,8 @@ def _write_manifest(
     row_count: int,
     git_commit: Optional[str],
     stability_method: str,
+    background_years: Optional[List[int]] = None,
+    background_rows: Optional[int] = None,
 ) -> Path:
     path = explanations_dir / "manifest.json"
     payload = {
@@ -237,6 +254,8 @@ def _write_manifest(
         "bundles_dir": str(explanations_dir / "bundles"),
         "local_topk": str(explanations_dir / "local_topk.parquet"),
         "stability_method": stability_method,
+        "background_years": background_years,
+        "background_rows": background_rows,
     }
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return path
@@ -249,6 +268,7 @@ def run_explainability(
     background_size: int = DEFAULT_BACKGROUND_SIZE,
     max_rows: Optional[int] = None,
     study_cases_only: bool = False,
+    batch_size: int = DEFAULT_BATCH_SIZE,
 ) -> Dict[str, object]:
     settings = settings or get_settings()
     features = _load_feature_store(settings.processed_data_path)
@@ -258,7 +278,12 @@ def run_explainability(
 
     model_family = _primary_model_family()
     models_dir = settings.artifacts_path / "models"
-    background = select_background(features, size=background_size)
+    background_years = _reference_background_years(settings)
+    background = select_background(
+        features,
+        size=background_size,
+        allowed_years=background_years,
+    )
     git_commit = git_commit_hash(settings.repo_root)
     study_keys = _study_case_keys(settings)
     requested_stability = (settings.stability_method or "margin").strip().lower()
@@ -279,15 +304,84 @@ def run_explainability(
 
     per_row_targets: Dict[RowKey, List[TargetExplanation]] = {}
     local_rows: List[Dict[str, object]] = []
+    chunk_size = max(1, int(batch_size))
 
     for target in RiskTarget:
         pipeline = unwrap_model_for_shap(load_model_artifact(models_dir, target, model_family))
-        shap_matrix, transformed_names = compute_shap_matrix(
-            pipeline,
-            work_frame,
-            background=background,
+        mean_abs_sum = None
+        row_total = 0
+        transformed_names = None
+
+        for start in range(0, len(work_frame), chunk_size):
+            chunk = work_frame.iloc[start : start + chunk_size].reset_index(drop=True)
+            shap_matrix, transformed_names = compute_shap_matrix(
+                pipeline,
+                chunk,
+                background=background,
+            )
+            abs_chunk = abs(shap_matrix)
+            if mean_abs_sum is None:
+                mean_abs_sum = abs_chunk.sum(axis=0)
+            else:
+                mean_abs_sum = mean_abs_sum + abs_chunk.sum(axis=0)
+            row_total += len(chunk)
+            print(
+                f"[explain] {target.value}: rows {start + 1}-{start + len(chunk)} / {len(work_frame)}",
+                flush=True,
+            )
+
+            for index, row in chunk.iterrows():
+                bene_id = str(row["bene_id"])
+                analytic_year = int(row["analytic_year"])
+                key = (bene_id, analytic_year)
+                aggregated = aggregate_shap_to_features(transformed_names, shap_matrix[index])
+                row_method = (
+                    "bootstrap"
+                    if requested_stability == "bootstrap" and key in study_keys
+                    else "margin"
+                )
+                target_explanation, method_used = _build_target_explanation(
+                    target=target,
+                    row=row,
+                    shap_row=aggregated,
+                    risk_score=_risk_score_for_row(
+                        predictions,
+                        bene_id=bene_id,
+                        analytic_year=analytic_year,
+                        target=target,
+                    ),
+                    top_k=top_k,
+                    pipeline=pipeline,
+                    background=background,
+                    stability_method=row_method,
+                    bootstrap_iterations=settings.bootstrap_iterations,
+                )
+                methods_used.add(method_used)
+                per_row_targets.setdefault(key, []).append(target_explanation)
+                for contributor in target_explanation.top_contributors:
+                    local_rows.append(
+                        {
+                            "bene_id": bene_id,
+                            "analytic_year": analytic_year,
+                            "target": target.value,
+                            "target_short": TARGET_SHORT_NAMES[target],
+                            "feature": contributor.feature,
+                            "shap_value": contributor.shap_value,
+                            "direction": contributor.direction,
+                            "rank": contributor.rank,
+                            "stability_badge": target_explanation.stability_badge,
+                            "stability_score": target_explanation.stability_score,
+                            "stability_method": method_used,
+                            "model_family": model_family,
+                        }
+                    )
+
+        assert mean_abs_sum is not None and transformed_names is not None
+        mean_abs = mean_abs_sum / max(row_total, 1)
+        importance = global_importance_from_shap(
+            mean_abs.reshape(1, -1),
+            transformed_names,
         )
-        importance = global_importance_from_shap(shap_matrix, transformed_names)
         _write_global_importance(
             explanations_dir=explanations_dir,
             target=target,
@@ -295,55 +389,8 @@ def run_explainability(
             importance=importance,
             git_commit=git_commit,
         )
-
-        for index, row in work_frame.iterrows():
-            bene_id = str(row["bene_id"])
-            analytic_year = int(row["analytic_year"])
-            key = (bene_id, analytic_year)
-            aggregated = aggregate_shap_to_features(transformed_names, shap_matrix[index])
-            row_method = (
-                "bootstrap"
-                if requested_stability == "bootstrap" and key in study_keys
-                else "margin"
-            )
-            target_explanation, method_used = _build_target_explanation(
-                target=target,
-                row=row,
-                shap_row=aggregated,
-                risk_score=_risk_score_for_row(
-                    predictions,
-                    bene_id=bene_id,
-                    analytic_year=analytic_year,
-                    target=target,
-                ),
-                top_k=top_k,
-                pipeline=pipeline,
-                background=background,
-                stability_method=row_method,
-                bootstrap_iterations=settings.bootstrap_iterations,
-            )
-            methods_used.add(method_used)
-            per_row_targets.setdefault(key, []).append(target_explanation)
-            for contributor in target_explanation.top_contributors:
-                local_rows.append(
-                    {
-                        "bene_id": bene_id,
-                        "analytic_year": analytic_year,
-                        "target": target.value,
-                        "target_short": TARGET_SHORT_NAMES[target],
-                        "feature": contributor.feature,
-                        "shap_value": contributor.shap_value,
-                        "direction": contributor.direction,
-                        "rank": contributor.rank,
-                        "stability_badge": target_explanation.stability_badge,
-                        "stability_score": target_explanation.stability_score,
-                        "stability_method": method_used,
-                        "model_family": model_family,
-                    }
-                )
-
     bundle_paths: List[str] = []
-    for (bene_id, analytic_year), target_explanations in per_row_targets.items():
+    for idx, ((bene_id, analytic_year), target_explanations) in enumerate(per_row_targets.items(), start=1):
         bundle = build_evidence_bundle(
             schema_version=EXPLANATION_SCHEMA_VERSION,
             bene_id=bene_id,
@@ -352,6 +399,8 @@ def run_explainability(
             target_explanations=target_explanations,
         )
         bundle_paths.append(str(_write_bundle(bundle, explanations_dir)))
+        if idx % 5000 == 0:
+            print(f"[explain] wrote {idx} / {len(per_row_targets)} bundles", flush=True)
 
     local_path = _write_local_topk_parquet(local_rows, explanations_dir)
     stability_label = (
@@ -364,6 +413,8 @@ def run_explainability(
         row_count=len(work_frame),
         git_commit=git_commit,
         stability_method=stability_label,
+        background_years=background_years,
+        background_rows=len(background),
     )
 
     return {
@@ -374,4 +425,6 @@ def run_explainability(
         "row_count": len(work_frame),
         "model_family": model_family,
         "stability_method": stability_label,
+        "batch_size": chunk_size,
+        "background_years": background_years,
     }

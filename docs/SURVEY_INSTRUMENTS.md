@@ -9,9 +9,11 @@
 | Cohort | When | Survey blocks |
 |--------|------|---------------|
 | **Study 1** (`study=study1`) | Once per session | Part A → (tasks) → Part B ×2 (Baseline + XAI) → Part C1 → Part D |
-| **Study 2** (`study=study2`) | Once per session | Part A → (tasks) → Part B ×2 (Baseline + LLM) → Part C2 → Part D |
+| **Study 2** (`study=study2`) | Once per session | Part A → (tasks) → Part B ×2 (Baseline + NL-assisted) → Part C2 → Part D |
 
 Participants complete **one study only** — not both in the same session. Use the matching Part C block below.
+
+**Labeling note:** The URL/API condition key remains `llm`. In Qualtrics and facilitator scripts, prefer participant-facing labels **Baseline** / **NL-assisted** (or Version A/B). Reserve “LLM” for researcher notes unless a named-model freeze + adjudication pass is complete.
 
 **Response scales:** Unless noted, use **7-point Likert** (1 = Strongly disagree · 7 = Strongly agree).
 

@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from typing import Dict, List, Sequence, Tuple
+from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
 import pandas as pd
@@ -110,7 +110,15 @@ def select_background(
     *,
     size: int,
     random_state: int = 42,
+    year_column: str = "analytic_year",
+    allowed_years: Optional[Sequence[int]] = None,
 ) -> pd.DataFrame:
-    if len(frame) <= size:
-        return frame.copy()
-    return frame.sample(n=size, random_state=random_state).reset_index(drop=True)
+    pool = frame
+    if allowed_years:
+        years = {int(year) for year in allowed_years}
+        filtered = frame[frame[year_column].isin(years)]
+        if len(filtered) > 0:
+            pool = filtered
+    if len(pool) <= size:
+        return pool.copy().reset_index(drop=True)
+    return pool.sample(n=size, random_state=random_state).reset_index(drop=True)

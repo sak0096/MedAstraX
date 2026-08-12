@@ -63,16 +63,10 @@ def build_template_narrative(bundle: EvidenceBundle) -> str:
     if grounded.fallback == FALLBACK_INSUFFICIENT_EVIDENCE:
         return "Insufficient evidence to produce a grounded summary for this beneficiary-year."
 
-    intro = (
-        f"Beneficiary {bundle.bene_id} ({bundle.analytic_year}) — "
-        f"model family {bundle.model_family}."
-    )
+    intro = f"Beneficiary {bundle.bene_id} ({bundle.analytic_year})."
     target_sentences = [_target_sentence(target) for target in bundle.targets]
-    stability_bits = [
-        f"{target.target_short} explanation stability: {target.stability_badge}"
-        for target in bundle.targets
-    ]
-    return " ".join([intro, *target_sentences, " ".join(stability_bits)])
+    # Keep participant-facing copy free of model-family / stability jargon.
+    return " ".join([intro, *target_sentences])
 
 
 def build_grounded_summary(

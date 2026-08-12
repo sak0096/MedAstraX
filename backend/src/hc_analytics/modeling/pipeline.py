@@ -240,6 +240,14 @@ def _write_model_manifest(
         "models_dir": str(models_dir),
         "predictions_output": str(settings.processed_data_path / "predictions.parquet"),
     }
+    hosp_meta = models_dir / "hospitalization" / "metadata.json"
+    if hosp_meta.exists():
+        try:
+            hosp = json.loads(hosp_meta.read_text(encoding="utf-8"))
+            if isinstance(hosp.get("split"), dict):
+                payload["split"] = {**payload["split"], **hosp["split"]}
+        except (OSError, json.JSONDecodeError):
+            pass
     manifest_path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return manifest_path
 
