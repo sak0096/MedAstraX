@@ -87,10 +87,9 @@ export function QueryPanel({ onResults, condition }: QueryPanelProps) {
     <section className="panel llm-panel">
       <div className="panel-header">
         <div>
-          <h2>Natural Language Query</h2>
+          <h2>Ask a question</h2>
           <p className="panel-subtitle">
-            Intent is parsed into structured parameters, shown for confirmation, then executed over
-            analytic tables.
+            The system will show how it interpreted your request. Confirm before it runs.
           </p>
         </div>
       </div>
@@ -131,7 +130,7 @@ export function QueryPanel({ onResults, condition }: QueryPanelProps) {
 
       {result ? (
         <div className="query-result-card">
-          <h3>Grounded result</h3>
+          <h3>Result</h3>
           {result.grounded_narrative ? <p>{result.grounded_narrative}</p> : null}
           {result.fallback ? (
             <p className="fallback-banner">Insufficient evidence for a grounded narrative.</p>

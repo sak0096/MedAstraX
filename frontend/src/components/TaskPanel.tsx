@@ -26,6 +26,7 @@ interface TaskPanelProps {
   studyArm: "study1" | "study2" | "full";
   condition: ExperimentalCondition;
   onActiveTaskChange: (taskId: string | null) => void;
+  onStudyPhaseChange?: (phase: "initial" | "awaiting_ai" | "final" | "single" | null) => void;
   onOpenCase: (caseRef: StudyCaseRef) => void;
 }
 
@@ -45,6 +46,7 @@ export function TaskPanel({
   studyArm,
   condition,
   onActiveTaskChange,
+  onStudyPhaseChange,
   onOpenCase,
 }: TaskPanelProps) {
   const facilitatorMode = isFacilitatorModeFromUrl();
@@ -138,6 +140,7 @@ export function TaskPanel({
       onActiveTaskChange(taskId);
       const nextPhase = started.task.sequential_judgment ? "initial" : "single";
       setPhase(nextPhase);
+      onStudyPhaseChange?.(nextPhase);
       void trackEvent(
         "task_start",
         {
@@ -196,6 +199,7 @@ export function TaskPanel({
       if (submitPhase === "initial") {
         setStatus("Initial response saved. Review AI assistance, then submit your final judgment.");
         setPhase("awaiting_ai");
+        onStudyPhaseChange?.("awaiting_ai");
         return;
       }
 
@@ -206,6 +210,7 @@ export function TaskPanel({
       setStartedAt(null);
       resetResponseFields();
       onActiveTaskChange(null);
+      onStudyPhaseChange?.(null);
     } catch (submitError) {
       setError(submitError instanceof Error ? submitError.message : "Failed to save response.");
     }
@@ -339,7 +344,10 @@ export function TaskPanel({
               <button type="button" className="secondary-button" onClick={() => void loadRecommendation()}>
                 Show AI recommendation
               </button>
-              <button type="button" className="secondary-button" onClick={() => setPhase("final")}>
+              <button type="button" className="secondary-button" onClick={() => {
+                setPhase("final");
+                onStudyPhaseChange?.("final");
+              }}>
                 Enter final ranking
               </button>
             </div>
@@ -364,7 +372,10 @@ export function TaskPanel({
 
         {phase === "awaiting_ai" && isClaimReview ? (
           <div className="query-actions">
-            <button type="button" className="secondary-button" onClick={() => setPhase("final")}>
+            <button type="button" className="secondary-button" onClick={() => {
+              setPhase("final");
+              onStudyPhaseChange?.("final");
+            }}>
               Review summary and enter final judgment
             </button>
           </div>
@@ -416,13 +427,10 @@ export function TaskPanel({
         <>
           {facilitatorMode ? (
             <div className="study-assignments facilitator-only">
-              <span>
-                Study 1 outreach:{" "}
-                {assignments.study1 === "correct"
-                  ? "faithful recommendation"
-                  : (assignments.study1 ?? "—")}
-              </span>
-              <span>Study 2 assignment: {assignments.study2 ?? "—"}</span>
+              <span>S1-T5: {assignments["S1-T5"] ?? assignments.study1 ?? "—"}</span>
+              <span>S2-T2: {assignments["S2-T2"] ?? "—"}</span>
+              <span>S2-T3: {assignments["S2-T3"] ?? "—"}</span>
+              <span>S2-T6: {assignments["S2-T6"] ?? "—"}</span>
             </div>
           ) : null}
 
@@ -512,6 +520,7 @@ export function TaskPanel({
                     setStartedAt(null);
                     resetResponseFields();
                     onActiveTaskChange(null);
+                    onStudyPhaseChange?.(null);
                   }}
                 >
                   Cancel

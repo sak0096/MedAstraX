@@ -941,7 +941,7 @@
       "study": "study1",
       "title": "Risk driver interpretation",
       "time_limit_min": 6,
-      "instructions": "Open Case B-07. What are the top 3 drivers of hospitalization risk? For each, state whether it increases or decreases risk. SHAP explanations are faithful in this task.",
+            "instructions": "Open Case B-07. What are the top 3 drivers of hospitalization risk? For each, state whether it increases or decreases risk.",
       "response_type": "feature_list",
       "requires_cases": [
         "B-07"
@@ -962,7 +962,7 @@
     {
       "task_id": "S1-T4b",
       "study": "study1",
-      "title": "Clinical judgment (Baseline)",
+            "title": "Clinical judgment",
       "time_limit_min": 5,
       "instructions": "For Case B-12, using only profile panels, list three factors you would weigh for hospitalization risk and why.",
       "response_type": "free_text",
@@ -1029,7 +1029,7 @@
       "study": "study2",
       "title": "Summary validation",
       "time_limit_min": 8,
-      "instructions": "Open Case B-15. Decide whether the summary is supported, flag any unsupported claim, then review the summary and submit a final judgment with confidence.",
+            "instructions": "Open Case B-15. Using the record panels, decide whether a written summary of this case would be fully supported. After you submit that initial judgment, review the summary, flag any unsupported claim, and submit a final judgment with confidence.",
       "response_type": "sequential_claim_review",
       "requires_cases": [
         "B-15"

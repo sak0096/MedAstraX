@@ -18,8 +18,8 @@ export function GroundedSummaryPanel({
   if (loading) {
     return (
       <section className="llm-section">
-        <h3>Grounded summary</h3>
-        <p className="detail-loading">Loading evidence-linked narrative…</p>
+        <h3>Record summary</h3>
+        <p className="detail-loading">Loading record summary…</p>
       </section>
     );
   }
@@ -27,11 +27,8 @@ export function GroundedSummaryPanel({
   if (unavailable) {
     return (
       <section className="llm-section">
-        <h3>Grounded summary</h3>
-        <p className="xai-empty">
-          No evidence bundle available for this beneficiary-year. Run the explainability pipeline
-          to enable grounded summaries.
-        </p>
+        <h3>Record summary</h3>
+        <p className="xai-empty">No summary is available for this beneficiary-year.</p>
       </section>
     );
   }
@@ -57,10 +54,8 @@ export function GroundedSummaryPanel({
     <section className="llm-section">
       <div className="llm-section-header">
         <div>
-          <h3>Grounded summary</h3>
-          <p className="panel-subtitle">
-            Frozen study stimulus mapped to verified SHAP evidence ({summary.provider} provider).
-          </p>
+          <h3>Record summary</h3>
+          <p className="panel-subtitle">Written summary of the visible record. Open a source field to check a claim.</p>
         </div>
       </div>
 
@@ -89,10 +84,7 @@ export function GroundedSummaryPanel({
               ))}
               {claim.shap_feature ? (
                 <span className="shap-link">
-                  SHAP {claim.shap_value !== undefined && claim.shap_value !== null
-                    ? claim.shap_value.toFixed(3)
-                    : "—"}{" "}
-                  on {featureLabel(claim.shap_feature)}
+                  Also linked to {featureLabel(claim.shap_feature)}
                 </span>
               ) : null}
             </div>

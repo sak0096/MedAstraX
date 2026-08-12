@@ -33,9 +33,9 @@ export function GlobalImportancePanel({
     <section className="panel xai-panel">
       <div className="panel-header">
         <div>
-          <h2>Global Feature Importance</h2>
+          <h2>Cohort-level feature importance</h2>
           <p className="panel-subtitle">
-            Cohort-level mean |SHAP| rankings. Purple bars flag equity-relevant features.
+            Average contribution magnitude across the cohort. Highlighted bars are equity-relevant features.
           </p>
         </div>
         <div className="target-switcher" role="tablist" aria-label="Risk target">

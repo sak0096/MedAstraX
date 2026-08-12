@@ -79,8 +79,8 @@ export function ExplanationPanel({
   if (loading) {
     return (
       <section className="xai-section">
-        <h3>Local explanations</h3>
-        <p className="detail-loading">Loading SHAP contributors…</p>
+        <h3>Feature contributions</h3>
+        <p className="detail-loading">Loading feature contributions…</p>
       </section>
     );
   }
@@ -88,11 +88,8 @@ export function ExplanationPanel({
   if (unavailable) {
     return (
       <section className="xai-section">
-        <h3>Local explanations</h3>
-        <p className="xai-empty">
-          No cached explanation for this beneficiary-year. Re-run the explainability pipeline or
-          select a beneficiary with SHAP artifacts.
-        </p>
+        <h3>Feature contributions</h3>
+        <p className="xai-empty">No feature-contribution view is available for this beneficiary-year.</p>
       </section>
     );
   }
@@ -103,9 +100,9 @@ export function ExplanationPanel({
     <section className="xai-section">
       <div className="xai-section-header">
         <div>
-          <h3>Local explanations</h3>
+          <h3>Feature contributions</h3>
           <p className="panel-subtitle">
-            Top feature contributors with direction, stability, and source values.
+            Ranked factors that increased or decreased this risk score, with the beneficiary’s corresponding values.
           </p>
         </div>
         <div className="disclosure-toggle" role="group" aria-label="Explanation detail level">
@@ -169,13 +166,13 @@ export function ExplanationPanel({
                       row.direction === "increases_risk" ? "#e76f51" : "#2a9d8f",
                     ),
                 },
-                hovertemplate: "%{y}<br>SHAP: %{x:.3f}<extra></extra>",
+                hovertemplate: "%{y}<br>Contribution: %{x:.3f}<extra></extra>",
               },
             ]}
             layout={{
               ...chartLayout,
               height: Math.max(180, activeContributors.length * 42),
-              xaxis: { title: "SHAP value", zeroline: true, zerolinecolor: "#9ca3af" },
+              xaxis: { title: "Contribution to score", zeroline: true, zerolinecolor: "#9ca3af" },
               yaxis: { automargin: true },
             }}
             config={{ displayModeBar: false, responsive: true }}
@@ -200,7 +197,7 @@ export function ExplanationPanel({
                     ) : null}
                   </div>
                   <div className="contributor-meta">
-                    <span>SHAP {formatShapValue(contributor.shap_value)}</span>
+                    <span>Contribution {formatShapValue(contributor.shap_value)}</span>
                     {context ? <span className="context-preview">Value: {context}</span> : null}
                   </div>
                 </li>

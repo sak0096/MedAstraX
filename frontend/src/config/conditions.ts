@@ -5,18 +5,15 @@ export const CONDITION_COPY: Record<
   { title: string; subtitle: string }
 > = {
   baseline: {
-    title: "Provider Analytics Dashboard",
-    subtitle:
-      "Baseline control condition — cohort analytics and operational risk scores without explanation UI.",
+    title: "Care Management Dashboard",
+    subtitle: "Cohort analytics and operational risk scores for outreach review.",
   },
   xai: {
-    title: "XAI-Augmented Analytics Dashboard",
-    subtitle:
-      "Visual explainability condition — SHAP local/global views, stability badges, and layered disclosure.",
+    title: "Care Management Dashboard",
+    subtitle: "Cohort analytics, risk scores, and ranked feature-contribution views.",
   },
   llm: {
-    title: "LLM-Augmented Analytics Dashboard",
-    subtitle:
-      "Grounded language condition — evidence-linked summaries, NL query with confirmation, and source field links.",
+    title: "Care Management Dashboard",
+    subtitle: "Cohort analytics, record summaries, and natural-language search.",
   },
 };

@@ -20,7 +20,7 @@ import { StudyExportButton } from "./components/StudyExportButton";
 import { TaskPanel } from "./components/TaskPanel";
 import { CONDITION_COPY } from "./config/conditions";
 import { getParticipantId, getSessionId, setActiveStudyTaskId, trackEvent, trackLatency } from "./instrumentation/logger";
-import { getConditionFromUrl, getStudyArmFromUrl, isStudyModeFromUrl } from "./study/session";
+import { getConditionFromUrl, getStudyArmFromUrl, isFacilitatorModeFromUrl, isStudyModeFromUrl } from "./study/session";
 import type {
   ApiMeta,
   BeneficiaryDetail as BeneficiaryDetailType,
@@ -52,6 +52,8 @@ export default function App() {
   const [globalImportance, setGlobalImportance] = useState<GlobalImportance | null>(null);
   const [globalTarget, setGlobalTarget] = useState<RiskTargetShort>("hospitalization");
   const [selectedBeneId, setSelectedBeneId] = useState<string | null>(null);
+  const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
+  const [studyPhase, setStudyPhase] = useState<"initial" | "awaiting_ai" | "final" | "single" | null>(null);
   const [sortBy, setSortBy] = useState<SortKey>("hospitalization_risk");
   const [descending, setDescending] = useState(true);
   const [loading, setLoading] = useState(true);
@@ -68,6 +70,10 @@ export default function App() {
   const copy = CONDITION_COPY[condition];
   const studyMode = Boolean(meta?.study_mode_enabled) && isStudyModeFromUrl();
   const studyArm = getStudyArmFromUrl();
+  const facilitatorMode = isFacilitatorModeFromUrl();
+  const showGlobalImportance = isXai && (!studyMode || activeTaskId === "S1-T4a");
+  const allowSummary =
+    isLlm && (activeTaskId !== "S2-T3" || studyPhase === "awaiting_ai" || studyPhase === "final");
 
   const loadGlobalImportance = useCallback(
     async (target: RiskTargetShort) => {
@@ -119,6 +125,33 @@ export default function App() {
         setPriorityRuleDescription("");
       });
   }, [studyMode]);
+
+  useEffect(() => {
+    if (!allowSummary || !selectedBeneId || !detail || groundedSummary || !meta?.language_ready) {
+      return;
+    }
+    let cancelled = false;
+    setSummaryLoading(true);
+    void getGroundedSummary(selectedBeneId, detail.analytic_year ?? undefined)
+      .then((summaryResponse) => {
+        if (!cancelled) {
+          setGroundedSummary(summaryResponse);
+          setSummaryUnavailable(false);
+        }
+      })
+      .catch(() => {
+        if (!cancelled) {
+          setGroundedSummary(null);
+          setSummaryUnavailable(true);
+        }
+      })
+      .finally(() => {
+        if (!cancelled) setSummaryLoading(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [allowSummary, selectedBeneId, detail, groundedSummary, meta?.language_ready]);
 
   useEffect(() => {
     if (!meta?.instrumentation_enabled) return;
@@ -185,7 +218,7 @@ export default function App() {
     if (isXai && meta?.explanations_ready) {
       setExplanationLoading(true);
     }
-    if (isLlm && meta?.language_ready) {
+    if (isLlm && meta?.language_ready && allowSummary) {
       setSummaryLoading(true);
     }
 
@@ -219,7 +252,7 @@ export default function App() {
         }
       }
 
-      if (isLlm && meta?.language_ready) {
+      if (isLlm && meta?.language_ready && allowSummary) {
         try {
           const summaryResponse = await getGroundedSummary(row.bene_id, row.analytic_year);
           setGroundedSummary(summaryResponse);
@@ -252,6 +285,14 @@ export default function App() {
 
   const handleActiveTaskChange = (taskId: string | null) => {
     setActiveStudyTaskId(taskId);
+    setActiveTaskId(taskId);
+    if (!taskId) {
+      setStudyPhase(null);
+    }
+  };
+
+  const handleStudyPhaseChange = (phase: "initial" | "awaiting_ai" | "final" | "single" | null) => {
+    setStudyPhase(phase);
   };
 
   const handleOpenStudyCase = (caseRef: StudyCaseRef) => {
@@ -280,25 +321,24 @@ export default function App() {
           <p className="header-copy">{copy.subtitle}</p>
         </div>
         <div className="header-meta">
-          <span className={`condition-badge ${condition}`}>{condition}</span>
-          <span className="meta-pill">Phase {meta?.prototype_phase ?? "8"}</span>
-          {meta?.predictions_ready ? (
-            <span className="meta-pill ready">Predictions ready</span>
+          {(!studyMode || facilitatorMode) ? (
+            <span className={`condition-badge ${condition}`}>{condition}</span>
           ) : (
-            <span className="meta-pill warn">Predictions missing</span>
+            <span className="meta-pill">Study session</span>
           )}
-          {isXai || isLlm ? (
-            meta?.explanations_ready ? (
-              <span className="meta-pill ready">Explanations ready</span>
-            ) : (
-              <span className="meta-pill warn">Explanations missing</span>
-            )
+          {(!studyMode || facilitatorMode) ? (
+            <span className="meta-pill">Phase {meta?.prototype_phase ?? "8"}</span>
           ) : null}
-          {isLlm ? (
-            meta?.llm_configured ? (
-              <span className="meta-pill ready">LLM configured</span>
+          {meta?.predictions_ready ? (
+            <span className="meta-pill ready">Data ready</span>
+          ) : (
+            <span className="meta-pill warn">Data missing</span>
+          )}
+          {(!studyMode || facilitatorMode) && (isXai || isLlm) ? (
+            meta?.explanations_ready ? (
+              <span className="meta-pill ready">Panels ready</span>
             ) : (
-              <span className="meta-pill">Template provider</span>
+              <span className="meta-pill warn">Panels missing</span>
             )
           ) : null}
         </div>
@@ -308,15 +348,27 @@ export default function App() {
 
       {isXai && meta && !meta.explanations_ready ? (
         <div className="error-banner">
-          XAI condition requires cached explanations. Run{" "}
-          <code>python -m hc_analytics.explainability</code> then refresh.
+          {studyMode
+            ? "Some dashboard panels are unavailable. Please notify the facilitator."
+            : (
+              <>
+                This dashboard version requires cached explanations. Run{" "}
+                <code>python -m hc_analytics.explainability</code> then refresh.
+              </>
+            )}
         </div>
       ) : null}
 
       {isLlm && meta && !meta.language_ready ? (
         <div className="error-banner">
-          LLM condition requires evidence bundles. Run{" "}
-          <code>python -m hc_analytics.explainability</code> then refresh.
+          {studyMode
+            ? "Some dashboard panels are unavailable. Please notify the facilitator."
+            : (
+              <>
+                This dashboard version requires evidence bundles. Run{" "}
+                <code>python -m hc_analytics.explainability</code> then refresh.
+              </>
+            )}
         </div>
       ) : null}
 
@@ -334,6 +386,7 @@ export default function App() {
           studyArm={studyArm}
           condition={condition}
           onActiveTaskChange={handleActiveTaskChange}
+          onStudyPhaseChange={handleStudyPhaseChange}
           onOpenCase={handleOpenStudyCase}
         />
       ) : null}
@@ -344,7 +397,7 @@ export default function App() {
         <div className="main-column">
           {summary ? <CohortOverview summary={summary} /> : null}
           {isLlm ? <QueryPanel onResults={handleQueryResults} condition={condition} /> : null}
-          {isXai && globalImportance ? (
+          {showGlobalImportance && globalImportance ? (
             <GlobalImportancePanel
               importance={globalImportance}
               selectedTarget={globalTarget}
@@ -372,9 +425,9 @@ export default function App() {
             explanation={explanation}
             explanationLoading={explanationLoading}
             explanationUnavailable={explanationUnavailable}
-            groundedSummary={groundedSummary}
-            summaryLoading={summaryLoading}
-            summaryUnavailable={summaryUnavailable}
+            groundedSummary={allowSummary ? groundedSummary : null}
+            summaryLoading={allowSummary ? summaryLoading : false}
+            summaryUnavailable={allowSummary ? summaryUnavailable : false}
             targets={DEFAULT_TARGETS}
           />
         ) : null}
