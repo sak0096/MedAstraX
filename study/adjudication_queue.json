@@ -1,6 +1,6 @@
 {
   "schema_version": "1.0",
-  "generated_at": "2026-08-12T18:40:05.210984+00:00",
+  "generated_at": "2026-08-12T20:15:57.703885+00:00",
   "provider": "template",
   "llm_model": null,
   "items": [
@@ -9,9 +9,9 @@
       "bene_id": "-10000010255633",
       "analytic_year": 2022,
       "provider": "template",
-      "prompt_hash": "584ac67f7ca0c2e5",
-      "template_narrative": "Beneficiary -10000010255633 (2022). hospitalization risk is 23%, primarily driven by ESRD indicator (value: Y) raised risk, Age (value: 78) raised risk, Outpatient claims (value: 0.0) lowered risk. high utilization risk is 30%, primarily driven by Outpatient claims (value: 0.0) lowered risk, Total claims (value: 18.0) lowered risk, Age (value: 78) raised risk. elevated cost risk is 17%, primarily driven by Total payment (value: 23614.74) lowered risk, ESRD indicator (value: Y) raised risk, Outpatient claims (value: 0.0) lowered risk.",
-      "candidate_narrative": "Beneficiary -10000010255633 (2022). hospitalization risk is 23%, primarily driven by ESRD indicator (value: Y) raised risk, Age (value: 78) raised risk, Outpatient claims (value: 0.0) lowered risk. high utilization risk is 30%, primarily driven by Outpatient claims (value: 0.0) lowered risk, Total claims (value: 18.0) lowered risk, Age (value: 78) raised risk. elevated cost risk is 17%, primarily driven by Total payment (value: 23614.74) lowered risk, ESRD indicator (value: Y) raised risk, Outpatient claims (value: 0.0) lowered risk.",
+      "prompt_hash": "de374b506e4dc725",
+      "template_narrative": "Beneficiary -10000010255633 (2022). hospitalization risk is 23%, primarily driven by ESRD indicator (value: Y) raised risk, Age (value: 78) raised risk, Outpatient claims (value: 0.0) lowered risk. high utilization risk is 30%, primarily driven by Outpatient claims (value: 0.0) lowered risk, Total claims (value: 18.0) lowered risk, Age (value: 78) raised risk. elevated cost risk is 18%, primarily driven by Total payment (value: 23614.74) lowered risk, ESRD indicator (value: Y) raised risk, Outpatient claims (value: 0.0) lowered risk.",
+      "candidate_narrative": "Beneficiary -10000010255633 (2022). hospitalization risk is 23%, primarily driven by ESRD indicator (value: Y) raised risk, Age (value: 78) raised risk, Outpatient claims (value: 0.0) lowered risk. high utilization risk is 30%, primarily driven by Outpatient claims (value: 0.0) lowered risk, Total claims (value: 18.0) lowered risk, Age (value: 78) raised risk. elevated cost risk is 18%, primarily driven by Total payment (value: 23614.74) lowered risk, ESRD indicator (value: Y) raised risk, Outpatient claims (value: 0.0) lowered risk.",
       "claims": [
         {
           "statement": "esrd_ind increased predicted hospitalization risk (contribution +0.328).",
@@ -62,12 +62,12 @@
           "shap_value": 0.204608
         },
         {
-          "statement": "total_payment_amt decreased predicted elevated cost risk (contribution -0.765).",
+          "statement": "total_payment_amt decreased predicted elevated cost risk (contribution -0.781).",
           "source_fields": [
             "total_payment_amt"
           ],
           "shap_feature": "total_payment_amt",
-          "shap_value": -0.764825
+          "shap_value": -0.780671
         },
         {
           "statement": "esrd_ind increased predicted elevated cost risk (contribution +0.185).",
@@ -75,15 +75,15 @@
             "esrd_ind"
           ],
           "shap_feature": "esrd_ind",
-          "shap_value": 0.184749
+          "shap_value": 0.185188
         },
         {
-          "statement": "outpatient_claims decreased predicted elevated cost risk (contribution -0.117).",
+          "statement": "outpatient_claims decreased predicted elevated cost risk (contribution -0.134).",
           "source_fields": [
             "outpatient_claims"
           ],
           "shap_feature": "outpatient_claims",
-          "shap_value": -0.116696
+          "shap_value": -0.134027
         }
       ],
       "status": "auto_accepted_template",
@@ -97,9 +97,9 @@
       "bene_id": "-10000010256731",
       "analytic_year": 2022,
       "provider": "template",
-      "prompt_hash": "c30865da1299c79e",
-      "template_narrative": "Beneficiary -10000010256731 (2022). hospitalization risk is 23%, primarily driven by Outpatient claims (value: 19.0) raised risk, Total claims (value: 33.0) lowered risk, Rx days supply (value: 864.0) raised risk. high utilization risk is 82%, primarily driven by Outpatient claims (value: 19.0) raised risk, Distinct diagnoses (value: 2.0) raised risk, Rx days supply (value: 864.0) raised risk. elevated cost risk is 31%, primarily driven by Total payment (value: 26290.91) lowered risk, Age (value: 69) raised risk, Outpatient claims (value: 19.0) raised risk.",
-      "candidate_narrative": "Beneficiary -10000010256731 (2022). hospitalization risk is 23%, primarily driven by Outpatient claims (value: 19.0) raised risk, Total claims (value: 33.0) lowered risk, Rx days supply (value: 864.0) raised risk. high utilization risk is 82%, primarily driven by Outpatient claims (value: 19.0) raised risk, Distinct diagnoses (value: 2.0) raised risk, Rx days supply (value: 864.0) raised risk. elevated cost risk is 31%, primarily driven by Total payment (value: 26290.91) lowered risk, Age (value: 69) raised risk, Outpatient claims (value: 19.0) raised risk.",
+      "prompt_hash": "e05e35c708d221b0",
+      "template_narrative": "Beneficiary -10000010256731 (2022). hospitalization risk is 23%, primarily driven by Outpatient claims (value: 19.0) raised risk, Total claims (value: 33.0) lowered risk, Rx days supply (value: 864.0) raised risk. high utilization risk is 82%, primarily driven by Outpatient claims (value: 19.0) raised risk, Distinct diagnoses (value: 2.0) raised risk, Rx days supply (value: 864.0) raised risk. elevated cost risk is 25%, primarily driven by Total payment (value: 26290.91) lowered risk, Age (value: 69) raised risk, Outpatient claims (value: 19.0) raised risk.",
+      "candidate_narrative": "Beneficiary -10000010256731 (2022). hospitalization risk is 23%, primarily driven by Outpatient claims (value: 19.0) raised risk, Total claims (value: 33.0) lowered risk, Rx days supply (value: 864.0) raised risk. high utilization risk is 82%, primarily driven by Outpatient claims (value: 19.0) raised risk, Distinct diagnoses (value: 2.0) raised risk, Rx days supply (value: 864.0) raised risk. elevated cost risk is 25%, primarily driven by Total payment (value: 26290.91) lowered risk, Age (value: 69) raised risk, Outpatient claims (value: 19.0) raised risk.",
       "claims": [
         {
           "statement": "outpatient_claims increased predicted hospitalization risk (contribution +0.418).",
@@ -150,28 +150,28 @@
           "shap_value": 0.211744
         },
         {
-          "statement": "total_payment_amt decreased predicted elevated cost risk (contribution -0.697).",
+          "statement": "total_payment_amt decreased predicted elevated cost risk (contribution -0.674).",
           "source_fields": [
             "total_payment_amt"
           ],
           "shap_feature": "total_payment_amt",
-          "shap_value": -0.69749
+          "shap_value": -0.6738
         },
         {
-          "statement": "age increased predicted elevated cost risk (contribution +0.315).",
+          "statement": "age increased predicted elevated cost risk (contribution +0.314).",
           "source_fields": [
             "age"
           ],
           "shap_feature": "age",
-          "shap_value": 0.314696
+          "shap_value": 0.314295
         },
         {
-          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +0.294).",
+          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +0.206).",
           "source_fields": [
             "outpatient_claims"
           ],
           "shap_feature": "outpatient_claims",
-          "shap_value": 0.293903
+          "shap_value": 0.20572
         }
       ],
       "status": "auto_accepted_template",
@@ -185,9 +185,9 @@
       "bene_id": "-10000010265628",
       "analytic_year": 2022,
       "provider": "template",
-      "prompt_hash": "9cd3fb5a6e235b89",
-      "template_narrative": "Beneficiary -10000010265628 (2022). hospitalization risk is 38%, primarily driven by Inpatient payment (value: 295.34) raised risk, Outpatient claims (value: 20.0) raised risk, Rx days supply (value: 2095.0) lowered risk. high utilization risk is 96%, primarily driven by Total claims (value: 97.0) raised risk, Outpatient claims (value: 20.0) raised risk, Unique drugs (value: 46.0) raised risk. elevated cost risk is 56%, primarily driven by Total payment (value: 69996.42) raised risk, Outpatient claims (value: 20.0) raised risk, Total claims (value: 97.0) raised risk.",
-      "candidate_narrative": "Beneficiary -10000010265628 (2022). hospitalization risk is 38%, primarily driven by Inpatient payment (value: 295.34) raised risk, Outpatient claims (value: 20.0) raised risk, Rx days supply (value: 2095.0) lowered risk. high utilization risk is 96%, primarily driven by Total claims (value: 97.0) raised risk, Outpatient claims (value: 20.0) raised risk, Unique drugs (value: 46.0) raised risk. elevated cost risk is 56%, primarily driven by Total payment (value: 69996.42) raised risk, Outpatient claims (value: 20.0) raised risk, Total claims (value: 97.0) raised risk.",
+      "prompt_hash": "654b09c4bb9c9797",
+      "template_narrative": "Beneficiary -10000010265628 (2022). hospitalization risk is 38%, primarily driven by Inpatient payment (value: 295.34) raised risk, Outpatient claims (value: 20.0) raised risk, Rx days supply (value: 2095.0) lowered risk. high utilization risk is 96%, primarily driven by Total claims (value: 97.0) raised risk, Outpatient claims (value: 20.0) raised risk, Unique drugs (value: 46.0) raised risk. elevated cost risk is 48%, primarily driven by Total payment (value: 69996.42) raised risk, Total claims (value: 97.0) raised risk, Outpatient claims (value: 20.0) raised risk.",
+      "candidate_narrative": "Beneficiary -10000010265628 (2022). hospitalization risk is 38%, primarily driven by Inpatient payment (value: 295.34) raised risk, Outpatient claims (value: 20.0) raised risk, Rx days supply (value: 2095.0) lowered risk. high utilization risk is 96%, primarily driven by Total claims (value: 97.0) raised risk, Outpatient claims (value: 20.0) raised risk, Unique drugs (value: 46.0) raised risk. elevated cost risk is 48%, primarily driven by Total payment (value: 69996.42) raised risk, Total claims (value: 97.0) raised risk, Outpatient claims (value: 20.0) raised risk.",
       "claims": [
         {
           "statement": "inpatient_payment_amt increased predicted hospitalization risk (contribution +0.479).",
@@ -238,28 +238,28 @@
           "shap_value": 0.417811
         },
         {
-          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +0.707).",
+          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +0.585).",
           "source_fields": [
             "total_payment_amt"
           ],
           "shap_feature": "total_payment_amt",
-          "shap_value": 0.707018
+          "shap_value": 0.585462
         },
         {
-          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +0.356).",
-          "source_fields": [
-            "outpatient_claims"
-          ],
-          "shap_feature": "outpatient_claims",
-          "shap_value": 0.356274
-        },
-        {
-          "statement": "total_claims increased predicted elevated cost risk (contribution +0.339).",
+          "statement": "total_claims increased predicted elevated cost risk (contribution +0.372).",
           "source_fields": [
             "total_claims"
           ],
           "shap_feature": "total_claims",
-          "shap_value": 0.339028
+          "shap_value": 0.371904
+        },
+        {
+          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +0.278).",
+          "source_fields": [
+            "outpatient_claims"
+          ],
+          "shap_feature": "outpatient_claims",
+          "shap_value": 0.277661
         }
       ],
       "status": "auto_accepted_template",
@@ -273,9 +273,9 @@
       "bene_id": "-10000010269348",
       "analytic_year": 2022,
       "provider": "template",
-      "prompt_hash": "2e67940eb5de9334",
-      "template_narrative": "Beneficiary -10000010269348 (2022). hospitalization risk is 35%, primarily driven by Outpatient claims (value: 74.0) raised risk, Inpatient claims (value: 3.0) raised risk, Inpatient payment (value: 4648.0199999999995) lowered risk. high utilization risk is 72%, primarily driven by Total claims (value: 92.0) raised risk, Outpatient claims (value: 74.0) raised risk, Distinct diagnoses (value: 5.0) lowered risk. elevated cost risk is 52%, primarily driven by Outpatient claims (value: 74.0) raised risk, Total payment (value: 79150.66) raised risk, Inpatient claims (value: 3.0) lowered risk.",
-      "candidate_narrative": "Beneficiary -10000010269348 (2022). hospitalization risk is 35%, primarily driven by Outpatient claims (value: 74.0) raised risk, Inpatient claims (value: 3.0) raised risk, Inpatient payment (value: 4648.0199999999995) lowered risk. high utilization risk is 72%, primarily driven by Total claims (value: 92.0) raised risk, Outpatient claims (value: 74.0) raised risk, Distinct diagnoses (value: 5.0) lowered risk. elevated cost risk is 52%, primarily driven by Outpatient claims (value: 74.0) raised risk, Total payment (value: 79150.66) raised risk, Inpatient claims (value: 3.0) lowered risk.",
+      "prompt_hash": "24ca9a29c40a719e",
+      "template_narrative": "Beneficiary -10000010269348 (2022). hospitalization risk is 35%, primarily driven by Outpatient claims (value: 74.0) raised risk, Inpatient claims (value: 3.0) raised risk, Inpatient payment (value: 4648.0199999999995) lowered risk. high utilization risk is 72%, primarily driven by Total claims (value: 92.0) raised risk, Outpatient claims (value: 74.0) raised risk, Distinct diagnoses (value: 5.0) lowered risk. elevated cost risk is 48%, primarily driven by Outpatient claims (value: 74.0) raised risk, Total payment (value: 79150.66) raised risk, Inpatient claims (value: 3.0) lowered risk.",
+      "candidate_narrative": "Beneficiary -10000010269348 (2022). hospitalization risk is 35%, primarily driven by Outpatient claims (value: 74.0) raised risk, Inpatient claims (value: 3.0) raised risk, Inpatient payment (value: 4648.0199999999995) lowered risk. high utilization risk is 72%, primarily driven by Total claims (value: 92.0) raised risk, Outpatient claims (value: 74.0) raised risk, Distinct diagnoses (value: 5.0) lowered risk. elevated cost risk is 48%, primarily driven by Outpatient claims (value: 74.0) raised risk, Total payment (value: 79150.66) raised risk, Inpatient claims (value: 3.0) lowered risk.",
       "claims": [
         {
           "statement": "outpatient_claims increased predicted hospitalization risk (contribution +0.359).",
@@ -326,28 +326,28 @@
           "shap_value": -0.465441
         },
         {
-          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +1.071).",
+          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +1.127).",
           "source_fields": [
             "outpatient_claims"
           ],
           "shap_feature": "outpatient_claims",
-          "shap_value": 1.070836
+          "shap_value": 1.127417
         },
         {
-          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +0.654).",
+          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +0.669).",
           "source_fields": [
             "total_payment_amt"
           ],
           "shap_feature": "total_payment_amt",
-          "shap_value": 0.654093
+          "shap_value": 0.669071
         },
         {
-          "statement": "inpatient_claims decreased predicted elevated cost risk (contribution -0.342).",
+          "statement": "inpatient_claims decreased predicted elevated cost risk (contribution -0.348).",
           "source_fields": [
             "inpatient_claims"
           ],
           "shap_feature": "inpatient_claims",
-          "shap_value": -0.342316
+          "shap_value": -0.348254
         }
       ],
       "status": "auto_accepted_template",
@@ -361,9 +361,9 @@
       "bene_id": "-10000010264547",
       "analytic_year": 2022,
       "provider": "template",
-      "prompt_hash": "519bdd8b53e53311",
-      "template_narrative": "Beneficiary -10000010264547 (2022). hospitalization risk is 21%, primarily driven by Outpatient claims (value: 7.0) raised risk, Age (value: 73) raised risk, Total claims (value: 27.0) lowered risk. high utilization risk is 21%, primarily driven by Distinct diagnoses (value: 6.0) lowered risk, dme claims (value: 2.0) lowered risk, Rx days supply (value: 840.0) raised risk. elevated cost risk is 13%, primarily driven by Total payment (value: 23420.87) lowered risk, Distinct diagnoses (value: 6.0) lowered risk, Total claims (value: 27.0) lowered risk.",
-      "candidate_narrative": "Beneficiary -10000010264547 (2022). hospitalization risk is 21%, primarily driven by Outpatient claims (value: 7.0) raised risk, Age (value: 73) raised risk, Total claims (value: 27.0) lowered risk. high utilization risk is 21%, primarily driven by Distinct diagnoses (value: 6.0) lowered risk, dme claims (value: 2.0) lowered risk, Rx days supply (value: 840.0) raised risk. elevated cost risk is 13%, primarily driven by Total payment (value: 23420.87) lowered risk, Distinct diagnoses (value: 6.0) lowered risk, Total claims (value: 27.0) lowered risk.",
+      "prompt_hash": "a961d3a5130cc47c",
+      "template_narrative": "Beneficiary -10000010264547 (2022). hospitalization risk is 21%, primarily driven by Outpatient claims (value: 7.0) raised risk, Age (value: 73) raised risk, Total claims (value: 27.0) lowered risk. high utilization risk is 21%, primarily driven by Distinct diagnoses (value: 6.0) lowered risk, dme claims (value: 2.0) lowered risk, Rx days supply (value: 840.0) raised risk. elevated cost risk is 14%, primarily driven by Total payment (value: 23420.87) lowered risk, Distinct diagnoses (value: 6.0) lowered risk, Total claims (value: 27.0) lowered risk.",
+      "candidate_narrative": "Beneficiary -10000010264547 (2022). hospitalization risk is 21%, primarily driven by Outpatient claims (value: 7.0) raised risk, Age (value: 73) raised risk, Total claims (value: 27.0) lowered risk. high utilization risk is 21%, primarily driven by Distinct diagnoses (value: 6.0) lowered risk, dme claims (value: 2.0) lowered risk, Rx days supply (value: 840.0) raised risk. elevated cost risk is 14%, primarily driven by Total payment (value: 23420.87) lowered risk, Distinct diagnoses (value: 6.0) lowered risk, Total claims (value: 27.0) lowered risk.",
       "claims": [
         {
           "statement": "outpatient_claims increased predicted hospitalization risk (contribution +0.257).",
@@ -414,28 +414,28 @@
           "shap_value": 0.194761
         },
         {
-          "statement": "total_payment_amt decreased predicted elevated cost risk (contribution -0.663).",
+          "statement": "total_payment_amt decreased predicted elevated cost risk (contribution -0.626).",
           "source_fields": [
             "total_payment_amt"
           ],
           "shap_feature": "total_payment_amt",
-          "shap_value": -0.662526
+          "shap_value": -0.626129
         },
         {
-          "statement": "distinct_diagnosis_count decreased predicted elevated cost risk (contribution -0.225).",
+          "statement": "distinct_diagnosis_count decreased predicted elevated cost risk (contribution -0.242).",
           "source_fields": [
             "distinct_diagnosis_count"
           ],
           "shap_feature": "distinct_diagnosis_count",
-          "shap_value": -0.224591
+          "shap_value": -0.241868
         },
         {
-          "statement": "total_claims decreased predicted elevated cost risk (contribution -0.210).",
+          "statement": "total_claims decreased predicted elevated cost risk (contribution -0.201).",
           "source_fields": [
             "total_claims"
           ],
           "shap_feature": "total_claims",
-          "shap_value": -0.20988
+          "shap_value": -0.201092
         }
       ],
       "status": "auto_accepted_template",
@@ -449,9 +449,9 @@
       "bene_id": "-10000010277656",
       "analytic_year": 2022,
       "provider": "template",
-      "prompt_hash": "bad2b82a1026e3db",
-      "template_narrative": "Beneficiary -10000010277656 (2022). hospitalization risk is 25%, primarily driven by Total payment (value: 462819.69) raised risk, Inpatient payment (value: 40482.29) lowered risk, Outpatient claims (value: 5.0) raised risk. high utilization risk is 39%, primarily driven by Total claims (value: 60.0) raised risk, Distinct diagnoses (value: 4.0) lowered risk, Inpatient payment (value: 40482.29) lowered risk. elevated cost risk is 52%, primarily driven by Total payment (value: 462819.69) raised risk, Inpatient payment (value: 40482.29) lowered risk, Total claims (value: 60.0) lowered risk.",
-      "candidate_narrative": "Beneficiary -10000010277656 (2022). hospitalization risk is 25%, primarily driven by Total payment (value: 462819.69) raised risk, Inpatient payment (value: 40482.29) lowered risk, Outpatient claims (value: 5.0) raised risk. high utilization risk is 39%, primarily driven by Total claims (value: 60.0) raised risk, Distinct diagnoses (value: 4.0) lowered risk, Inpatient payment (value: 40482.29) lowered risk. elevated cost risk is 52%, primarily driven by Total payment (value: 462819.69) raised risk, Inpatient payment (value: 40482.29) lowered risk, Total claims (value: 60.0) lowered risk.",
+      "prompt_hash": "6d545c66155b27b4",
+      "template_narrative": "Beneficiary -10000010277656 (2022). hospitalization risk is 25%, primarily driven by Total payment (value: 462819.69) raised risk, Inpatient payment (value: 40482.29) lowered risk, Outpatient claims (value: 5.0) raised risk. high utilization risk is 39%, primarily driven by Total claims (value: 60.0) raised risk, Distinct diagnoses (value: 4.0) lowered risk, Inpatient payment (value: 40482.29) lowered risk. elevated cost risk is 45%, primarily driven by Total payment (value: 462819.69) raised risk, Inpatient payment (value: 40482.29) lowered risk, Total claims (value: 60.0) lowered risk.",
+      "candidate_narrative": "Beneficiary -10000010277656 (2022). hospitalization risk is 25%, primarily driven by Total payment (value: 462819.69) raised risk, Inpatient payment (value: 40482.29) lowered risk, Outpatient claims (value: 5.0) raised risk. high utilization risk is 39%, primarily driven by Total claims (value: 60.0) raised risk, Distinct diagnoses (value: 4.0) lowered risk, Inpatient payment (value: 40482.29) lowered risk. elevated cost risk is 45%, primarily driven by Total payment (value: 462819.69) raised risk, Inpatient payment (value: 40482.29) lowered risk, Total claims (value: 60.0) lowered risk.",
       "claims": [
         {
           "statement": "total_payment_amt increased predicted hospitalization risk (contribution +0.358).",
@@ -502,28 +502,28 @@
           "shap_value": -0.173754
         },
         {
-          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +2.023).",
+          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +1.912).",
           "source_fields": [
             "total_payment_amt"
           ],
           "shap_feature": "total_payment_amt",
-          "shap_value": 2.022671
+          "shap_value": 1.911855
         },
         {
-          "statement": "inpatient_payment_amt decreased predicted elevated cost risk (contribution -0.499).",
+          "statement": "inpatient_payment_amt decreased predicted elevated cost risk (contribution -0.523).",
           "source_fields": [
             "inpatient_payment_amt"
           ],
           "shap_feature": "inpatient_payment_amt",
-          "shap_value": -0.499003
+          "shap_value": -0.523409
         },
         {
-          "statement": "total_claims decreased predicted elevated cost risk (contribution -0.343).",
+          "statement": "total_claims decreased predicted elevated cost risk (contribution -0.400).",
           "source_fields": [
             "total_claims"
           ],
           "shap_feature": "total_claims",
-          "shap_value": -0.343155
+          "shap_value": -0.399825
         }
       ],
       "status": "auto_accepted_template",
@@ -537,9 +537,9 @@
       "bene_id": "-10000010272076",
       "analytic_year": 2022,
       "provider": "template",
-      "prompt_hash": "46d90185be1fef66",
-      "template_narrative": "Beneficiary -10000010272076 (2022). hospitalization risk is 25%, primarily driven by Inpatient payment (value: 165.0) raised risk, Age (value: 13) lowered risk, Outpatient claims (value: 16.0) raised risk. high utilization risk is 28%, primarily driven by Age (value: 13) lowered risk, Outpatient claims (value: 16.0) raised risk, Distinct diagnoses (value: 2.0) raised risk. elevated cost risk is 94%, primarily driven by Total payment (value: 275281.29) raised risk, Age (value: 13) raised risk, Outpatient claims (value: 16.0) raised risk.",
-      "candidate_narrative": "Beneficiary -10000010272076 (2022). hospitalization risk is 25%, primarily driven by Inpatient payment (value: 165.0) raised risk, Age (value: 13) lowered risk, Outpatient claims (value: 16.0) raised risk. high utilization risk is 28%, primarily driven by Age (value: 13) lowered risk, Outpatient claims (value: 16.0) raised risk, Distinct diagnoses (value: 2.0) raised risk. elevated cost risk is 94%, primarily driven by Total payment (value: 275281.29) raised risk, Age (value: 13) raised risk, Outpatient claims (value: 16.0) raised risk.",
+      "prompt_hash": "66b2d2a99731f53e",
+      "template_narrative": "Beneficiary -10000010272076 (2022). hospitalization risk is 25%, primarily driven by Inpatient payment (value: 165.0) raised risk, Age (value: 13) lowered risk, Outpatient claims (value: 16.0) raised risk. high utilization risk is 28%, primarily driven by Age (value: 13) lowered risk, Outpatient claims (value: 16.0) raised risk, Distinct diagnoses (value: 2.0) raised risk. elevated cost risk is 92%, primarily driven by Total payment (value: 275281.29) raised risk, Age (value: 13) raised risk, Outpatient claims (value: 16.0) raised risk.",
+      "candidate_narrative": "Beneficiary -10000010272076 (2022). hospitalization risk is 25%, primarily driven by Inpatient payment (value: 165.0) raised risk, Age (value: 13) lowered risk, Outpatient claims (value: 16.0) raised risk. high utilization risk is 28%, primarily driven by Age (value: 13) lowered risk, Outpatient claims (value: 16.0) raised risk, Distinct diagnoses (value: 2.0) raised risk. elevated cost risk is 92%, primarily driven by Total payment (value: 275281.29) raised risk, Age (value: 13) raised risk, Outpatient claims (value: 16.0) raised risk.",
       "claims": [
         {
           "statement": "inpatient_payment_amt increased predicted hospitalization risk (contribution +0.404).",
@@ -590,28 +590,28 @@
           "shap_value": 0.224493
         },
         {
-          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +2.323).",
+          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +2.335).",
           "source_fields": [
             "total_payment_amt"
           ],
           "shap_feature": "total_payment_amt",
-          "shap_value": 2.322775
+          "shap_value": 2.334572
         },
         {
-          "statement": "age increased predicted elevated cost risk (contribution +1.112).",
+          "statement": "age increased predicted elevated cost risk (contribution +0.986).",
           "source_fields": [
             "age"
           ],
           "shap_feature": "age",
-          "shap_value": 1.111875
+          "shap_value": 0.985625
         },
         {
-          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +0.402).",
+          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +0.339).",
           "source_fields": [
             "outpatient_claims"
           ],
           "shap_feature": "outpatient_claims",
-          "shap_value": 0.40172
+          "shap_value": 0.339282
         }
       ],
       "status": "auto_accepted_template",
@@ -625,9 +625,9 @@
       "bene_id": "-10000010280669",
       "analytic_year": 2022,
       "provider": "template",
-      "prompt_hash": "52fa2abeb93c37b1",
-      "template_narrative": "Beneficiary -10000010280669 (2022). hospitalization risk is 32%, primarily driven by Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk, dme claims (value: 44.0) lowered risk. high utilization risk is 98%, primarily driven by Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk, dme claims (value: 44.0) raised risk. elevated cost risk is 94%, primarily driven by Total payment (value: 160728.47) raised risk, Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk.",
-      "candidate_narrative": "Beneficiary -10000010280669 (2022). hospitalization risk is 32%, primarily driven by Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk, dme claims (value: 44.0) lowered risk. high utilization risk is 98%, primarily driven by Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk, dme claims (value: 44.0) raised risk. elevated cost risk is 94%, primarily driven by Total payment (value: 160728.47) raised risk, Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk.",
+      "prompt_hash": "b1ce855c96faac96",
+      "template_narrative": "Beneficiary -10000010280669 (2022). hospitalization risk is 32%, primarily driven by Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk, dme claims (value: 44.0) lowered risk. high utilization risk is 98%, primarily driven by Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk, dme claims (value: 44.0) raised risk. elevated cost risk is 92%, primarily driven by Total payment (value: 160728.47) raised risk, Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk.",
+      "candidate_narrative": "Beneficiary -10000010280669 (2022). hospitalization risk is 32%, primarily driven by Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk, dme claims (value: 44.0) lowered risk. high utilization risk is 98%, primarily driven by Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk, dme claims (value: 44.0) raised risk. elevated cost risk is 92%, primarily driven by Total payment (value: 160728.47) raised risk, Total claims (value: 174.0) raised risk, Outpatient claims (value: 34.0) raised risk.",
       "claims": [
         {
           "statement": "total_claims increased predicted hospitalization risk (contribution +0.625).",
@@ -678,28 +678,28 @@
           "shap_value": 0.453662
         },
         {
-          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +2.013).",
+          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +2.065).",
           "source_fields": [
             "total_payment_amt"
           ],
           "shap_feature": "total_payment_amt",
-          "shap_value": 2.013364
+          "shap_value": 2.064644
         },
         {
-          "statement": "total_claims increased predicted elevated cost risk (contribution +1.306).",
+          "statement": "total_claims increased predicted elevated cost risk (contribution +1.224).",
           "source_fields": [
             "total_claims"
           ],
           "shap_feature": "total_claims",
-          "shap_value": 1.306247
+          "shap_value": 1.223708
         },
         {
-          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +0.492).",
+          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +0.530).",
           "source_fields": [
             "outpatient_claims"
           ],
           "shap_feature": "outpatient_claims",
-          "shap_value": 0.492057
+          "shap_value": 0.52952
         }
       ],
       "status": "auto_accepted_template",
@@ -713,7 +713,7 @@
       "bene_id": "-10000010260449",
       "analytic_year": 2022,
       "provider": "template",
-      "prompt_hash": "c99641dc3a1e1397",
+      "prompt_hash": "0222bddc83c88196",
       "template_narrative": "Beneficiary -10000010260449 (2022). hospitalization risk is 78%, primarily driven by Total claims (value: 301.0) raised risk, Inpatient claims (value: 31.0) raised risk, 30-day readmissions (value: 8.0) raised risk. high utilization risk is 100%, primarily driven by Total claims (value: 301.0) raised risk, Outpatient claims (value: 28.0) raised risk, Carrier claims (value: 242.0) raised risk. elevated cost risk is 97%, primarily driven by Total payment (value: 293773.5) raised risk, Total claims (value: 301.0) raised risk, Age (value: 74) raised risk.",
       "candidate_narrative": "Beneficiary -10000010260449 (2022). hospitalization risk is 78%, primarily driven by Total claims (value: 301.0) raised risk, Inpatient claims (value: 31.0) raised risk, 30-day readmissions (value: 8.0) raised risk. high utilization risk is 100%, primarily driven by Total claims (value: 301.0) raised risk, Outpatient claims (value: 28.0) raised risk, Carrier claims (value: 242.0) raised risk. elevated cost risk is 97%, primarily driven by Total payment (value: 293773.5) raised risk, Total claims (value: 301.0) raised risk, Age (value: 74) raised risk.",
       "claims": [
@@ -766,28 +766,28 @@
           "shap_value": 1.045043
         },
         {
-          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +1.875).",
+          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +2.024).",
           "source_fields": [
             "total_payment_amt"
           ],
           "shap_feature": "total_payment_amt",
-          "shap_value": 1.87508
+          "shap_value": 2.024098
         },
         {
-          "statement": "total_claims increased predicted elevated cost risk (contribution +1.512).",
+          "statement": "total_claims increased predicted elevated cost risk (contribution +1.539).",
           "source_fields": [
             "total_claims"
           ],
           "shap_feature": "total_claims",
-          "shap_value": 1.512164
+          "shap_value": 1.539311
         },
         {
-          "statement": "age increased predicted elevated cost risk (contribution +0.969).",
+          "statement": "age increased predicted elevated cost risk (contribution +1.006).",
           "source_fields": [
             "age"
           ],
           "shap_feature": "age",
-          "shap_value": 0.968547
+          "shap_value": 1.005576
         }
       ],
       "status": "auto_accepted_template",
@@ -801,7 +801,7 @@
       "bene_id": "-10000010271299",
       "analytic_year": 2022,
       "provider": "template",
-      "prompt_hash": "a9d89118d753d710",
+      "prompt_hash": "6e3a64aaf682ecd6",
       "template_narrative": "Beneficiary -10000010271299 (2022). hospitalization risk is 25%, primarily driven by Total claims (value: 143.0) raised risk, Outpatient claims (value: 41.0) raised risk, dme claims (value: 15.0) lowered risk. high utilization risk is 99%, primarily driven by Total claims (value: 143.0) raised risk, Outpatient claims (value: 41.0) raised risk, dme claims (value: 15.0) raised risk. elevated cost risk is 97%, primarily driven by Total payment (value: 204296.82) raised risk, Total claims (value: 143.0) raised risk, Outpatient claims (value: 41.0) raised risk.",
       "candidate_narrative": "Beneficiary -10000010271299 (2022). hospitalization risk is 25%, primarily driven by Total claims (value: 143.0) raised risk, Outpatient claims (value: 41.0) raised risk, dme claims (value: 15.0) lowered risk. high utilization risk is 99%, primarily driven by Total claims (value: 143.0) raised risk, Outpatient claims (value: 41.0) raised risk, dme claims (value: 15.0) raised risk. elevated cost risk is 97%, primarily driven by Total payment (value: 204296.82) raised risk, Total claims (value: 143.0) raised risk, Outpatient claims (value: 41.0) raised risk.",
       "claims": [
@@ -854,28 +854,28 @@
           "shap_value": 0.41858
         },
         {
-          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +2.239).",
+          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +2.142).",
           "source_fields": [
             "total_payment_amt"
           ],
           "shap_feature": "total_payment_amt",
-          "shap_value": 2.239051
+          "shap_value": 2.141623
         },
         {
-          "statement": "total_claims increased predicted elevated cost risk (contribution +1.104).",
+          "statement": "total_claims increased predicted elevated cost risk (contribution +1.042).",
           "source_fields": [
             "total_claims"
           ],
           "shap_feature": "total_claims",
-          "shap_value": 1.104295
+          "shap_value": 1.042054
         },
         {
-          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +0.623).",
+          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +0.524).",
           "source_fields": [
             "outpatient_claims"
           ],
           "shap_feature": "outpatient_claims",
-          "shap_value": 0.623257
+          "shap_value": 0.524196
         }
       ],
       "status": "auto_accepted_template",
@@ -889,9 +889,9 @@
       "bene_id": "-10000010273042",
       "analytic_year": 2022,
       "provider": "template",
-      "prompt_hash": "a17b914737c9e168",
-      "template_narrative": "Beneficiary -10000010273042 (2022). hospitalization risk is 68%, primarily driven by Total claims (value: 260.0) raised risk, Unique drugs (value: 141.0) raised risk, Inpatient claims (value: 27.0) raised risk. high utilization risk is 97%, primarily driven by Total claims (value: 260.0) raised risk, Carrier claims (value: 118.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk. elevated cost risk is 86%, primarily driven by Total payment (value: 1152909.09) raised risk, Total claims (value: 260.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk.",
-      "candidate_narrative": "Beneficiary -10000010273042 (2022). hospitalization risk is 68%, primarily driven by Total claims (value: 260.0) raised risk, Unique drugs (value: 141.0) raised risk, Inpatient claims (value: 27.0) raised risk. high utilization risk is 97%, primarily driven by Total claims (value: 260.0) raised risk, Carrier claims (value: 118.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk. elevated cost risk is 86%, primarily driven by Total payment (value: 1152909.09) raised risk, Total claims (value: 260.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk.",
+      "prompt_hash": "22d4eb09e11b968a",
+      "template_narrative": "Beneficiary -10000010273042 (2022). hospitalization risk is 68%, primarily driven by Total claims (value: 260.0) raised risk, Unique drugs (value: 141.0) raised risk, Inpatient claims (value: 27.0) raised risk. high utilization risk is 97%, primarily driven by Total claims (value: 260.0) raised risk, Carrier claims (value: 118.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk. elevated cost risk is 92%, primarily driven by Total payment (value: 1152909.09) raised risk, Total claims (value: 260.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk.",
+      "candidate_narrative": "Beneficiary -10000010273042 (2022). hospitalization risk is 68%, primarily driven by Total claims (value: 260.0) raised risk, Unique drugs (value: 141.0) raised risk, Inpatient claims (value: 27.0) raised risk. high utilization risk is 97%, primarily driven by Total claims (value: 260.0) raised risk, Carrier claims (value: 118.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk. elevated cost risk is 92%, primarily driven by Total payment (value: 1152909.09) raised risk, Total claims (value: 260.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk.",
       "claims": [
         {
           "statement": "total_claims increased predicted hospitalization risk (contribution +0.863).",
@@ -942,28 +942,28 @@
           "shap_value": -0.671306
         },
         {
-          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +2.098).",
+          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +2.145).",
           "source_fields": [
             "total_payment_amt"
           ],
           "shap_feature": "total_payment_amt",
-          "shap_value": 2.097866
+          "shap_value": 2.14477
         },
         {
-          "statement": "total_claims increased predicted elevated cost risk (contribution +1.469).",
+          "statement": "total_claims increased predicted elevated cost risk (contribution +1.572).",
           "source_fields": [
             "total_claims"
           ],
           "shap_feature": "total_claims",
-          "shap_value": 1.46866
+          "shap_value": 1.572321
         },
         {
-          "statement": "inpatient_payment_amt decreased predicted elevated cost risk (contribution -1.085).",
+          "statement": "inpatient_payment_amt decreased predicted elevated cost risk (contribution -0.937).",
           "source_fields": [
             "inpatient_payment_amt"
           ],
           "shap_feature": "inpatient_payment_amt",
-          "shap_value": -1.084792
+          "shap_value": -0.937334
         }
       ],
       "status": "auto_accepted_template",
@@ -977,9 +977,9 @@
       "bene_id": "-10000010266211",
       "analytic_year": 2022,
       "provider": "template",
-      "prompt_hash": "d7c394c2a190eb56",
-      "template_narrative": "Beneficiary -10000010266211 (2022). hospitalization risk is 35%, primarily driven by Total claims (value: 118.0) raised risk, Outpatient claims (value: 66.0) raised risk, Unique drugs (value: 64.0) raised risk. high utilization risk is 96%, primarily driven by Total claims (value: 118.0) raised risk, Outpatient claims (value: 66.0) raised risk, Inpatient payment (value: 34213.11) lowered risk. elevated cost risk is 73%, primarily driven by Total payment (value: 129314.64) raised risk, Inpatient payment (value: 34213.11) lowered risk, Total claims (value: 118.0) raised risk.",
-      "candidate_narrative": "Beneficiary -10000010266211 (2022). hospitalization risk is 35%, primarily driven by Total claims (value: 118.0) raised risk, Outpatient claims (value: 66.0) raised risk, Unique drugs (value: 64.0) raised risk. high utilization risk is 96%, primarily driven by Total claims (value: 118.0) raised risk, Outpatient claims (value: 66.0) raised risk, Inpatient payment (value: 34213.11) lowered risk. elevated cost risk is 73%, primarily driven by Total payment (value: 129314.64) raised risk, Inpatient payment (value: 34213.11) lowered risk, Total claims (value: 118.0) raised risk.",
+      "prompt_hash": "682a1efffb6040dc",
+      "template_narrative": "Beneficiary -10000010266211 (2022). hospitalization risk is 35%, primarily driven by Total claims (value: 118.0) raised risk, Outpatient claims (value: 66.0) raised risk, Unique drugs (value: 64.0) raised risk. high utilization risk is 96%, primarily driven by Total claims (value: 118.0) raised risk, Outpatient claims (value: 66.0) raised risk, Inpatient payment (value: 34213.11) lowered risk. elevated cost risk is 48%, primarily driven by Total payment (value: 129314.64) raised risk, Inpatient payment (value: 34213.11) lowered risk, Outpatient claims (value: 66.0) raised risk.",
+      "candidate_narrative": "Beneficiary -10000010266211 (2022). hospitalization risk is 35%, primarily driven by Total claims (value: 118.0) raised risk, Outpatient claims (value: 66.0) raised risk, Unique drugs (value: 64.0) raised risk. high utilization risk is 96%, primarily driven by Total claims (value: 118.0) raised risk, Outpatient claims (value: 66.0) raised risk, Inpatient payment (value: 34213.11) lowered risk. elevated cost risk is 48%, primarily driven by Total payment (value: 129314.64) raised risk, Inpatient payment (value: 34213.11) lowered risk, Outpatient claims (value: 66.0) raised risk.",
       "claims": [
         {
           "statement": "total_claims increased predicted hospitalization risk (contribution +0.397).",
@@ -1030,28 +1030,28 @@
           "shap_value": -0.451173
         },
         {
-          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +1.413).",
+          "statement": "total_payment_amt increased predicted elevated cost risk (contribution +1.327).",
           "source_fields": [
             "total_payment_amt"
           ],
           "shap_feature": "total_payment_amt",
-          "shap_value": 1.412614
+          "shap_value": 1.327363
         },
         {
-          "statement": "inpatient_payment_amt decreased predicted elevated cost risk (contribution -0.781).",
+          "statement": "inpatient_payment_amt decreased predicted elevated cost risk (contribution -0.910).",
           "source_fields": [
             "inpatient_payment_amt"
           ],
           "shap_feature": "inpatient_payment_amt",
-          "shap_value": -0.780758
+          "shap_value": -0.910349
         },
         {
-          "statement": "total_claims increased predicted elevated cost risk (contribution +0.625).",
+          "statement": "outpatient_claims increased predicted elevated cost risk (contribution +0.528).",
           "source_fields": [
-            "total_claims"
+            "outpatient_claims"
           ],
-          "shap_feature": "total_claims",
-          "shap_value": 0.624688
+          "shap_feature": "outpatient_claims",
+          "shap_value": 0.52767
         }
       ],
       "status": "auto_accepted_template",
