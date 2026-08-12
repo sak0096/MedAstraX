@@ -6,13 +6,13 @@ from fastapi import APIRouter, Depends, HTTPException, Query
 
 from hc_analytics.config import get_settings
 from hc_analytics.instrumentation.events import EventType, StudyEvent, log_event
+from hc_analytics.study.context import StudyRequestContext, get_study_context
 from hc_analytics.study.loader import get_study_catalog, get_task_by_id, tasks_for_study
 from hc_analytics.study.models import ComprehensionSubmission, TaskResponseSubmission
 from hc_analytics.study.recommendations import build_outreach_recommendation, outreach_case_ids_for_participant
 from hc_analytics.study.scoring import score_session_events
 from hc_analytics.study.session import (
     active_manipulations_for_task,
-    assign_manipulations,
     new_trial_id,
     resolve_study_session,
     study1_recommendation_is_manipulated,
@@ -54,11 +54,19 @@ def study_meta() -> Dict[str, Any]:
 
 
 @router.get("/session")
-def study_session(participant_id: str = Query(min_length=1, max_length=64)) -> Dict[str, Any]:
+def study_session(
+    participant_id: str = Query(min_length=1, max_length=64),
+    study_ctx: StudyRequestContext = Depends(get_study_context),
+) -> Dict[str, Any]:
     settings = get_settings()
     if not settings.study_mode:
         raise HTTPException(status_code=404, detail="Study mode is disabled.")
-    return resolve_study_session(participant_id, settings=settings).model_dump()
+    return resolve_study_session(
+        participant_id,
+        settings=settings,
+        condition=study_ctx.condition,
+        study=study_ctx.study,
+    ).model_dump()
 
 
 @router.get("/priority-rule")
@@ -109,6 +117,7 @@ def start_task(
     task_id: str,
     participant_id: str = Query(min_length=1, max_length=64),
     session_id: str = Query(min_length=8, max_length=128),
+    study_ctx: StudyRequestContext = Depends(get_study_context),
 ) -> Dict[str, Any]:
     settings = get_settings()
     if not settings.study_mode:
@@ -117,20 +126,36 @@ def start_task(
     if task is None:
         raise HTTPException(status_code=404, detail=f"Unknown task: {task_id}")
 
-    session = resolve_study_session(participant_id, settings=settings)
-    active_manipulation = None
-    if task.manipulation_slot:
-        active_manipulation = session.assignments.get(task.manipulation_slot)
+    session = resolve_study_session(
+        participant_id,
+        settings=settings,
+        condition=study_ctx.condition,
+        study=study_ctx.study,
+    )
+    active = active_manipulations_for_task(
+        participant_id,
+        task_id,
+        settings=settings,
+        condition=study_ctx.condition,
+    )
+    active_manipulation = active[0] if active else None
 
     outreach_case_ids = []
     if task.response_type in {"sequential_ranking", "ranking"}:
-        outreach_case_ids = outreach_case_ids_for_participant(participant_id, settings=settings)
+        outreach_case_ids = outreach_case_ids_for_participant(
+            participant_id,
+            settings=settings,
+            condition=study_ctx.condition,
+            study=study_ctx.study or "study1",
+        )
 
     trial_id = new_trial_id() if task.sequential_judgment else None
     recommendation_correctness = None
     if task.task_id == "S1-T5" or task.manipulation_slot == "study1":
         recommendation_correctness = (
-            "incorrect" if study1_recommendation_is_manipulated(participant_id) else "faithful"
+            "incorrect"
+            if study1_recommendation_is_manipulated(participant_id, study_ctx.condition)
+            else "faithful"
         )
 
     if settings.log_events:
@@ -140,6 +165,7 @@ def start_task(
                 participant_id=participant_id,
                 session_id=session_id,
                 task_id=task_id,
+                condition=study_ctx.experimental_condition,
                 payload={
                     "study": task.study,
                     "active_manipulation": active_manipulation,
@@ -147,6 +173,8 @@ def start_task(
                     "requires_cases": task.requires_cases or outreach_case_ids,
                     "trial_id": trial_id,
                     "sequential_judgment": task.sequential_judgment,
+                    "case_set": session.case_set,
+                    "condition": study_ctx.condition,
                 },
             )
         )
@@ -159,6 +187,7 @@ def start_task(
         "trial_id": trial_id,
         "outreach_case_ids": outreach_case_ids,
         "cases": [case for case in session.cases if case["case_id"] in case_ids],
+        "case_set": session.case_set,
     }
 
 
@@ -166,6 +195,7 @@ def start_task(
 def outreach_recommendation(
     task_id: str,
     participant_id: str = Query(min_length=1, max_length=64),
+    study_ctx: StudyRequestContext = Depends(get_study_context),
 ) -> Dict[str, Any]:
     settings = get_settings()
     if not settings.study_mode:
@@ -174,11 +204,16 @@ def outreach_recommendation(
     if task is None:
         raise HTTPException(status_code=404, detail=f"Unknown task: {task_id}")
 
-    case_ids = outreach_case_ids_for_participant(participant_id, settings=settings)
+    case_ids = outreach_case_ids_for_participant(
+        participant_id,
+        settings=settings,
+        condition=study_ctx.condition,
+        study=study_ctx.study or "study1",
+    )
     if not case_ids:
         raise HTTPException(status_code=404, detail="No outreach cases assigned.")
 
-    manipulated = study1_recommendation_is_manipulated(participant_id)
+    manipulated = study1_recommendation_is_manipulated(participant_id, study_ctx.condition)
     recommendation = build_outreach_recommendation(
         case_ids,
         manipulated=manipulated,
@@ -188,7 +223,11 @@ def outreach_recommendation(
 
 
 @router.post("/tasks/{task_id}/response")
-def submit_task_response(task_id: str, submission: TaskResponseSubmission) -> Dict[str, Any]:
+def submit_task_response(
+    task_id: str,
+    submission: TaskResponseSubmission,
+    study_ctx: StudyRequestContext = Depends(get_study_context),
+) -> Dict[str, Any]:
     settings = get_settings()
     if not settings.study_mode:
         raise HTTPException(status_code=404, detail="Study mode is disabled.")
@@ -196,26 +235,37 @@ def submit_task_response(task_id: str, submission: TaskResponseSubmission) -> Di
     if task is None:
         raise HTTPException(status_code=404, detail=f"Unknown task: {task_id}")
 
-    session = resolve_study_session(submission.participant_id, settings=settings)
-    active_manipulation = None
-    if task.manipulation_slot:
-        active_manipulation = session.assignments.get(task.manipulation_slot)
+    active = active_manipulations_for_task(
+        submission.participant_id,
+        task_id,
+        settings=settings,
+        condition=study_ctx.condition,
+    )
+    active_manipulation = active[0] if active else None
+    manipulated_outreach = study1_recommendation_is_manipulated(
+        submission.participant_id,
+        study_ctx.condition,
+    )
 
     ground_truth: Dict[str, Any] = {}
     if task.response_type in {"sequential_ranking", "ranking"} and submission.phase == "final":
-        case_ids = outreach_case_ids_for_participant(submission.participant_id, settings=settings)
-        manipulated = study1_recommendation_is_manipulated(submission.participant_id)
+        case_ids = outreach_case_ids_for_participant(
+            submission.participant_id,
+            settings=settings,
+            condition=study_ctx.condition,
+            study=study_ctx.study or "study1",
+        )
         recommendation = build_outreach_recommendation(
             case_ids,
-            manipulated=manipulated,
+            manipulated=manipulated_outreach,
             settings=settings,
         )
         ground_truth = {
             "correct_ranking": recommendation["correct_ranking"],
             "recommendation_ranking": recommendation["recommended_ranking"],
             "manipulated": recommendation["manipulated"],
-            "manipulation_type": "M2" if manipulated else "correct",
-            "recommendation_correctness": "incorrect" if manipulated else "faithful",
+            "manipulation_type": "M2" if manipulated_outreach else "correct",
+            "recommendation_correctness": "incorrect" if manipulated_outreach else "faithful",
         }
 
     event_type = (
@@ -236,19 +286,16 @@ def submit_task_response(task_id: str, submission: TaskResponseSubmission) -> Di
         "confidence": submission.confidence,
         "reliance_source": submission.reliance_source,
         "ground_truth": ground_truth or None,
-        "manipulated": ground_truth.get("manipulated") if ground_truth else None,
-        "manipulation_type": (
-            "M2"
-            if task.manipulation_slot == "study1" and study1_recommendation_is_manipulated(submission.participant_id)
-            else active_manipulation
-        ),
+        "manipulated": ground_truth.get("manipulated") if ground_truth else bool(active),
+        "manipulation_type": active_manipulation,
         "recommendation_correctness": (
             "incorrect"
-            if task.manipulation_slot == "study1" and study1_recommendation_is_manipulated(submission.participant_id)
+            if task.task_id == "S1-T5" and manipulated_outreach
             else "faithful"
-            if task.manipulation_slot == "study1"
+            if task.task_id == "S1-T5"
             else None
         ),
+        "condition": study_ctx.condition,
     }
 
     if settings.log_events:
@@ -258,6 +305,7 @@ def submit_task_response(task_id: str, submission: TaskResponseSubmission) -> Di
                 participant_id=submission.participant_id,
                 session_id=submission.session_id,
                 task_id=task_id,
+                condition=study_ctx.experimental_condition,
                 payload=payload,
             )
         )

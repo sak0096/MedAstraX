@@ -2,7 +2,7 @@ from __future__ import annotations
 
 from typing import Dict, Union
 
-from fastapi import FastAPI
+from fastapi import Depends, FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from hc_analytics import __version__
@@ -16,6 +16,7 @@ from hc_analytics.api.routes import (
     study,
 )
 from hc_analytics.config import get_settings
+from hc_analytics.study.context import StudyRequestContext, get_study_context
 
 settings = get_settings()
 
@@ -43,18 +44,18 @@ app.include_router(instrumentation.router)
 
 
 @app.get("/health")
-def health() -> Dict[str, str]:
+def health(study_ctx: StudyRequestContext = Depends(get_study_context)) -> Dict[str, str]:
     runtime_settings = get_settings()
     return {
         "status": "ok",
         "version": __version__,
-        "condition": runtime_settings.experimental_condition.value,
+        "condition": study_ctx.experimental_condition.value,
         "study_id": runtime_settings.study_id,
     }
 
 
 @app.get("/api/meta")
-def meta() -> Dict[str, Union[str, bool]]:
+def meta(study_ctx: StudyRequestContext = Depends(get_study_context)) -> Dict[str, Union[str, bool]]:
     runtime_settings = get_settings()
     processed = runtime_settings.processed_data_path
     data_ready = processed.exists() and any(processed.iterdir()) if processed.exists() else False
@@ -68,7 +69,7 @@ def meta() -> Dict[str, Union[str, bool]]:
     )
     return {
         "prototype_phase": "8",
-        "experimental_condition": runtime_settings.experimental_condition.value,
+        "experimental_condition": study_ctx.experimental_condition.value,
         "data_ready": data_ready,
         "models_ready": models_ready,
         "predictions_ready": predictions_ready,

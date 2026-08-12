@@ -16,7 +16,7 @@ import type {
   StudySession,
   StudyTaskDefinition,
 } from "../types";
-import { getActiveStudyTaskId } from "../study/session";
+import { getActiveStudyTaskId, getConditionFromUrl, getStudyArmFromUrl } from "../study/session";
 import { getParticipantId, getSessionId } from "../instrumentation/logger";
 
 function studyHeaders(): Record<string, string> {
@@ -27,6 +27,14 @@ function studyHeaders(): Record<string, string> {
   const taskId = getActiveStudyTaskId();
   if (taskId) {
     headers["X-Study-Task-Id"] = taskId;
+  }
+  const condition = getConditionFromUrl();
+  if (condition) {
+    headers["X-Study-Condition"] = condition;
+  }
+  const studyArm = getStudyArmFromUrl();
+  if (studyArm === "study1" || studyArm === "study2") {
+    headers["X-Study-Arm"] = studyArm;
   }
   return headers;
 }

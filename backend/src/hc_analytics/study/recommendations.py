@@ -57,6 +57,8 @@ def outreach_case_ids_for_participant(
     participant_id: str,
     *,
     settings: Optional[Settings] = None,
+    condition: Optional[str] = None,
+    study: Optional[str] = None,
 ) -> List[str]:
     from hc_analytics.study.session import assign_case_set
 
@@ -64,5 +66,5 @@ def outreach_case_ids_for_participant(
     catalog = get_study_catalog(settings=runtime)
     if catalog is None:
         return []
-    case_set = assign_case_set(participant_id)
+    case_set = assign_case_set(participant_id, condition=condition, study=study)
     return list(catalog.case_sets.get(case_set, []))

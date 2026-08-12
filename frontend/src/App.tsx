@@ -20,7 +20,7 @@ import { StudyExportButton } from "./components/StudyExportButton";
 import { TaskPanel } from "./components/TaskPanel";
 import { CONDITION_COPY } from "./config/conditions";
 import { getParticipantId, getSessionId, setActiveStudyTaskId, trackEvent, trackLatency } from "./instrumentation/logger";
-import { getStudyArmFromUrl, isStudyModeFromUrl } from "./study/session";
+import { getConditionFromUrl, getStudyArmFromUrl, isStudyModeFromUrl } from "./study/session";
 import type {
   ApiMeta,
   BeneficiaryDetail as BeneficiaryDetailType,
@@ -62,7 +62,7 @@ export default function App() {
   const [summaryUnavailable, setSummaryUnavailable] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
-  const condition = meta?.experimental_condition ?? "baseline";
+  const condition = getConditionFromUrl() ?? meta?.experimental_condition ?? "baseline";
   const isXai = condition === "xai";
   const isLlm = condition === "llm";
   const copy = CONDITION_COPY[condition];

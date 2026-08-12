@@ -153,18 +153,40 @@ def test_assign_manipulations_v2_is_deterministic() -> None:
     first = assign_manipulations("P001")
     second = assign_manipulations("P001")
     assert first == second
-    assert first["study1"] in {"M2", "correct"}
-    assert first["study2"] in {"M3", "M4", "M6", "M7"}
+    assert first["S1-T5"] in {"M2", "correct"}
+    assert first["S2-T2"] in {"M4", "M6", "M7"}
+    assert first["S2-T3"] in {"M3", "correct"}
+    assert first["S2-T6"] in {"M4", "M6", "M7", "correct"}
 
 
 def test_study1_outreach_counterbalancing() -> None:
-    outcomes = {assign_manipulations(f"P{i:03d}")["study1"] for i in range(32)}
+    outcomes = {assign_manipulations(f"P{i:03d}")["S1-T5"] for i in range(32)}
     assert "M2" in outcomes
     assert "correct" in outcomes
 
 
+def test_study1_complementary_errors_across_conditions() -> None:
+    from hc_analytics.study.session import study1_recommendation_is_manipulated
+
+    for pid in ("P001", "P002", "P010"):
+        baseline = study1_recommendation_is_manipulated(pid, "baseline")
+        xai = study1_recommendation_is_manipulated(pid, "xai")
+        assert baseline != xai
+
+
+def test_study2_errors_are_per_task() -> None:
+    assigned = assign_manipulations("P001")
+    assert assigned["S2-T2"] != assigned["S2-T3"] or assigned["S2-T3"] == "correct"
+    if assigned["S2-T6"] != "correct":
+        assert assigned["S2-T6"] != assigned["S2-T2"]
+
+
 def test_assign_case_set() -> None:
     assert assign_case_set("P001") in {"alpha", "beta"}
+    first = assign_case_set("P001", condition="baseline", study="study1")
+    second_condition = "xai"
+    second = assign_case_set("P001", condition=second_condition, study="study1")
+    assert first != second
 
 
 def test_priority_ranking() -> None:
@@ -281,6 +303,7 @@ def test_study_api_session_and_sequential_response(study_settings: Settings, mon
     monkeypatch.setattr("hc_analytics.study.loader.get_settings", lambda: study_settings)
     monkeypatch.setattr("hc_analytics.api.routes.study.get_settings", lambda: study_settings)
     monkeypatch.setattr("hc_analytics.study.session.get_settings", lambda: study_settings)
+    monkeypatch.setattr("hc_analytics.study.context.get_settings", lambda: study_settings)
     monkeypatch.setattr("hc_analytics.study.recommendations.get_settings", lambda: study_settings)
     client = TestClient(app)
 

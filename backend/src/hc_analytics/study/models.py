@@ -71,10 +71,13 @@ class StudySessionResponse(BaseModel):
     participant_id: str
     study_mode_enabled: bool
     assignments: Dict[str, str]
+    condition_order: Dict[str, List[str]] = Field(default_factory=dict)
     manipulation_catalog: Dict[str, str]
     task_sets: Dict[str, List[str]]
     cases: List[Dict[str, str]]
     case_set: str = "alpha"
+    case_set_by_condition: Dict[str, str] = Field(default_factory=dict)
+    recommended_first_condition: Optional[str] = None
     priority_rule: Dict[str, Any] = Field(default_factory=dict)
     comprehension: Dict[str, Any] = Field(default_factory=dict)
 
