@@ -100,6 +100,7 @@ class ComprehensionSubmission(BaseModel):
     participant_id: str
     session_id: str
     answers: Dict[str, int] = Field(default_factory=dict)
+    study: Optional[Literal["study1", "study2"]] = None
 
 
 class StudyContextPayload(BaseModel):

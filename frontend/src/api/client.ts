@@ -68,6 +68,7 @@ export function getBeneficiaries(params: {
   descending?: boolean;
   chronic_filter?: string | null;
   min_total_claims?: number | null;
+  analytic_year?: number | null;
 }): Promise<{ count: number; sort_by: string; rows: BeneficiaryRow[] }> {
   const search = new URLSearchParams();
   if (params.limit !== undefined) search.set("limit", String(params.limit));
@@ -78,6 +79,9 @@ export function getBeneficiaries(params: {
   if (params.chronic_filter) search.set("chronic_filter", params.chronic_filter);
   if (params.min_total_claims !== undefined && params.min_total_claims !== null) {
     search.set("min_total_claims", String(params.min_total_claims));
+  }
+  if (params.analytic_year !== undefined && params.analytic_year !== null) {
+    search.set("analytic_year", String(params.analytic_year));
   }
   const query = search.toString();
   return fetchJson(`/api/beneficiaries${query ? `?${query}` : ""}`);
@@ -174,8 +178,23 @@ export function exportStudySession(sessionId: string): Promise<{
   });
 }
 
+export function getStudyMeta(): Promise<{
+  study_mode_enabled: boolean;
+  catalog_loaded: boolean;
+  default_analytic_year?: number | null;
+}> {
+  return fetchJson("/api/study/meta");
+}
+
 export function getStudySession(participantId: string): Promise<StudySession> {
-  return fetchJson(`/api/study/session?participant_id=${encodeURIComponent(participantId)}`);
+  const search = new URLSearchParams({ participant_id: participantId });
+  if (typeof window !== "undefined") {
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("facilitator") === "1") {
+      search.set("facilitator", "true");
+    }
+  }
+  return fetchJson(`/api/study/session?${search.toString()}`);
 }
 
 export function getStudyTasks(study?: "study1" | "study2"): Promise<{ tasks: StudyTaskDefinition[] }> {
@@ -238,11 +257,13 @@ export function submitComprehension(submission: {
   participant_id: string;
   session_id: string;
   answers: Record<string, number>;
+  study?: "study1" | "study2";
 }): Promise<{
   passed: boolean;
   correct: number;
   total: number;
   results: Array<{ question_id: string; correct: boolean }>;
+  study?: string;
 }> {
   return fetchJson("/api/study/comprehension", {
     method: "POST",

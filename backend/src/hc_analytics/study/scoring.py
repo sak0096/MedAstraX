@@ -119,6 +119,17 @@ def score_interpretation(
     }
 
 
+def _claim_matches(flagged_claim: str, unsupported_statement: str) -> bool:
+    flagged = flagged_claim.strip().lower()
+    statement = unsupported_statement.strip().lower()
+    if not flagged or not statement:
+        return False
+    if statement in flagged or flagged in statement:
+        return True
+    needle = statement[:40]
+    return bool(needle) and needle in flagged
+
+
 def score_claim_detection(
     *,
     supported: Optional[str],
@@ -128,23 +139,29 @@ def score_claim_detection(
 ) -> Dict[str, Any]:
     flagged = bool(flagged_claim and str(flagged_claim).strip())
     judged_unsupported = supported == "unsupported"
-    detected = manipulated and judged_unsupported
-    if manipulated and unsupported_statement and flagged_claim:
-        detected = detected and unsupported_statement.lower()[:40] in str(flagged_claim).lower()
-        if not detected and judged_unsupported:
-            detected = True
+    detected = False
+    if manipulated and judged_unsupported:
+        if unsupported_statement:
+            detected = flagged and _claim_matches(str(flagged_claim), unsupported_statement)
+        else:
+            detected = judged_unsupported
     return {
         "judged_unsupported": judged_unsupported,
         "flagged": flagged,
         "detected_unsupported_claim": detected,
         "false_alarm": (not manipulated) and judged_unsupported,
-        "missed_unsupported_claim": manipulated and not judged_unsupported,
+        "missed_unsupported_claim": manipulated and not detected,
     }
 
 
 def score_query_set(
     result_ids: Sequence[str],
     expected_ids: Sequence[str],
+    *,
+    result_count: Optional[int] = None,
+    top_bene_id: Optional[str] = None,
+    expected_count: Optional[int] = None,
+    expected_top_bene_id: Optional[str] = None,
 ) -> Dict[str, Any]:
     predicted = [str(item) for item in result_ids if str(item).strip()]
     expected = [str(item) for item in expected_ids if str(item).strip()]
@@ -153,13 +170,35 @@ def score_query_set(
     true_positive = len(predicted_set & expected_set)
     precision = round(true_positive / len(predicted_set), 4) if predicted_set else None
     recall = round(true_positive / len(expected_set), 4) if expected_set else None
+    count = result_count if result_count is not None else len(predicted)
+    expected_n = expected_count if expected_count is not None else len(expected)
+    top = str(top_bene_id).strip() if top_bene_id else (predicted[0] if predicted else None)
+    expected_top = (
+        str(expected_top_bene_id).strip()
+        if expected_top_bene_id
+        else (expected[0] if expected else None)
+    )
     return {
-        "exact_match": predicted == expected,
+        "exact_match": predicted_set == expected_set and bool(expected_set),
+        "exact_ordered_match": predicted == expected and bool(expected),
         "precision": precision,
         "recall": recall,
-        "result_count": len(predicted),
-        "expected_count": len(expected),
+        "result_count": count,
+        "expected_count": expected_n,
+        "count_correct": count == expected_n if expected_n is not None else None,
+        "top_bene_correct": bool(top and expected_top and top == expected_top),
     }
+
+
+def _merge_non_null(bucket: Dict[str, Any], updates: Dict[str, Any]) -> None:
+    for key, value in updates.items():
+        if value is None:
+            continue
+        if value == [] and bucket.get(key):
+            continue
+        if value == {} and bucket.get(key):
+            continue
+        bucket[key] = value
 
 
 def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
@@ -188,23 +227,39 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
         bucket["events"].append(event)
         if event_type not in {"task_response", "task_initial_response"}:
             continue
+        # Sparse client duplicates (task_id/trial_id/phase only) must not erase rich server events.
+        responses = payload.get("responses")
+        if responses is None and payload.get("ground_truth") is None and payload.get("confidence") is None:
+            continue
+        responses = responses or {}
         phase = payload.get("phase")
-        responses = payload.get("responses") or {}
         if event_type == "task_initial_response" or phase == "initial":
-            bucket["initial_ranking"] = _normalize_ranking(responses.get("ranking"))
-            bucket["initial_confidence"] = payload.get("confidence")
-            bucket["initial_supported"] = responses.get("supported")
+            _merge_non_null(
+                bucket,
+                {
+                    "initial_ranking": _normalize_ranking(responses.get("ranking")),
+                    "initial_confidence": payload.get("confidence"),
+                    "initial_supported": responses.get("supported"),
+                },
+            )
         elif phase in {"final", "single", None} or event_type == "task_response":
-            bucket["final_ranking"] = _normalize_ranking(responses.get("ranking"))
-            bucket["final_confidence"] = payload.get("confidence")
-            bucket["ground_truth"] = payload.get("ground_truth")
-            bucket["manipulated"] = payload.get("manipulated")
-            bucket["drivers"] = responses.get("drivers")
-            bucket["supported"] = responses.get("supported")
-            bucket["flagged_claim"] = responses.get("flagged_claim")
-            bucket["result_ids"] = responses.get("result_ids") or responses.get("beneficiary_ids")
-            bucket["time_ms"] = payload.get("time_ms")
-            bucket["timed_out"] = payload.get("timed_out")
+            _merge_non_null(
+                bucket,
+                {
+                    "final_ranking": _normalize_ranking(responses.get("ranking")),
+                    "final_confidence": payload.get("confidence"),
+                    "ground_truth": payload.get("ground_truth"),
+                    "manipulated": payload.get("manipulated"),
+                    "drivers": responses.get("drivers"),
+                    "supported": responses.get("supported"),
+                    "flagged_claim": responses.get("flagged_claim"),
+                    "result_ids": responses.get("result_ids") or responses.get("beneficiary_ids"),
+                    "result_count": responses.get("result_count"),
+                    "top_bene_id": responses.get("top_bene_id"),
+                    "time_ms": payload.get("time_ms"),
+                    "timed_out": payload.get("timed_out"),
+                },
+            )
 
     outreach: List[Dict[str, Any]] = []
     interpretations: List[Dict[str, Any]] = []
@@ -246,13 +301,28 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
                 }
             )
         expected_ids = ground_truth.get("expected_ids") or []
-        if trial.get("result_ids") is not None:
-            queries.append(
-                {
-                    "trial_id": trial_id,
-                    **score_query_set(trial.get("result_ids") or [], expected_ids),
-                }
+        if trial.get("result_ids") is not None or trial.get("result_count") is not None or trial.get("top_bene_id"):
+            query_metrics = score_query_set(
+                trial.get("result_ids") or [],
+                expected_ids,
+                result_count=trial.get("result_count"),
+                top_bene_id=trial.get("top_bene_id"),
+                expected_count=ground_truth.get("expected_count"),
+                expected_top_bene_id=ground_truth.get("expected_top_bene_id"),
             )
+            queries.append({"trial_id": trial_id, **query_metrics})
+
+    harmful_eligible = [row for row in outreach if row.get("manipulated") and row.get("initial_correct")]
+    beneficial_eligible = [
+        row for row in outreach if (not row.get("manipulated")) and (not row.get("initial_correct"))
+    ]
+    faithful = [row for row in outreach if not row.get("manipulated")]
+    incorrect = [row for row in outreach if row.get("manipulated")]
+    correct_adherence = _rate(faithful, "correct_ai_adherence")
+    incorrect_adherence = _rate(incorrect, "incorrect_ai_adherence")
+    appropriate_reliance_index = None
+    if correct_adherence is not None and incorrect_adherence is not None:
+        appropriate_reliance_index = round(correct_adherence - incorrect_adherence, 4)
 
     return {
         "trial_count": len(outreach),
@@ -260,23 +330,20 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
         "interpretation_trials": interpretations,
         "claim_trials": claims,
         "query_trials": queries,
-        "harmful_switching_rate": _rate(outreach, "harmful_switching"),
-        "appropriate_rejection_rate": _rate(outreach, "appropriate_rejection"),
-        "beneficial_correction_rate": _rate(outreach, "beneficial_correction"),
-        "incorrect_trial_count": sum(1 for row in outreach if row.get("manipulated")),
-        "faithful_trial_count": sum(1 for row in outreach if row.get("manipulated") is False),
-        "harmful_switching_rate_incorrect_trials": _rate(
-            [row for row in outreach if row.get("manipulated")],
-            "harmful_switching",
-        ),
-        "beneficial_correction_rate_faithful_trials": _rate(
-            [row for row in outreach if not row.get("manipulated")],
-            "beneficial_correction",
-        ),
+        "harmful_switching_rate": _rate(harmful_eligible, "harmful_switching"),
+        "appropriate_rejection_rate": _rate(incorrect, "appropriate_rejection"),
+        "beneficial_correction_rate": _rate(beneficial_eligible, "beneficial_correction"),
+        "incorrect_trial_count": len(incorrect),
+        "faithful_trial_count": len(faithful),
+        "harmful_switching_rate_incorrect_trials": _rate(incorrect, "harmful_switching"),
+        "beneficial_correction_rate_faithful_trials": _rate(faithful, "beneficial_correction"),
+        "appropriate_reliance_index": appropriate_reliance_index,
         "mean_weight_of_advice": _mean([row.get("weight_of_advice") for row in outreach]),
         "mean_kendall_tau_distance": _mean([row.get("kendall_tau_distance") for row in outreach]),
         "claim_detection_rate": _rate(claims, "detected_unsupported_claim"),
         "query_exact_match_rate": _rate(queries, "exact_match"),
+        "query_count_correct_rate": _rate(queries, "count_correct"),
+        "query_top_bene_correct_rate": _rate(queries, "top_bene_correct"),
         "evidence_link_opens": evidence_opens,
         "mean_evidence_dwell_ms": _mean(evidence_dwell_ms),
         "query_revise_count": query_revises,

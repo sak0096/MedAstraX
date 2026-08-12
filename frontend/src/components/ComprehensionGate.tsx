@@ -19,6 +19,7 @@ interface ComprehensionGateProps {
   onPassed: () => void;
   attemptKey?: string;
   maxAttempts?: number;
+  study?: "study1" | "study2";
 }
 
 export function ComprehensionGate({
@@ -27,6 +28,7 @@ export function ComprehensionGate({
   onPassed,
   attemptKey = "default",
   maxAttempts = 2,
+  study,
 }: ComprehensionGateProps) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [error, setError] = useState<string | null>(null);
@@ -46,6 +48,7 @@ export function ComprehensionGate({
         participant_id: getParticipantId(),
         session_id: getSessionId(),
         answers,
+        study,
       });
       if (response.passed) {
         markComprehensionPassed(attemptKey);

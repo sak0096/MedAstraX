@@ -139,7 +139,7 @@ export function ExplanationPanel({
       </div>
 
       <div className="stability-row">
-        <span>Explanation stability</span>
+        <span>Feature dominance</span>
         {stabilityForTarget ? (
           <StabilityBadge
             badge={stabilityForTarget.stability_badge}

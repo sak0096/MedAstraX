@@ -78,6 +78,8 @@ export function TaskPanel({
   const [ranking, setRanking] = useState<string[]>([]);
   const [drivers, setDrivers] = useState(EMPTY_DRIVERS);
   const [beneficiaryIds, setBeneficiaryIds] = useState(["", "", "", "", ""]);
+  const [resultCount, setResultCount] = useState("");
+  const [topBeneId, setTopBeneId] = useState("");
   const [confidence, setConfidence] = useState<number>(4);
   const [relianceSource, setRelianceSource] = useState("priority_rule");
   const [claimSupported, setClaimSupported] = useState<"supported" | "unsupported" | "">("");
@@ -136,6 +138,8 @@ export function TaskPanel({
     setRanking([]);
     setDrivers(EMPTY_DRIVERS);
     setBeneficiaryIds(["", "", "", "", ""]);
+    setResultCount("");
+    setTopBeneId("");
     setConfidence(4);
     setRelianceSource("priority_rule");
     setClaimSupported("");
@@ -161,13 +165,13 @@ export function TaskPanel({
       setPhase(nextPhase);
       onStudyPhaseChange?.(nextPhase);
       void trackEvent(
-        "task_start",
-        {
-          task_id: taskId,
-          trial_id: started.trial_id,
-        },
-        condition,
-      );
+      "task_start",
+      {
+        task_id: taskId,
+        trial_id: started.trial_id,
+      },
+      condition,
+    );
     } catch (startError) {
       setError(startError instanceof Error ? startError.message : "Failed to start task.");
     }
@@ -180,14 +184,22 @@ export function TaskPanel({
     if (activeTask?.response_type === "feature_list") {
       return { drivers };
     }
-    if (activeTask?.response_type === "beneficiary_list") {
-      return { beneficiary_ids: beneficiaryIds.filter(Boolean) };
+    if (activeTask?.response_type === "cohort_selection" || activeTask?.response_type === "beneficiary_list") {
+      const ids = beneficiaryIds.map((item) => item.trim()).filter(Boolean);
+      return {
+        result_count: resultCount === "" ? null : Number(resultCount),
+        top_bene_id: topBeneId.trim() || null,
+        result_ids: ids,
+        beneficiary_ids: ids,
+      };
     }
     if (activeTask?.response_type === "query_flow") {
+      const ids = (lastQueryResult?.rows ?? []).map((row) => row.bene_id);
       return {
         query_id: lastQueryResult?.query_id ?? null,
-        result_ids: (lastQueryResult?.rows ?? []).map((row) => row.bene_id),
-        row_count: lastQueryResult?.row_count ?? null,
+        result_ids: ids,
+        result_count: lastQueryResult?.row_count ?? null,
+        top_bene_id: ids[0] ?? null,
         parameters: lastQueryResult?.parameters ?? null,
       };
     }
@@ -214,15 +226,7 @@ export function TaskPanel({
         reliance_source: relianceSource,
         time_ms: startedAt ? Date.now() - startedAt : undefined,
       });
-      void trackEvent(
-        submitPhase === "initial" ? "task_initial_response" : "task_response",
-        {
-          task_id: activeTask.task_id,
-          trial_id: trialId,
-          phase: submitPhase,
-        },
-        condition,
-      );
+      // Canonical task events are written by the study API; do not emit a sparse duplicate.
 
       if (submitPhase === "initial") {
         setStatus("Initial response saved. Review AI assistance, then submit your final judgment.");
@@ -267,6 +271,7 @@ export function TaskPanel({
           questions={comprehensionQuestions}
           passThreshold={comprehensionThreshold}
           attemptKey={studyArm}
+          study={studyArm === "study2" ? "study2" : "study1"}
           onPassed={() => {
             setComprehensionPassed(true);
             setStatus("Comprehension check passed. Continue with the next task.");
@@ -355,11 +360,24 @@ export function TaskPanel({
           </div>
         ) : null}
 
-        {activeTask.response_type === "beneficiary_list" ? (
+        {activeTask.response_type === "cohort_selection" || activeTask.response_type === "beneficiary_list" ? (
           <div className="driver-form">
+            <label className="study-response-field">
+              <span>Result count</span>
+              <input
+                type="number"
+                min={0}
+                value={resultCount}
+                onChange={(event) => setResultCount(event.target.value)}
+              />
+            </label>
+            <label className="study-response-field">
+              <span>Highest-risk beneficiary ID</span>
+              <input type="text" value={topBeneId} onChange={(event) => setTopBeneId(event.target.value)} />
+            </label>
             {beneficiaryIds.map((value, index) => (
               <label key={`bene-${index}`} className="study-response-field">
-                <span>Beneficiary {index + 1}</span>
+                <span>Optional ID {index + 1}</span>
                 <input
                   type="text"
                   value={value}
@@ -377,7 +395,7 @@ export function TaskPanel({
         {activeTask.response_type === "query_flow" ? (
           <p className="panel-subtitle">
             {lastQueryResult
-              ? `Captured ${lastQueryResult.row_count} result rows. Mark complete when finished.`
+              ? `Captured count ${lastQueryResult.row_count} and top ID ${lastQueryResult.rows[0]?.bene_id ?? "—"}. Mark complete when finished.`
               : "Complete the search in the dashboard, then mark complete."}
           </p>
         ) : null}
@@ -387,7 +405,8 @@ export function TaskPanel({
         activeTask.response_type !== "completion" &&
         activeTask.response_type !== "query_flow" &&
         activeTask.response_type !== "feature_list" &&
-        activeTask.response_type !== "beneficiary_list" ? (
+        activeTask.response_type !== "beneficiary_list" &&
+        activeTask.response_type !== "cohort_selection" ? (
           <label className="study-response-field">
             <span>Task response</span>
             <textarea

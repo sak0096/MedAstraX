@@ -17,14 +17,14 @@ export function OutreachRecommendationPanel({
   return (
     <section className="study-recommendation">
       <h4>AI outreach recommendation</h4>
-      <p className="panel-subtitle">{recommendation.rationale}</p>
+      <p className="panel-subtitle">
+        {recommendation.rationale} This ranking is produced by the operational outreach rule, not by
+        the hospitalization-risk model. Feature contributions explain risk scores, not this list.
+      </p>
       <ol>
         {recommendation.recommended_ranking.map((caseId) => (
           <li key={caseId}>
             <strong>{caseId}</strong>
-            <span className="priority-score">
-              Priority score: {recommendation.priority_scores[caseId]?.toFixed(1) ?? "—"}
-            </span>
           </li>
         ))}
       </ol>

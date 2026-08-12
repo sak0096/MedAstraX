@@ -7,14 +7,21 @@ interface StabilityBadgeProps {
 }
 
 const LABELS: Record<StabilityBadgeType, string> = {
-  green: "Stable",
-  yellow: "Moderate",
-  red: "Unstable",
+  green: "Dominant",
+  yellow: "Mixed",
+  red: "Diffuse",
 };
 
 export function StabilityBadge({ badge, score, compact = false }: StabilityBadgeProps) {
   return (
-    <span className={`stability-badge ${badge}`} title={score !== undefined && score !== null ? `Stability score: ${score.toFixed(2)}` : undefined}>
+    <span
+      className={`stability-badge ${badge}`}
+      title={
+        score !== undefined && score !== null
+          ? `Top-feature dominance score: ${score.toFixed(2)} (not perturbation stability)`
+          : "Top-feature dominance (gap between leading contributions)"
+      }
+    >
       {compact ? badge[0].toUpperCase() + badge.slice(1) : LABELS[badge]}
     </span>
   );

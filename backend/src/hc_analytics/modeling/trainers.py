@@ -32,12 +32,30 @@ from hc_analytics.modeling.constants import (
 )
 
 
+def allow_logistic_fallback() -> bool:
+    import os
+
+    return os.getenv("HC_ALLOW_LOGISTIC_FALLBACK", "").strip().lower() in {"1", "true", "yes"}
+
+
 def xgboost_available() -> bool:
     try:
         from xgboost import XGBClassifier  # noqa: F401
     except Exception:
         return False
     return True
+
+
+def require_primary_model_family() -> str:
+    if xgboost_available():
+        return PRIMARY_MODEL_FAMILY
+    if allow_logistic_fallback():
+        return "logistic_regression"
+    raise RuntimeError(
+        "XGBoost is required for the frozen study model family but is unavailable. "
+        "On macOS install OpenMP with `brew install libomp`, reinstall xgboost, then retrain. "
+        "For local prototyping only, set HC_ALLOW_LOGISTIC_FALLBACK=true."
+    )
 
 
 @dataclass

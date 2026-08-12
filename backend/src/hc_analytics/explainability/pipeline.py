@@ -31,20 +31,17 @@ from hc_analytics.explainability.stability import attach_margin_stability
 from hc_analytics.ingestion.io import git_commit_hash
 from hc_analytics.modeling.constants import (
     FEATURE_COLUMNS,
-    PRIMARY_MODEL_FAMILY,
     RiskTarget,
     TARGET_SHORT_NAMES,
     risk_score_column,
 )
-from hc_analytics.modeling.trainers import load_model_artifact, xgboost_available
+from hc_analytics.modeling.trainers import load_model_artifact, require_primary_model_family
 
 RowKey = Tuple[str, int]
 
 
 def _primary_model_family() -> str:
-    if xgboost_available():
-        return PRIMARY_MODEL_FAMILY
-    return "logistic_regression"
+    return require_primary_model_family()
 
 
 def _load_feature_store(processed_dir: Path) -> pd.DataFrame:
@@ -133,6 +130,7 @@ def _build_target_explanation(
     feature_values = {column: row[column] for column in FEATURE_COLUMNS}
     contributors = top_contributors(shap_row, top_k=top_k, feature_values=feature_values)
     badge, score = attach_margin_stability(contributors)
+    # Production badge is top-feature dominance (margin), not perturbation stability.
     return TargetExplanation(
         target=target.value,
         target_short=TARGET_SHORT_NAMES[target],
@@ -201,7 +199,7 @@ def _write_manifest(
         "global_dir": str(explanations_dir / "global"),
         "bundles_dir": str(explanations_dir / "bundles"),
         "local_topk": str(explanations_dir / "local_topk.parquet"),
-        "stability_method": "top_feature_margin",
+        "stability_method": "top_feature_dominance_margin",
     }
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return path

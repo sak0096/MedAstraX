@@ -53,8 +53,11 @@ Implemented in `backend/src/hc_analytics/study/scoring.py` and `scripts/score_st
 | **Top-1 correct** | First-ranked ID matches the operational priority winner |
 | **Kendall tau distance** | Normalized pairwise inversions between final ranking and ground truth |
 | **Interpretation accuracy** | Feature+direction pairs vs SHAP top drivers (partial credit) |
-| **Claim detection** | Flagged unsupported statement on M3 trials |
-| **Query set match** | Exact ID set; precision/recall vs expected cohort |
+| **Claim detection** | Unsupported judgment **and** flagged sentence matching the M3 statement |
+| **Query set match** | Exact ID **set** match; ordered match secondary; precision/recall vs expected cohort |
+| **Appropriate reliance index** | Correct-AI adherence (faithful trials) minus incorrect-AI adherence (manipulated trials) |
+| **Harmful switching rate** | Among manipulated trials that were initially correct |
+| **Beneficial correction rate** | Among faithful trials that were initially incorrect |
 
 **Weight of Advice (WOA):** implemented in `scoring.py` for outreach ranks as movement from initial ranking toward the AI recommendation. Trials where the initial ranking equals the advice are left missing rather than given an arbitrary value.
 

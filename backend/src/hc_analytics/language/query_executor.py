@@ -5,19 +5,10 @@ from typing import Any, Dict, List, Optional
 import pandas as pd
 
 from hc_analytics.api.data_access import frame_to_records, load_cohort_summary_payload, load_merged_dashboard_frame
+from hc_analytics.config import get_settings
 from hc_analytics.language.models import InterpretedQuery, QueryResult
 from hc_analytics.language.summaries import cohort_query_narrative
-
-
-def _apply_beneficiary_filters(frame: pd.DataFrame, parameters: Dict[str, Any]) -> pd.DataFrame:
-    chronic_filter = parameters.get("chronic_filter")
-    if chronic_filter and chronic_filter in frame.columns:
-        chronic_value = parameters.get("chronic_value", 1)
-        frame = frame.loc[frame[chronic_filter] == chronic_value]
-    min_total_claims = parameters.get("min_total_claims")
-    if min_total_claims is not None and "total_claims" in frame.columns:
-        frame = frame.loc[frame["total_claims"] >= int(min_total_claims)]
-    return frame
+from hc_analytics.study.cohort_spec import apply_cohort_filters, study_analytic_year
 
 
 def execute_interpreted_query(interpreted: InterpretedQuery, *, use_cache: bool = True) -> QueryResult:
@@ -47,12 +38,18 @@ def execute_interpreted_query(interpreted: InterpretedQuery, *, use_cache: bool 
             claims=grounded.claims,
         )
 
-    frame = load_merged_dashboard_frame()
-    frame = _apply_beneficiary_filters(frame, interpreted.parameters)
+    settings = get_settings()
+    default_year = study_analytic_year(settings) if settings.study_mode else None
+    parameters = dict(interpreted.parameters)
+    if default_year is not None and "analytic_year" not in parameters:
+        parameters["analytic_year"] = default_year
 
-    sort_by = interpreted.parameters.get("sort_by", "hospitalization_risk")
-    descending = bool(interpreted.parameters.get("descending", True))
-    limit = int(interpreted.parameters.get("limit", 100))
+    frame = load_merged_dashboard_frame()
+    frame = apply_cohort_filters(frame, parameters, default_analytic_year=default_year)
+
+    sort_by = parameters.get("sort_by", "hospitalization_risk")
+    descending = bool(parameters.get("descending", True))
+    limit = int(parameters.get("limit", 100))
 
     if sort_by in frame.columns:
         frame = frame.sort_values(sort_by, ascending=not descending)
@@ -77,7 +74,7 @@ def execute_interpreted_query(interpreted: InterpretedQuery, *, use_cache: bool 
     grounded = cohort_query_narrative(
         natural_language=interpreted.natural_language,
         row_count=len(records),
-        parameters=interpreted.parameters,
+        parameters=parameters,
     )
     narrative = grounded.claims[0].statement if grounded.claims else None
 
@@ -85,7 +82,7 @@ def execute_interpreted_query(interpreted: InterpretedQuery, *, use_cache: bool 
         query_id=interpreted.query_id,
         action=interpreted.action,
         natural_language=interpreted.natural_language,
-        parameters=interpreted.parameters,
+        parameters=parameters,
         row_count=len(records),
         rows=records,
         grounded_narrative=narrative,

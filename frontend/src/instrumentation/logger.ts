@@ -25,25 +25,33 @@ const SESSION_KEY = "hc_session_id";
 const PARTICIPANT_KEY = "hc_participant_id";
 const ACTIVE_TASK_KEY = "hc_active_study_task";
 
-export function getSessionId(): string {
-  const existing = sessionStorage.getItem(SESSION_KEY);
-  if (existing) return existing;
-  const created = crypto.randomUUID();
-  sessionStorage.setItem(SESSION_KEY, created);
-  return created;
-}
-
-export function getParticipantId(): string {
+function participantFromUrlOrStorage(): string {
   const params = new URLSearchParams(window.location.search);
   const fromUrl = params.get("participant");
   if (fromUrl) return fromUrl;
-
   const stored = localStorage.getItem(PARTICIPANT_KEY);
   if (stored) return stored;
-
   const generated = `anon-${crypto.randomUUID().slice(0, 8)}`;
   localStorage.setItem(PARTICIPANT_KEY, generated);
   return generated;
+}
+
+export function getParticipantId(): string {
+  const participant = participantFromUrlOrStorage();
+  localStorage.setItem(PARTICIPANT_KEY, participant);
+  return participant;
+}
+
+export function getSessionId(): string {
+  const participant = getParticipantId();
+  const key = `${SESSION_KEY}:${participant}`;
+  const existing = sessionStorage.getItem(key);
+  if (existing) return existing;
+  // Drop legacy unscoped session IDs so participants do not share one tab session.
+  sessionStorage.removeItem(SESSION_KEY);
+  const created = crypto.randomUUID();
+  sessionStorage.setItem(key, created);
+  return created;
 }
 
 export function getActiveStudyTaskId(): string | null {

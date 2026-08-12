@@ -23,6 +23,7 @@ from hc_analytics.modeling.constants import (
 from hc_analytics.modeling.split import time_based_year_split
 from hc_analytics.modeling.trainers import (
     load_model_artifact,
+    require_primary_model_family,
     save_model_artifact,
     train_model,
     xgboost_available,
@@ -30,15 +31,14 @@ from hc_analytics.modeling.trainers import (
 
 
 def _active_model_families() -> tuple[str, ...]:
-    if xgboost_available():
+    family = require_primary_model_family()
+    if family == PRIMARY_MODEL_FAMILY and xgboost_available():
         return MODEL_FAMILIES
-    return ("logistic_regression",)
+    return (family,)
 
 
 def _primary_model_family() -> str:
-    if xgboost_available():
-        return PRIMARY_MODEL_FAMILY
-    return "logistic_regression"
+    return require_primary_model_family()
 
 
 def _load_feature_store(processed_dir: Path) -> pd.DataFrame:
@@ -92,7 +92,12 @@ def _labeled_rows(frame: pd.DataFrame, target: RiskTarget) -> pd.DataFrame:
     labeled = _frame_with_modeling_labels(frame)
     labeled = labeled.dropna(subset=[target.value]).copy()
     labeled[target.value] = labeled[target.value].astype(int)
-    return labeled
+    # Drop analytic years with near-zero next-year event rates (incomplete follow-up).
+    year_rates = labeled.groupby("analytic_year")[target.value].mean()
+    eligible_years = [int(year) for year, rate in year_rates.items() if float(rate) >= 0.01]
+    if not eligible_years:
+        raise ValueError(f"No analytic years with informative labels for {target.value}.")
+    return labeled.loc[labeled["analytic_year"].isin(eligible_years)].copy()
 
 
 def _score_frame(

@@ -11,6 +11,7 @@ from hc_analytics.study.loader import get_case_by_id, get_study_catalog, get_tas
 from hc_analytics.study.models import ComprehensionSubmission, TaskResponseSubmission
 from hc_analytics.study.recommendations import build_outreach_recommendation, outreach_case_ids_for_participant
 from hc_analytics.study.scoring import score_session_events
+from hc_analytics.study.cohort_spec import PRIMARY_COHORT_SPEC, cohort_ground_truth
 from hc_analytics.study.session import (
     active_manipulations_for_task,
     new_trial_id,
@@ -56,17 +57,22 @@ def study_meta() -> Dict[str, Any]:
 @router.get("/session")
 def study_session(
     participant_id: str = Query(min_length=1, max_length=64),
+    facilitator: bool = Query(default=False),
     study_ctx: StudyRequestContext = Depends(get_study_context),
 ) -> Dict[str, Any]:
     settings = get_settings()
     if not settings.study_mode:
         raise HTTPException(status_code=404, detail="Study mode is disabled.")
-    return resolve_study_session(
+    payload = resolve_study_session(
         participant_id,
         settings=settings,
         condition=study_ctx.condition,
         study=study_ctx.study,
     ).model_dump()
+    # Manipulation assignments stay facilitator-only; do not leak via network to participants.
+    if not facilitator:
+        payload["assignments"] = {}
+    return payload
 
 
 @router.get("/priority-rule")
@@ -282,6 +288,25 @@ def submit_task_response(
             "unsupported_statement": m3.get("statement"),
             "manipulated": active_manipulation == "M3",
         }
+    elif task.response_type in {"query_flow", "cohort_selection", "beneficiary_list"}:
+        params = dict(PRIMARY_COHORT_SPEC)
+        response_params = submission.responses.get("parameters") if isinstance(submission.responses, dict) else None
+        if isinstance(response_params, dict):
+            for key in ("chronic_filter", "min_total_claims", "limit", "sort_by", "months_window"):
+                if key in response_params and response_params[key] is not None:
+                    params[key] = response_params[key]
+        if task.task_id == "S2-T6":
+            params.update(
+                {
+                    "chronic_filter": "has_chf",
+                    "min_total_claims": 30,
+                    "limit": 10,
+                    "sort_by": "elevated_cost_risk",
+                }
+            )
+        ground_truth = cohort_ground_truth(params, settings=settings)
+        ground_truth["manipulated"] = bool(active)
+        ground_truth["manipulation_type"] = active_manipulation
 
     timed_out = False
     if submission.time_ms is not None and task.time_limit_min:
@@ -335,7 +360,10 @@ def submit_task_response(
 
 
 @router.post("/comprehension")
-def submit_comprehension(submission: ComprehensionSubmission) -> Dict[str, Any]:
+def submit_comprehension(
+    submission: ComprehensionSubmission,
+    study_ctx: StudyRequestContext = Depends(get_study_context),
+) -> Dict[str, Any]:
     settings = get_settings()
     if not settings.study_mode:
         raise HTTPException(status_code=404, detail="Study mode is disabled.")
@@ -343,7 +371,13 @@ def submit_comprehension(submission: ComprehensionSubmission) -> Dict[str, Any]:
     if catalog is None:
         raise HTTPException(status_code=503, detail="Study catalog not loaded.")
 
-    questions = catalog.comprehension.get("questions", [])
+    study_arm = submission.study or study_ctx.study or "study1"
+    bank = (
+        catalog.comprehension_study2
+        if study_arm == "study2" and catalog.comprehension_study2
+        else catalog.comprehension
+    )
+    questions = bank.get("questions", [])
     correct = 0
     results = []
     for question in questions:
@@ -354,7 +388,7 @@ def submit_comprehension(submission: ComprehensionSubmission) -> Dict[str, Any]:
             correct += 1
         results.append({"question_id": qid, "correct": is_correct})
 
-    threshold = int(catalog.comprehension.get("pass_threshold", len(questions)))
+    threshold = int(bank.get("pass_threshold", len(questions)))
     passed = correct >= threshold
 
     if settings.log_events:
@@ -363,11 +397,22 @@ def submit_comprehension(submission: ComprehensionSubmission) -> Dict[str, Any]:
                 event_type=EventType.COMPREHENSION_COMPLETE,
                 participant_id=submission.participant_id,
                 session_id=submission.session_id,
-                payload={"correct": correct, "passed": passed, "results": results},
+                payload={
+                    "correct": correct,
+                    "passed": passed,
+                    "results": results,
+                    "study": study_arm,
+                },
             )
         )
 
-    return {"passed": passed, "correct": correct, "total": len(questions), "results": results}
+    return {
+        "passed": passed,
+        "correct": correct,
+        "total": len(questions),
+        "results": results,
+        "study": study_arm,
+    }
 
 
 @router.post("/score-session")

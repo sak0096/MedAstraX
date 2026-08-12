@@ -37,6 +37,17 @@ def study_settings(tmp_path: Path) -> Settings:
             "weights": {"inpatient_claims": 3.0},
         },
         "comprehension": {"pass_threshold": 1, "questions": []},
+        "comprehension_study2": {
+            "pass_threshold": 1,
+            "questions": [
+                {
+                    "question_id": "S2Q1",
+                    "prompt": "Study 2 question",
+                    "choices": ["a", "b"],
+                    "correct_index": 0,
+                }
+            ],
+        },
         "case_sets": {"alpha": ["B-01", "B-02"], "beta": ["B-01b", "B-02b"]},
         "cases": [
             {
@@ -286,10 +297,69 @@ def test_kendall_and_interpretation_scoring() -> None:
         unsupported_statement="Beneficiary had two inpatient admissions in the analytic year.",
     )
     assert claim["detected_unsupported_claim"] is True
-    query = score_query_set(["1", "2"], ["1", "2", "3"])
+    wrong_sentence = score_claim_detection(
+        supported="unsupported",
+        flagged_claim="age is incorrect",
+        manipulated=True,
+        unsupported_statement="Beneficiary had two inpatient admissions in the analytic year.",
+    )
+    assert wrong_sentence["detected_unsupported_claim"] is False
+    query = score_query_set(["2", "1"], ["1", "2", "3"])
     assert query["exact_match"] is False
     assert query["precision"] == 1.0
     assert query["recall"] == 0.6667
+    set_match = score_query_set(["2", "1", "3"], ["1", "2", "3"])
+    assert set_match["exact_match"] is True
+    assert set_match["exact_ordered_match"] is False
+
+
+def test_sparse_duplicate_events_do_not_erase_ground_truth() -> None:
+    events = [
+        {
+            "event_type": "task_response",
+            "timestamp": "2026-01-01T00:01:00",
+            "task_id": "S1-T5",
+            "payload": {
+                "trial_id": "trial-dup",
+                "phase": "final",
+                "responses": {"ranking": ["B-02", "B-01"]},
+                "manipulated": True,
+                "ground_truth": {
+                    "correct_ranking": ["B-02", "B-01"],
+                    "recommendation_ranking": ["B-01", "B-02"],
+                },
+            },
+        },
+        {
+            "event_type": "task_response",
+            "timestamp": "2026-01-01T00:01:01",
+            "task_id": "S1-T5",
+            "payload": {"trial_id": "trial-dup", "phase": "final"},
+        },
+    ]
+    report = score_session_events(events)
+    assert report["trial_count"] == 1
+    assert report["trials"][0]["final_correct"] is True
+
+
+def test_study_session_hides_assignments_unless_facilitator(
+    study_settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    monkeypatch.setattr("hc_analytics.config.get_settings", lambda: study_settings)
+    monkeypatch.setattr("hc_analytics.study.loader.get_settings", lambda: study_settings)
+    monkeypatch.setattr("hc_analytics.api.routes.study.get_settings", lambda: study_settings)
+    monkeypatch.setattr("hc_analytics.study.session.get_settings", lambda: study_settings)
+    monkeypatch.setattr("hc_analytics.study.context.get_settings", lambda: study_settings)
+    client = TestClient(app)
+    public = client.get("/api/study/session", params={"participant_id": "P001"})
+    assert public.status_code == 200
+    assert public.json()["assignments"] == {}
+    facilitator = client.get(
+        "/api/study/session",
+        params={"participant_id": "P001", "facilitator": True},
+    )
+    assert facilitator.status_code == 200
+    assert facilitator.json()["assignments"]["S1-T5"] in {"correct", "M2"}
 
 
 def test_score_session_events_reads_initial_response_event() -> None:
@@ -340,6 +410,21 @@ def test_study_api_session_and_sequential_response(study_settings: Settings, mon
     body = session.json()
     assert body["study_mode_enabled"] is True
     assert body["case_set"] in {"alpha", "beta"}
+    assert body["assignments"] == {}
+
+    comprehension = client.post(
+        "/api/study/comprehension",
+        json={
+            "participant_id": "P001",
+            "session_id": "session-12345678",
+            "study": "study2",
+            "answers": {"S2Q1": 0},
+        },
+        headers={"X-Study-Arm": "study2"},
+    )
+    assert comprehension.status_code == 200
+    assert comprehension.json()["passed"] is True
+    assert comprehension.json()["study"] == "study2"
 
     started = client.post(
         "/api/study/tasks/S1-T5/start",

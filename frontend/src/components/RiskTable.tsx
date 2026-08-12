@@ -1,4 +1,4 @@
-import type { BeneficiaryRow, ExperimentalCondition } from "../types";
+import type { BeneficiaryRow } from "../types";
 import { formatCurrency, formatPercent, riskBand } from "../utils/format";
 
 export type SortKey =
@@ -18,7 +18,6 @@ interface RiskTableProps {
   onSortChange: (sortBy: SortKey) => void;
   onRowSelect: (row: BeneficiaryRow) => void;
   selectedBeneId: string | null;
-  condition?: ExperimentalCondition;
 }
 
 const columns: Array<{ key: SortKey; label: string }> = [
@@ -39,7 +38,6 @@ export function RiskTable({
   onSortChange,
   onRowSelect,
   selectedBeneId,
-  condition = "baseline",
 }: RiskTableProps) {
   return (
     <section className="panel">

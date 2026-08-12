@@ -7,6 +7,7 @@ import {
   getGlobalImportance,
   getGroundedSummary,
   getMeta,
+  getStudyMeta,
   getStudySession,
 } from "./api/client";
 import { BeneficiaryDetail } from "./components/BeneficiaryDetail";
@@ -45,6 +46,7 @@ const DEFAULT_TARGETS: RiskTargetShort[] = [
 export default function App() {
   const [meta, setMeta] = useState<ApiMeta | null>(null);
   const [priorityRuleDescription, setPriorityRuleDescription] = useState<string>("");
+  const [studyAnalyticYear, setStudyAnalyticYear] = useState<number | null>(null);
   const [summary, setSummary] = useState<CohortSummary | null>(null);
   const [rows, setRows] = useState<BeneficiaryRow[]>([]);
   const [detail, setDetail] = useState<BeneficiaryDetailType | null>(null);
@@ -103,6 +105,7 @@ export default function App() {
           descending,
           chronic_filter: filters.chronicFilter,
           min_total_claims: filters.minTotalClaims,
+          analytic_year: studyAnalyticYear,
         }),
       ]);
       setMeta(metaResponse);
@@ -121,20 +124,32 @@ export default function App() {
     } finally {
       setLoading(false);
     }
-  }, [sortBy, descending, filters.chronicFilter, filters.minTotalClaims]);
+  }, [sortBy, descending, filters.chronicFilter, filters.minTotalClaims, studyAnalyticYear]);
 
   useEffect(() => {
     void loadDashboard();
   }, [loadDashboard]);
 
   useEffect(() => {
-    if (!studyMode) return;
+    if (!studyMode) {
+      setStudyAnalyticYear(null);
+      return;
+    }
     void getStudySession(getParticipantId())
       .then((session) => {
         setPriorityRuleDescription(String(session.priority_rule?.description ?? ""));
       })
       .catch(() => {
         setPriorityRuleDescription("");
+      });
+    void getStudyMeta()
+      .then((studyMeta) => {
+        if (typeof studyMeta.default_analytic_year === "number") {
+          setStudyAnalyticYear(studyMeta.default_analytic_year);
+        }
+      })
+      .catch(() => {
+        setStudyAnalyticYear(2022);
       });
   }, [studyMode]);
 
@@ -167,13 +182,14 @@ export default function App() {
 
   useEffect(() => {
     if (!meta?.instrumentation_enabled) return;
-    const loggedKey = "hc_session_logged";
+    const participant = getParticipantId();
+    const loggedKey = `hc_session_logged:${participant}`;
     if (sessionStorage.getItem(loggedKey)) return;
     sessionStorage.setItem(loggedKey, "1");
     void trackEvent(
       "session_start",
       {
-        participant_id: getParticipantId(),
+        participant_id: participant,
         session_id: getSessionId(),
         prototype_phase: meta.prototype_phase,
       },
@@ -440,7 +456,6 @@ export default function App() {
             onSortChange={handleSortChange}
             onRowSelect={(row) => void handleRowSelect(row)}
             selectedBeneId={selectedBeneId}
-            condition={condition}
           />
         </div>
         {detail || detailLoading ? (
