@@ -249,6 +249,15 @@ def main() -> None:
             "conditions": ["xai"],
         },
         {
+            "task_id": "S2-T0",
+            "study": "study2",
+            "title": "Dashboard tutorial",
+            "time_limit_min": 3,
+            "instructions": "Review how record summaries, source links, filters, and confirm-before-run search work, then complete the comprehension check.",
+            "response_type": "comprehension",
+            "requires_cases": [],
+        },
+        {
             "task_id": "S2-T1",
             "study": "study2",
             "title": "Manual cohort filtering",
@@ -378,6 +387,44 @@ def main() -> None:
                 },
             ],
         },
+        "comprehension_study2": {
+            "pass_threshold": 2,
+            "questions": [
+                {
+                    "question_id": "S2Q1",
+                    "prompt": "Before a search request is run you should:",
+                    "choices": [
+                        "Read the interpretation card and confirm, reject, or revise it",
+                        "Assume the first result is correct",
+                        "Skip the card if the wording looks fluent",
+                        "Change the risk model",
+                    ],
+                    "correct_index": 0,
+                },
+                {
+                    "question_id": "S2Q2",
+                    "prompt": "How can you check a written summary claim?",
+                    "choices": [
+                        "Open the linked source field and compare it with the record",
+                        "Trust any sentence that names a chronic condition",
+                        "Use only the risk percentage",
+                        "Ask the facilitator for the answer",
+                    ],
+                    "correct_index": 0,
+                },
+                {
+                    "question_id": "S2Q3",
+                    "prompt": "If a system output looks wrong you should:",
+                    "choices": [
+                        "Reject or revise it and verify against visible data",
+                        "Accept it to save time",
+                        "Ignore the record panels",
+                        "Assume later tasks will correct it",
+                    ],
+                    "correct_index": 0,
+                },
+            ],
+        },
         "case_sets": {
             "alpha": list(ALPHA_OUTREACH.keys()),
             "beta": list(BETA_OUTREACH.keys()),
@@ -396,6 +443,7 @@ def main() -> None:
                 "S1-T6",
             ],
             "study2": [
+                "S2-T0",
                 "S2-T1",
                 "S2-T2",
                 "S2-T3",

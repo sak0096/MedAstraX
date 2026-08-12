@@ -66,20 +66,22 @@ export function QueryPanel({ onResults, condition }: QueryPanelProps) {
     }
   };
 
-  const handleReset = () => {
+  const handleReset = (reason: "cancel" | "revise" = "cancel") => {
     if (interpreted) {
       void trackEvent(
-        "query_reject",
+        reason === "revise" ? "query_revise" : "query_reject",
         {
           query_id: interpreted.query_id,
           action: interpreted.action,
-          reason: "cancel",
+          reason,
         },
         condition,
       );
     }
     setInterpreted(null);
-    setResult(null);
+    if (reason === "cancel") {
+      setResult(null);
+    }
     setError(null);
   };
 
@@ -121,7 +123,10 @@ export function QueryPanel({ onResults, condition }: QueryPanelProps) {
             <button type="button" className="secondary-button" onClick={() => void handleConfirm()} disabled={loading}>
               Confirm &amp; run
             </button>
-            <button type="button" className="ghost-button" onClick={handleReset}>
+            <button type="button" className="ghost-button" onClick={() => handleReset("revise")}>
+              Revise
+            </button>
+            <button type="button" className="ghost-button" onClick={() => handleReset("cancel")}>
               Cancel
             </button>
           </div>

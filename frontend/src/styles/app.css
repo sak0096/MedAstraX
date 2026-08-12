@@ -745,14 +745,34 @@ button {
   margin-top: 12px;
 }
 
-.filter-chip {
-  display: inline-flex;
+.ranking-editor {
+  list-style: none;
+  margin: 0 0 12px;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.ranking-row {
+  display: flex;
   align-items: center;
-  padding: 4px 10px;
+  gap: 10px;
+  padding: 8px 10px;
   border: 1px solid var(--line);
-  border-radius: 999px;
-  font-size: 0.85rem;
+  border-radius: 8px;
   background: #fff;
+}
+
+.ranking-index {
+  width: 1.5rem;
+  color: var(--muted);
+}
+
+.ranking-actions {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
 }
 
 .query-error {

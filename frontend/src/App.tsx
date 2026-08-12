@@ -61,6 +61,7 @@ export default function App() {
     chronicFilter: null,
     minTotalClaims: null,
   });
+  const [lastQueryResult, setLastQueryResult] = useState<QueryResult | null>(null);
   const [loading, setLoading] = useState(true);
   const [detailLoading, setDetailLoading] = useState(false);
   const [explanationLoading, setExplanationLoading] = useState(false);
@@ -216,8 +217,9 @@ export default function App() {
     });
   };
 
-  const handleQueryResults = (queryRows: BeneficiaryRow[], _result: QueryResult) => {
+  const handleQueryResults = (queryRows: BeneficiaryRow[], result: QueryResult) => {
     setRows(queryRows);
+    setLastQueryResult(result);
     setSelectedBeneId(null);
     setDetail(null);
     setGroundedSummary(null);
@@ -411,6 +413,7 @@ export default function App() {
           onActiveTaskChange={handleActiveTaskChange}
           onStudyPhaseChange={handleStudyPhaseChange}
           onOpenCase={handleOpenStudyCase}
+          lastQueryResult={lastQueryResult}
         />
       ) : null}
 

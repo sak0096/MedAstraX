@@ -10,6 +10,7 @@ export type StudyEventType =
   | "query_submit"
   | "query_confirm"
   | "query_reject"
+  | "query_revise"
   | "task_start"
   | "task_initial_response"
   | "task_response"
@@ -67,6 +68,10 @@ export interface StudySession {
   recommended_first_condition?: string | null;
   priority_rule?: { description?: string; weights?: Record<string, number> };
   comprehension?: {
+    pass_threshold?: number;
+    questions?: ComprehensionQuestion[];
+  };
+  comprehension_study2?: {
     pass_threshold?: number;
     questions?: ComprehensionQuestion[];
   };

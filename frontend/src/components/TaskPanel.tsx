@@ -15,11 +15,14 @@ import type {
   ComprehensionQuestion,
   ExperimentalCondition,
   OutreachRecommendation,
+  QueryResult,
   StudyCaseRef,
   StudyTaskDefinition,
 } from "../types";
+import { FEATURE_LABELS } from "../utils/xai";
 import { ComprehensionGate } from "./ComprehensionGate";
 import { OutreachRecommendationPanel } from "./OutreachRecommendationPanel";
+import { RankingEditor } from "./RankingEditor";
 
 interface TaskPanelProps {
   enabled: boolean;
@@ -28,10 +31,17 @@ interface TaskPanelProps {
   onActiveTaskChange: (taskId: string | null) => void;
   onStudyPhaseChange?: (phase: "initial" | "awaiting_ai" | "final" | "single" | null) => void;
   onOpenCase: (caseRef: StudyCaseRef) => void;
+  lastQueryResult?: QueryResult | null;
 }
 
 const STUDY1_TASKS = ["S1-T0", "S1-T1", "S1-T2", "S1-T3", "S1-T4a", "S1-T4b", "S1-T5", "S1-T6"];
-const STUDY2_TASKS = ["S2-T1", "S2-T2", "S2-T3", "S2-T4", "S2-T5", "S2-T6", "S2-T7"];
+const STUDY2_TASKS = ["S2-T0", "S2-T1", "S2-T2", "S2-T3", "S2-T4", "S2-T5", "S2-T6", "S2-T7"];
+const DRIVER_FEATURES = Object.keys(FEATURE_LABELS);
+const EMPTY_DRIVERS = [
+  { feature: "", direction: "increases_risk" },
+  { feature: "", direction: "increases_risk" },
+  { feature: "", direction: "increases_risk" },
+];
 
 const CONFIDENCE_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
 const RELIANCE_OPTIONS = [
@@ -48,6 +58,7 @@ export function TaskPanel({
   onActiveTaskChange,
   onStudyPhaseChange,
   onOpenCase,
+  lastQueryResult = null,
 }: TaskPanelProps) {
   const facilitatorMode = isFacilitatorModeFromUrl();
   const [tasks, setTasks] = useState<StudyTaskDefinition[]>([]);
@@ -56,7 +67,7 @@ export function TaskPanel({
   const [priorityRuleDescription, setPriorityRuleDescription] = useState<string>("");
   const [comprehensionQuestions, setComprehensionQuestions] = useState<ComprehensionQuestion[]>([]);
   const [comprehensionThreshold, setComprehensionThreshold] = useState(2);
-  const [comprehensionPassed, setComprehensionPassed] = useState(hasPassedComprehension());
+  const [comprehensionPassed, setComprehensionPassed] = useState(hasPassedComprehension(studyArm));
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
   const [activeManipulation, setActiveManipulation] = useState<string | null>(null);
   const [trialId, setTrialId] = useState<string | null>(null);
@@ -64,7 +75,9 @@ export function TaskPanel({
   const [startedAt, setStartedAt] = useState<number | null>(null);
   const [phase, setPhase] = useState<"initial" | "awaiting_ai" | "final" | "single">("single");
   const [responseText, setResponseText] = useState("");
-  const [ranking, setRanking] = useState("");
+  const [ranking, setRanking] = useState<string[]>([]);
+  const [drivers, setDrivers] = useState(EMPTY_DRIVERS);
+  const [beneficiaryIds, setBeneficiaryIds] = useState(["", "", "", "", ""]);
   const [confidence, setConfidence] = useState<number>(4);
   const [relianceSource, setRelianceSource] = useState("priority_rule");
   const [claimSupported, setClaimSupported] = useState<"supported" | "unsupported" | "">("");
@@ -104,7 +117,10 @@ export function TaskPanel({
         setCases(session.cases);
         setAssignments(session.assignments);
         setPriorityRuleDescription(String(session.priority_rule?.description ?? ""));
-        const comprehension = session.comprehension ?? {};
+        const comprehension =
+          studyArm === "study2"
+            ? (session.comprehension_study2 ?? session.comprehension ?? {})
+            : (session.comprehension ?? {});
         setComprehensionQuestions((comprehension.questions as ComprehensionQuestion[]) ?? []);
         setComprehensionThreshold(Number(comprehension.pass_threshold ?? 2));
         const allowed = new Set(visibleTaskIds);
@@ -117,7 +133,9 @@ export function TaskPanel({
 
   const resetResponseFields = () => {
     setResponseText("");
-    setRanking("");
+    setRanking([]);
+    setDrivers(EMPTY_DRIVERS);
+    setBeneficiaryIds(["", "", "", "", ""]);
     setConfidence(4);
     setRelianceSource("priority_rule");
     setClaimSupported("");
@@ -136,6 +154,7 @@ export function TaskPanel({
       setActiveManipulation(started.active_manipulation);
       setTrialId(started.trial_id);
       setOutreachCaseIds(started.outreach_case_ids ?? []);
+      setRanking(started.outreach_case_ids ?? []);
       setStartedAt(Date.now());
       onActiveTaskChange(taskId);
       const nextPhase = started.task.sequential_judgment ? "initial" : "single";
@@ -156,11 +175,20 @@ export function TaskPanel({
 
   const buildResponses = () => {
     if (activeTask?.response_type === "sequential_ranking" || activeTask?.response_type === "ranking") {
+      return { ranking };
+    }
+    if (activeTask?.response_type === "feature_list") {
+      return { drivers };
+    }
+    if (activeTask?.response_type === "beneficiary_list") {
+      return { beneficiary_ids: beneficiaryIds.filter(Boolean) };
+    }
+    if (activeTask?.response_type === "query_flow") {
       return {
-        ranking: ranking
-          .split(",")
-          .map((item) => item.trim())
-          .filter(Boolean),
+        query_id: lastQueryResult?.query_id ?? null,
+        result_ids: (lastQueryResult?.rows ?? []).map((row) => row.bene_id),
+        row_count: lastQueryResult?.row_count ?? null,
+        parameters: lastQueryResult?.parameters ?? null,
       };
     }
     if (activeTask?.response_type === "sequential_claim_review") {
@@ -238,6 +266,7 @@ export function TaskPanel({
         <ComprehensionGate
           questions={comprehensionQuestions}
           passThreshold={comprehensionThreshold}
+          attemptKey={studyArm}
           onPassed={() => {
             setComprehensionPassed(true);
             setStatus("Comprehension check passed. Continue with the next task.");
@@ -253,22 +282,7 @@ export function TaskPanel({
     return (
       <>
         {isRanking ? (
-          <>
-            <p className="panel-subtitle">
-              Assigned outreach cases: {outreachCaseIds.join(", ") || "loading…"}
-            </p>
-            <label className="study-response-field">
-              <span>
-                {phase === "final" ? "Final" : "Initial"} outreach ranking (comma-separated case IDs)
-              </span>
-              <input
-                type="text"
-                value={ranking}
-                onChange={(event) => setRanking(event.target.value)}
-                placeholder={outreachCaseIds.join(", ")}
-              />
-            </label>
-          </>
+          <RankingEditor caseIds={outreachCaseIds} value={ranking} onChange={setRanking} />
         ) : null}
 
         {isClaimReview ? (
@@ -296,7 +310,84 @@ export function TaskPanel({
           </>
         ) : null}
 
-        {!isRanking && !isClaimReview && activeTask.response_type !== "completion" && activeTask.response_type !== "query_flow" ? (
+        {activeTask.response_type === "feature_list" ? (
+          <div className="driver-form">
+            {drivers.map((driver, index) => (
+              <div key={`driver-${index}`} className="filter-controls">
+                <label className="study-response-field">
+                  <span>Driver {index + 1}</span>
+                  <select
+                    value={driver.feature}
+                    onChange={(event) =>
+                      setDrivers((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, feature: event.target.value } : item,
+                        ),
+                      )
+                    }
+                  >
+                    <option value="">Select feature</option>
+                    {DRIVER_FEATURES.map((feature) => (
+                      <option key={feature} value={feature}>
+                        {FEATURE_LABELS[feature] ?? feature}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <label className="study-response-field">
+                  <span>Direction</span>
+                  <select
+                    value={driver.direction}
+                    onChange={(event) =>
+                      setDrivers((current) =>
+                        current.map((item, itemIndex) =>
+                          itemIndex === index ? { ...item, direction: event.target.value } : item,
+                        ),
+                      )
+                    }
+                  >
+                    <option value="increases_risk">Increases risk</option>
+                    <option value="decreases_risk">Decreases risk</option>
+                  </select>
+                </label>
+              </div>
+            ))}
+          </div>
+        ) : null}
+
+        {activeTask.response_type === "beneficiary_list" ? (
+          <div className="driver-form">
+            {beneficiaryIds.map((value, index) => (
+              <label key={`bene-${index}`} className="study-response-field">
+                <span>Beneficiary {index + 1}</span>
+                <input
+                  type="text"
+                  value={value}
+                  onChange={(event) =>
+                    setBeneficiaryIds((current) =>
+                      current.map((item, itemIndex) => (itemIndex === index ? event.target.value : item)),
+                    )
+                  }
+                />
+              </label>
+            ))}
+          </div>
+        ) : null}
+
+        {activeTask.response_type === "query_flow" ? (
+          <p className="panel-subtitle">
+            {lastQueryResult
+              ? `Captured ${lastQueryResult.row_count} result rows. Mark complete when finished.`
+              : "Complete the search in the dashboard, then mark complete."}
+          </p>
+        ) : null}
+
+        {!isRanking &&
+        !isClaimReview &&
+        activeTask.response_type !== "completion" &&
+        activeTask.response_type !== "query_flow" &&
+        activeTask.response_type !== "feature_list" &&
+        activeTask.response_type !== "beneficiary_list" ? (
           <label className="study-response-field">
             <span>Task response</span>
             <textarea
@@ -308,7 +399,7 @@ export function TaskPanel({
           </label>
         ) : null}
 
-        {activeTask.response_type === "completion" || activeTask.response_type === "query_flow" ? (
+        {activeTask.response_type === "completion" ? (
           <p className="panel-subtitle">Complete the task in the dashboard interface, then mark complete.</p>
         ) : null}
 
@@ -402,7 +493,8 @@ export function TaskPanel({
 
   if (!enabled) return null;
 
-  const study1Blocked = studyArm === "study1" && !comprehensionPassed;
+  const studyBlocked =
+    (studyArm === "study1" || studyArm === "study2") && !comprehensionPassed;
 
   return (
     <section className={`panel study-panel${collapsed ? " collapsed" : ""}`}>
@@ -446,7 +538,7 @@ export function TaskPanel({
                 key={task.task_id}
                 type="button"
                 className={`study-task-button${activeTaskId === task.task_id ? " active" : ""}`}
-                disabled={study1Blocked && task.task_id !== "S1-T0"}
+                disabled={studyBlocked && task.task_id !== "S1-T0" && task.task_id !== "S2-T0"}
                 onClick={() => void selectTask(task.task_id)}
               >
                 <strong>{task.task_id}</strong>

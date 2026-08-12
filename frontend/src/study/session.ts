@@ -40,20 +40,20 @@ export function isFacilitatorModeFromUrl(): boolean {
   return params.get("facilitator") === "1";
 }
 
-export function hasPassedComprehension(): boolean {
-  return sessionStorage.getItem(COMPREHENSION_KEY) === "1";
+export function hasPassedComprehension(arm = "default"): boolean {
+  return sessionStorage.getItem(`${COMPREHENSION_KEY}:${arm}`) === "1";
 }
 
-export function markComprehensionPassed(): void {
-  sessionStorage.setItem(COMPREHENSION_KEY, "1");
+export function markComprehensionPassed(arm = "default"): void {
+  sessionStorage.setItem(`${COMPREHENSION_KEY}:${arm}`, "1");
 }
 
-export function comprehensionAttemptCount(): number {
-  return Number(sessionStorage.getItem(COMPREHENSION_ATTEMPTS_KEY) ?? "0");
+export function comprehensionAttemptCount(arm = "default"): number {
+  return Number(sessionStorage.getItem(`${COMPREHENSION_ATTEMPTS_KEY}:${arm}`) ?? "0");
 }
 
-export function incrementComprehensionAttempts(): number {
-  const next = comprehensionAttemptCount() + 1;
-  sessionStorage.setItem(COMPREHENSION_ATTEMPTS_KEY, String(next));
+export function incrementComprehensionAttempts(arm = "default"): number {
+  const next = comprehensionAttemptCount(arm) + 1;
+  sessionStorage.setItem(`${COMPREHENSION_ATTEMPTS_KEY}:${arm}`, String(next));
   return next;
 }

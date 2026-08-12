@@ -12,6 +12,7 @@ export type StudyEventType =
   | "query_submit"
   | "query_confirm"
   | "query_reject"
+  | "query_revise"
   | "task_start"
   | "task_initial_response"
   | "task_response"

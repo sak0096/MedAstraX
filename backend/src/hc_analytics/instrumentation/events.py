@@ -21,6 +21,7 @@ class EventType(str, Enum):
     QUERY_SUBMIT = "query_submit"
     QUERY_CONFIRM = "query_confirm"
     QUERY_REJECT = "query_reject"
+    QUERY_REVISE = "query_revise"
     TASK_START = "task_start"
     TASK_INITIAL_RESPONSE = "task_initial_response"
     TASK_RESPONSE = "task_response"

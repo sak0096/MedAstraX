@@ -61,6 +61,7 @@ class StudyCatalog(BaseModel):
         default_factory=lambda: PriorityRuleDefinition(description="", weights={})
     )
     comprehension: Dict[str, Any] = Field(default_factory=dict)
+    comprehension_study2: Dict[str, Any] = Field(default_factory=dict)
     case_sets: Dict[str, List[str]] = Field(default_factory=dict)
     cases: List[StudyCaseDefinition]
     tasks: List[StudyTaskDefinition]
@@ -80,6 +81,7 @@ class StudySessionResponse(BaseModel):
     recommended_first_condition: Optional[str] = None
     priority_rule: Dict[str, Any] = Field(default_factory=dict)
     comprehension: Dict[str, Any] = Field(default_factory=dict)
+    comprehension_study2: Dict[str, Any] = Field(default_factory=dict)
 
 
 class TaskResponseSubmission(BaseModel):

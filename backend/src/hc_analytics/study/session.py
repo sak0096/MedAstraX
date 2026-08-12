@@ -170,4 +170,5 @@ def resolve_study_session(
         recommended_first_condition=str(order[0]) if order else None,
         priority_rule=priority_rule,
         comprehension=comprehension,
+        comprehension_study2=catalog.comprehension_study2 if catalog is not None else {},
     )
