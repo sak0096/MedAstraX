@@ -1,7 +1,7 @@
 # MedAstraX Facilitator Runbook
 
 **Audience:** Session facilitators and research assistants  
-**Protocol version:** 2.0  
+**Protocol version:** 2.1
 **Companion:** [STUDY_PROTOCOL.md](./STUDY_PROTOCOL.md)
 
 ---
@@ -27,7 +27,9 @@ uvicorn hc_analytics.api.app:app --reload --port 8000
 cd frontend && npm run dev
 ```
 
-Verify: cohort loads, predictions ready, explanations ready (XAI/LLM arms).
+Verify: cohort loads, predictions ready, explanations ready (XAI/NL-assisted arms).
+
+For Study 2, verify the committed `study/frozen_summaries.json` is present and run `python scripts/audit_frozen_summaries.py`. Before confirmatory sessions, also confirm its `human_adjudication_required` field is `false`. Never regenerate frozen summaries during a participant session.
 
 ### Per participant
 
@@ -84,7 +86,7 @@ Record in secure spreadsheet (not in event logs):
 |-------------|-------|-----------------|----------|---------------------------|------|
 | P001 | study1 | Baseline → XAI | α | faithful or M2 | |
 | P002 | study1 | XAI → Baseline | β | faithful or M2 | |
-| P003 | study2 | Baseline → LLM | α | study2=M4 | |
+| P003 | study2 | Baseline → NL-assisted | α | study2=M4 | |
 
 **Rules:**
 
@@ -150,7 +152,7 @@ Same as Study 1: surveys, interview, debrief, export.
 |-------|--------|
 | Comprehension not passing | Allow one retry; if still failing, exclude per preregistration criteria |
 | Explanations missing | Run `python -m hc_analytics.explainability`; refresh |
-| Frozen summary missing | Run `python scripts/generate_frozen_summaries.py` |
+| Frozen summary missing or audit fails | Stop the Study 2 block; restore the preregistered/committed `study/frozen_summaries.json` and `study/adjudication_queue.json`, rerun `python scripts/audit_frozen_summaries.py`, and document the incident. Do not generate replacement stimuli during a session. |
 | Task Panel empty | Confirm `HC_STUDY_MODE=true` and `?study=study1` or `study2` |
 | Participant sees manipulation labels | Remove `facilitator=1` from their URL |
 | Backend wrong condition | Confirm `?condition=` on the participant URL; refresh. Do not restart the API. |
@@ -161,7 +163,7 @@ Same as Study 1: surveys, interview, debrief, export.
 
 - [ ] Session exported (both condition blocks if within-subjects)
 - [ ] Qualtrics responses saved with participant code
-- [ ] Interview recording labeled `P###_study1_YYYY-MM-DD`
+- [ ] Interview recording labeled `P###_[study]_YYYY-MM-DD`
 - [ ] Debrief completed
 - [ ] Logs backed up
 - [ ] Counterbalancing sheet updated
@@ -178,4 +180,7 @@ Do **not** begin confirmatory recruitment until:
 - [ ] Protocol timing fits 45–55 min
 - [ ] Comprehension pass rate acceptable
 - [ ] `score_study_session.py` produces sensible metrics on pilot exports
+- [ ] Frozen Study 2 summary audit passes for all 12 cases
+- [ ] Independent human adjudication is complete (`human_adjudication_required=false`)
+- [ ] Frozen model, prompt, Git commit, and artifact hashes are recorded with the preregistration materials
 - [ ] STUDY_PROTOCOL and surveys frozen for preregistration

@@ -4,7 +4,7 @@
 **Instrument:** MedAstraX research prototype (CMS Synthetic RIF)  
 **Conditions:** `baseline` · `xai` · `llm`  
 **Catalog schema:** `study/study_cases.json` v2.0  
-**Protocol version:** 2.0
+**Protocol version:** 2.1
 
 ---
 
@@ -15,11 +15,11 @@ Two **separate** controlled component evaluations share the same prototype but u
 | Study | Comparison | Primary RQs |
 |-------|------------|-------------|
 | **Study 1** | Baseline vs XAI | RQ1 — interpretation accuracy, workload, harmful switching on incorrect AI recommendation |
-| **Study 2** | Baseline navigation vs LLM | RQ2–RQ3 — unsupported-claim detection, query control, NL efficiency |
+| **Study 2** | Baseline navigation vs NL-assisted (`llm` key) | RQ2–RQ3 — unsupported-claim detection, query control, NL efficiency |
 
 **Within each study:** within-subjects, counterbalanced condition order (Baseline first vs AI-augmented first), mixed methods (behavioral logs + validated scales + interview).
 
-**Not in scope:** direct XAI vs LLM comparison (separate studies by design).
+**Not in scope:** direct XAI vs NL-assisted comparison (separate studies by design).
 
 **Sample (target):** *n* ≈ 40–50 per study. Recruit Study 1 and Study 2 cohorts separately.
 
@@ -34,12 +34,27 @@ Two **separate** controlled component evaluations share the same prototype but u
 | Consent & debrief | [FACILITATOR_RUNBOOK.md](./FACILITATOR_RUNBOOK.md) §2–3 |
 | Scenario framing | §5 below; read aloud at orientation |
 | Case packets & ground truth | `study/study_cases.json` (regenerate via `scripts/generate_study_cases.py`) |
-| Frozen LLM stimuli | `study/frozen_summaries.json` |
+| Frozen NL-assisted summary stimuli | `study/frozen_summaries.json` |
 | In-app tasks | Task Panel (`HC_STUDY_MODE=true`) |
 | Post-condition surveys | [SURVEY_INSTRUMENTS.md](./SURVEY_INSTRUMENTS.md) — **Qualtrics** (external) |
 | Exit interview | SURVEY_INSTRUMENTS Part D |
 | Event logs | `artifacts/logs/` + **Export study session** button |
 | Scoring | `scripts/score_study_session.py` |
+
+### 2.1 Study 2 language-stimulus construction and provenance
+
+Study 2 uses a **frozen natural-language augmentation**, not a live chatbot and not an evaluation of general LLM capability. The participant-facing condition remains **NL-assisted**; `llm` is retained only as the URL/API condition key.
+
+The committed faithful summaries were constructed offline as follows:
+
+1. For each of 12 prespecified 2022 beneficiary cases, the generator loaded the cached evidence bundle containing calibrated XGBoost risk estimates and the top three local SHAP contributors for each of three outcomes: next-year hospitalization, high utilization, and elevated cost.
+2. A deterministic grounded template supplied the three risk percentages, nine driver labels, contribution directions, and source-field mappings. Raw driver values remain available in the evidence details but are intentionally omitted from the polished narrative.
+3. The template and allowed claims were sent through the OpenAI Chat Completions interface using the pinned snapshot `gpt-4.1-2025-04-14`, temperature `0`, and prompt `grounded-polish-v4`. The prompt required exactly three short sentences in outcome order, preserved risk percentages and driver directions, prohibited unsupported high/low or causal interpretations, and prohibited SHAP/model-family jargon in participant-facing text.
+4. The resulting narratives were written to `study/frozen_summaries.json`; no LLM request is made while a participant is viewing a summary. The artifact records the model snapshot, temperature, prompt version, generating Git commit, and a hash of each actual prompt plus its evidence bundle. Session instrumentation separately records the frozen-file hash.
+5. `scripts/audit_frozen_summaries.py` checked all 12 candidates for provider identity, three-sentence structure, exact risk percentages, all nine source-field labels and directions, prohibited wording, and extraneous numbers. All 12 passed and were recorded as an **AI-assisted evidence audit** in `study/adjudication_queue.json`.
+6. The automated audit does **not** count as human adjudication. `human_adjudication_required` remains `true`; a person must compare every candidate with its template and claims, record `reviewer_type: "human"`, and run `scripts/apply_adjudication.py --require-complete` before confirmatory collection.
+
+The natural-language query box is a separate controlled component. At runtime, `backend/src/hc_analytics/language/query_parser.py` uses deterministic keyword and regular-expression rules to convert supported requests into structured parameters. Participants must inspect the interpretation card before execution. M4/M6/M7 query manipulations are injected by the study task configuration, not generated unpredictably by a live model.
 
 **Participant URL (production):**
 
@@ -97,7 +112,7 @@ Condition is session-scoped via the `condition` query param (and `X-Study-Condit
 ### 3.3 Counterbalancing
 
 - **Study 1:** 50% Baseline→XAI, 50% XAI→Baseline (shown as `recommended_first_condition` on the session API).
-- **Study 2:** 50% Baseline→LLM, 50% LLM→Baseline.
+- **Study 2:** 50% Baseline→NL-assisted, 50% NL-assisted→Baseline.
 - **Case set:** α vs β assigned to block 1 vs block 2 (not reused across conditions).
 - **Manipulations:** Study 1 complementary faithful/M2 across conditions; Study 2 per-task M3 / query error / optional second query error.
 
@@ -191,11 +206,11 @@ Participants treat the dashboard as **decision support**, not bedside diagnosis.
 | ID | Title | Time | Conditions | Notes |
 |----|-------|------|------------|-------|
 | **S2-T1** | Manual cohort filtering | 5 min | Baseline | Top 25 by Hosp. risk + diabetes; no query box |
-| **S2-T2** | NL cohort query | 5 min | LLM | Suggested query includes analytic year 2022 + claim threshold; **M4/M6/M7** |
-| **S2-T3** | Summary validation | 8 min | LLM | Case **B-15**; **sequential** claim review; **M3** |
+| **S2-T2** | NL cohort query | 5 min | NL-assisted | Suggested query includes analytic year 2022 + claim threshold; **M4/M6/M7** |
+| **S2-T3** | Summary validation | 8 min | NL-assisted | Case **B-15**; **sequential** claim review; **M3** |
 | **S2-T4** | Cross-check summary vs record | 5 min | All | Case B-15 |
-| **S2-T5** | Cohort analytics query | 6 min | LLM | Cohort summary NL query |
-| **S2-T6** | Query control check | 5 min | LLM | Heart failure query; reject if misparsed |
+| **S2-T5** | Cohort analytics query | 6 min | NL-assisted | Cohort summary NL query |
+| **S2-T6** | Query control check | 5 min | NL-assisted | Heart failure query; reject if misparsed |
 | **S2-T7** | Export and handoff | 3 min | All | CSV + printable summary |
 
 ### S2-T2 / S2-T6 suggested queries (from catalog)
@@ -211,13 +226,19 @@ Participant must review interpretation card before confirming. Cancel/rephrase l
 
 ## 8. Case packets
 
-Regenerate after pipeline runs:
+Regenerate only before the stimuli are formally frozen. A regeneration creates a new timestamp, prompt set, and frozen-artifact hash and therefore constitutes a new stimulus version.
 
 ```bash
 source backend/.venv/bin/activate
 python scripts/generate_study_cases.py
-python scripts/generate_frozen_summaries.py
+python scripts/generate_frozen_summaries.py --require-llm
+python scripts/audit_frozen_summaries.py --record-decisions  # AI-assisted precheck
+# Human-review all queue items and record reviewer_type="human", then:
+python scripts/apply_adjudication.py --require-complete
+./scripts/verify.sh
 ```
+
+Do not regenerate summaries during a participant session or after data collection begins. Restore the preregistered/committed frozen artifacts if a study machine is missing them.
 
 | Field | Source |
 |-------|--------|
@@ -284,7 +305,7 @@ See [STUDY_APPENDICES.md](./STUDY_APPENDICES.md) for behavioral metric definitio
 - **Models:** logistic mixed-effects; participant and case random effects where preregistered.
 - **Secondary:** NASA-TLX, SUS, trust scale, perceived understanding/control.
 - **Exploratory:** S1-T4a, S1-T6, subgroup/moderator analyses — label explicitly.
-- **Do not** compare XAI vs LLM across studies as causal evidence.
+- **Do not** compare XAI vs NL-assisted across studies as causal evidence.
 
 ---
 

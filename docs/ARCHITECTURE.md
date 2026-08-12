@@ -52,8 +52,10 @@ Generate artifacts for the XAI condition and evidence bundles for the language l
 
 Controlled orchestration — not an unconstrained chatbot:
 
-- **Grounded explanations:** narratives mapped to verified fields and SHAP artifacts; fallback on insufficient evidence
-- **NL queries:** intent → structured parameters → user confirmation → execute over analytic tables → charts + grounded summary
+- **Freeze-time grounded summaries:** deterministic evidence templates are polished offline with the named model recorded in `study/frozen_summaries.json`; participant sessions retrieve the frozen narrative rather than calling an LLM
+- **Evidence contract:** each narrative retains the three risk percentages and top-three driver labels/directions for each outcome, with source mappings available through evidence links
+- **Quality gates:** prompt/evidence hashes, automated contract audit, explicit AI-versus-human reviewer type, and template fallback on insufficient evidence
+- **Runtime NL queries:** deterministic keyword/regular-expression interpretation → structured parameters → user confirmation → execute over analytic tables → charts + grounded summary
 
 ### 6. UI + Instrumentation
 
@@ -79,7 +81,7 @@ All conditions share data, models, and tasks. Only explanation/interaction affor
 
 - **baseline** — risk scores, no explicit rationale UI
 - **xai** — SHAP bars, global importance (tutorial tasks), stability badges
-- **llm** — frozen grounded summaries, NL query with confirmation, evidence links
+- **llm** — legacy condition key for the NL-assisted arm: frozen named-model-polished summaries, deterministic NL-query interpretation with confirmation, and evidence links
 
 ## User study mode (v2)
 
@@ -94,4 +96,4 @@ Documentation: [STUDY_PROTOCOL.md](./STUDY_PROTOCOL.md), [FACILITATOR_RUNBOOK.md
 
 ## Versioning
 
-Track versions for: data snapshot, feature logic, model config, explanation logic, language prompts/templates, query parser, dashboard build.
+Track versions for: data snapshot, feature logic, model config, explanation logic, language model snapshot and temperature, actual prompt/evidence hashes, frozen-summary hash, query parser, dashboard build, and adjudication status.
