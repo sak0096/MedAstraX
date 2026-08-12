@@ -35,7 +35,14 @@ from hc_analytics.modeling.constants import (
 def allow_logistic_fallback() -> bool:
     import os
 
-    return os.getenv("HC_ALLOW_LOGISTIC_FALLBACK", "").strip().lower() in {"1", "true", "yes"}
+    from hc_analytics.config import get_settings
+
+    if os.getenv("HC_ALLOW_LOGISTIC_FALLBACK", "").strip().lower() in {"1", "true", "yes"}:
+        return True
+    try:
+        return bool(get_settings().allow_logistic_fallback)
+    except Exception:
+        return False
 
 
 def xgboost_available() -> bool:
@@ -151,18 +158,48 @@ def train_model(
     train_y: pd.Series,
     test_x: pd.DataFrame,
     test_y: pd.Series,
-) -> tuple[Pipeline, Dict[str, object]]:
+    calibration_x: Optional[pd.DataFrame] = None,
+    calibration_y: Optional[pd.Series] = None,
+    calibrate: bool = True,
+) -> tuple[object, Dict[str, object]]:
     pipeline = build_model_pipeline(family)
     pipeline.fit(train_x[FEATURE_COLUMNS], train_y.astype(int))
 
-    train_prob = pipeline.predict_proba(train_x[FEATURE_COLUMNS])[:, 1]
-    test_prob = pipeline.predict_proba(test_x[FEATURE_COLUMNS])[:, 1]
+    calibrated = False
+    model: object = pipeline
+    if (
+        calibrate
+        and calibration_x is not None
+        and calibration_y is not None
+        and len(calibration_x) > 0
+        and calibration_y.nunique() > 1
+    ):
+        from sklearn.calibration import CalibratedClassifierCV
+        import warnings
 
-    metrics = {
+        with warnings.catch_warnings():
+            warnings.filterwarnings(
+                "ignore",
+                message=".*cv='prefit'.*",
+                category=UserWarning,
+            )
+            calibrator = CalibratedClassifierCV(pipeline, method="isotonic", cv="prefit")
+            calibrator.fit(calibration_x[FEATURE_COLUMNS], calibration_y.astype(int))
+        model = calibrator
+        calibrated = True
+
+    train_prob = model.predict_proba(train_x[FEATURE_COLUMNS])[:, 1]
+    test_prob = model.predict_proba(test_x[FEATURE_COLUMNS])[:, 1]
+    metrics: Dict[str, object] = {
         "train": asdict(evaluate_predictions(train_y, train_prob)),
         "test": asdict(evaluate_predictions(test_y, test_prob)),
+        "calibrated": calibrated,
+        "calibration_method": "isotonic" if calibrated else None,
     }
-    return pipeline, metrics
+    if calibration_x is not None and calibration_y is not None and len(calibration_x) > 0:
+        calib_prob = model.predict_proba(calibration_x[FEATURE_COLUMNS])[:, 1]
+        metrics["calibration"] = asdict(evaluate_predictions(calibration_y, calib_prob))
+    return model, metrics
 
 
 def model_artifact_path(models_dir: Path, target: RiskTarget, family: str) -> Path:
@@ -177,7 +214,7 @@ def metadata_path(models_dir: Path, target: RiskTarget) -> Path:
 
 def save_model_artifact(
     *,
-    pipeline: Pipeline,
+    pipeline: object,
     models_dir: Path,
     target: RiskTarget,
     family: str,
@@ -228,8 +265,19 @@ def save_model_artifact(
     return artifact_path
 
 
-def load_model_artifact(models_dir: Path, target: RiskTarget, family: str) -> Pipeline:
+def load_model_artifact(models_dir: Path, target: RiskTarget, family: str) -> object:
     path = model_artifact_path(models_dir, target, family)
     if not path.exists():
         raise FileNotFoundError(f"Missing model artifact: {path}")
     return joblib.load(path)
+
+
+def unwrap_model_for_shap(model: object) -> object:
+    """Return the base estimator/pipeline for SHAP (skip isotonic calibrator wrapper)."""
+    if hasattr(model, "calibrated_classifiers_") and hasattr(model, "estimator"):
+        return model.estimator
+    if hasattr(model, "estimator") and not hasattr(model, "named_steps"):
+        inner = model.estimator
+        if hasattr(inner, "named_steps") or hasattr(inner, "predict_proba"):
+            return inner
+    return model

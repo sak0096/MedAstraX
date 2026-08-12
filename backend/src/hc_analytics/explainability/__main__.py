@@ -14,13 +14,23 @@ def main() -> None:
         default=None,
         help="Optional row cap for faster local prototyping.",
     )
+    parser.add_argument(
+        "--study-cases-only",
+        action="store_true",
+        help="Explain only beneficiaries listed in study/study_cases.json.",
+    )
     args = parser.parse_args()
 
-    result = run_explainability(top_k=args.top_k, max_rows=args.max_rows)
+    result = run_explainability(
+        top_k=args.top_k,
+        max_rows=args.max_rows,
+        study_cases_only=args.study_cases_only,
+    )
     print("Explainability pipeline complete.")
     print(f"Model family: {result['model_family']}")
     print(f"Rows explained: {result['row_count']}")
     print(f"Bundles written: {result['bundle_count']}")
+    print(f"Stability: {result.get('stability_method')}")
     print(f"Manifest: {result['manifest']}")
 
 

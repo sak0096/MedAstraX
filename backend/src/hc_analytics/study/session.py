@@ -28,15 +28,19 @@ def assignment_plan(participant_id: str) -> Dict[str, object]:
     alpha_first = (digest // 4) % 2 == 0
     t2_index = (digest // 32) % len(STUDY2_QUERY_POOL)
     t6_index = (t2_index + 1) % len(STUDY2_QUERY_POOL)
+    # Target ~20–30% errors across Study 2 primary slots (T2/T3/T6).
+    t2_error = (digest // 64) % 4 == 0
+    t3_error = (digest // 16) % 4 == 0
+    t6_error = (digest // 96) % 4 == 0
     return {
         "study1_order": study1_order,
         "study2_order": study2_order,
         "case_set_first": "alpha" if alpha_first else "beta",
         "case_set_second": "beta" if alpha_first else "alpha",
         "study1_m2_on_first_block": (digest // 8) % 2 == 0,
-        "s2_t2": STUDY2_QUERY_POOL[t2_index],
-        "s2_t3": "M3" if (digest // 16) % 2 == 0 else "correct",
-        "s2_t6": "correct" if (digest // 96) % 2 == 0 else STUDY2_QUERY_POOL[t6_index],
+        "s2_t2": STUDY2_QUERY_POOL[t2_index] if t2_error else "correct",
+        "s2_t3": "M3" if t3_error else "correct",
+        "s2_t6": STUDY2_QUERY_POOL[t6_index] if t6_error else "correct",
     }
 
 

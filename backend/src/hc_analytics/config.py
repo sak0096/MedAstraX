@@ -41,6 +41,11 @@ class Settings(BaseSettings):
     llm_provider: Optional[str] = None
     llm_api_key: Optional[str] = None
     llm_model: Optional[str] = None
+    llm_temperature: float = 0.0
+
+    stability_method: str = "bootstrap"  # bootstrap | margin
+    bootstrap_iterations: int = 5
+    allow_logistic_fallback: bool = False
 
     @property
     def raw_data_path(self) -> Path:

@@ -20,18 +20,114 @@ SHARED_CASE_IDS = {
     "B-12": "-10000010273042",
     "B-15": "-10000010266211",
 }
-ALPHA_OUTREACH = {
+# Fallback IDs used only when stratified sampling cannot find enough candidates.
+FALLBACK_ALPHA_OUTREACH = {
     "B-01": "-10000010263023",
     "B-02": "-10000010266687",
     "B-03": "-10000010279991",
     "B-04": "-10000010259786",
 }
-BETA_OUTREACH = {
+FALLBACK_BETA_OUTREACH = {
     "B-01b": "-10000010275202",
     "B-02b": "-10000010262670",
     "B-03b": "-10000010256636",
     "B-04b": "-10000010265432",
 }
+
+
+def sample_matched_outreach_sets(
+    subset: pd.DataFrame,
+    *,
+    seed: int = 42,
+    quartet_size: int = 4,
+) -> tuple[dict[str, str], dict[str, str], dict]:
+    """Sample two matched outreach quartets from mid/high risk strata.
+
+    Avoids the prior pattern of near-100th-percentile-only cases with unmatched
+    alpha/beta priority difficulty.
+    """
+    frame = subset.copy()
+    frame["priority_score"] = frame.apply(
+        lambda row: compute_priority_score(
+            {
+                "inpatient_claims": row.get("inpatient_claims", 0),
+                "outpatient_claims": row.get("outpatient_claims", 0),
+                "chronic_condition_count": row.get("chronic_condition_count", 0),
+                "total_claims": row.get("total_claims", 0),
+            }
+        ),
+        axis=1,
+    )
+    # Keep clinically plausible high-risk but not exclusively extreme tails.
+    risk_lo = float(frame["hospitalization_risk"].quantile(0.70))
+    risk_hi = float(frame["hospitalization_risk"].quantile(0.97))
+    reserved = set(SHARED_CASE_IDS.values())
+    eligible = frame[
+        (frame["hospitalization_risk"] >= risk_lo)
+        & (frame["hospitalization_risk"] <= risk_hi)
+        & (frame["total_claims"] >= 10)
+        & (~frame["bene_id"].astype(str).isin(reserved))
+    ].copy()
+    if len(eligible) < quartet_size * 2:
+        return FALLBACK_ALPHA_OUTREACH, FALLBACK_BETA_OUTREACH, {
+            "method": "fallback_hardcoded",
+            "reason": "insufficient_eligible_rows",
+            "eligible_rows": int(len(eligible)),
+        }
+
+    eligible = eligible.sort_values("priority_score")
+    eligible["priority_bin"] = pd.qcut(
+        eligible["priority_score"],
+        q=min(quartet_size, max(2, eligible["priority_score"].nunique())),
+        labels=False,
+        duplicates="drop",
+    )
+    rng = pd.Series(dtype=object)
+    alpha: dict[str, str] = {}
+    beta: dict[str, str] = {}
+    used: set[str] = set()
+    bins = sorted(eligible["priority_bin"].dropna().unique())
+    generator = __import__("numpy").random.default_rng(seed)
+    for index, bin_id in enumerate(bins[:quartet_size]):
+        pool = eligible[eligible["priority_bin"] == bin_id]
+        pool = pool[~pool["bene_id"].astype(str).isin(used)]
+        if len(pool) < 2:
+            continue
+        chosen = pool.sample(n=2, random_state=int(generator.integers(0, 1_000_000)))
+        alpha_id = f"B-0{index + 1}"
+        beta_id = f"B-0{index + 1}b"
+        alpha_bene = str(chosen.iloc[0]["bene_id"])
+        beta_bene = str(chosen.iloc[1]["bene_id"])
+        alpha[alpha_id] = alpha_bene
+        beta[beta_id] = beta_bene
+        used.update({alpha_bene, beta_bene})
+
+    if len(alpha) < quartet_size or len(beta) < quartet_size:
+        return FALLBACK_ALPHA_OUTREACH, FALLBACK_BETA_OUTREACH, {
+            "method": "fallback_hardcoded",
+            "reason": "insufficient_binned_pairs",
+            "eligible_rows": int(len(eligible)),
+        }
+
+    meta = {
+        "method": "stratified_priority_bins",
+        "seed": seed,
+        "risk_quantile_low": 0.70,
+        "risk_quantile_high": 0.97,
+        "risk_lo": risk_lo,
+        "risk_hi": risk_hi,
+        "eligible_rows": int(len(eligible)),
+        "alpha_priority_scores": [
+            float(eligible.loc[eligible["bene_id"].astype(str) == bene, "priority_score"].iloc[0])
+            for bene in alpha.values()
+        ],
+        "beta_priority_scores": [
+            float(eligible.loc[eligible["bene_id"].astype(str) == bene, "priority_score"].iloc[0])
+            for bene in beta.values()
+        ],
+    }
+    del rng
+    return alpha, beta, meta
 
 
 def top_features(topk: pd.DataFrame, bene_id: str, year: int, n: int = 3) -> list[dict]:
@@ -146,18 +242,19 @@ def main() -> None:
     )
     year = 2022
     subset = merged[merged["analytic_year"] == year]
+    alpha_map, beta_map, selection_meta = sample_matched_outreach_sets(subset, seed=42)
 
     cases: list[dict] = []
     alpha_outreach: list[dict] = []
     beta_outreach: list[dict] = []
 
-    for case_id, bene_id in ALPHA_OUTREACH.items():
+    for case_id, bene_id in alpha_map.items():
         row = subset[subset["bene_id"] == bene_id].iloc[0]
         case = build_case(case_id, bene_id, row, year, topk, case_set="alpha")
         alpha_outreach.append(case)
         cases.append(case)
 
-    for case_id, bene_id in BETA_OUTREACH.items():
+    for case_id, bene_id in beta_map.items():
         row = subset[subset["bene_id"] == bene_id].iloc[0]
         case = build_case(case_id, bene_id, row, year, topk, case_set="beta")
         beta_outreach.append(case)
@@ -337,6 +434,7 @@ def main() -> None:
     payload = {
         "schema_version": "2.0",
         "default_analytic_year": year,
+        "case_selection": selection_meta,
         "manipulation_catalog": {
             "correct": "Faithful outreach recommendation matching operational priority rule",
             "M2": "Incorrect outreach recommendation vs operational priority rule",
@@ -426,8 +524,8 @@ def main() -> None:
             ],
         },
         "case_sets": {
-            "alpha": list(ALPHA_OUTREACH.keys()),
-            "beta": list(BETA_OUTREACH.keys()),
+            "alpha": list(alpha_map.keys()),
+            "beta": list(beta_map.keys()),
         },
         "cases": cases,
         "tasks": tasks,

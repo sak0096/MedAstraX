@@ -1,88 +1,109 @@
 {
-  "schema_version": "1.0",
+  "schema_version": "1.1",
+  "generated_at": "2026-08-12T17:56:59.622609+00:00",
+  "git_commit": "ae6ac4f1d0b01ba499faa5f30a0fd4f288d1e415",
+  "provider": "template",
+  "llm_model": null,
+  "llm_temperature": null,
+  "prompt_version": "grounded-template-v1",
   "model_version": "frozen-template-v1",
-  "prompt_version": "template-v1",
+  "adjudication_required": false,
+  "notes": "Named LLM outputs must be human-adjudicated before study freeze. Current generator emits grounded template narratives.",
+  "prompt_hashes": {
+    "-10000010263394:2022": "826dd587ba05e987",
+    "-10000010259298:2022": "d8bd89341889746e",
+    "-10000010276185:2022": "5be795f1dc198327",
+    "-10000010262776:2022": "93c15a263149cde3",
+    "-10000010267361:2022": "ed1f9e659eec598f",
+    "-10000010273567:2022": "71e4fcfb2b184071",
+    "-10000010283601:2022": "d123448d0c9ae056",
+    "-10000010284659:2022": "b7da68665ffe08dc",
+    "-10000010260449:2022": "1aacb9228f42b5cf",
+    "-10000010271299:2022": "9aeccddedceddbc1",
+    "-10000010273042:2022": "ccc8efc0e4aa42a6",
+    "-10000010266211:2022": "c2b37a0d8d042b57"
+  },
   "summaries": {
-    "-10000010260449:2022": {
-      "bene_id": "-10000010260449",
+    "-10000010263394:2022": {
+      "bene_id": "-10000010263394",
       "analytic_year": 2022,
-      "narrative": "Beneficiary -10000010260449 (2022) \u2014 model family logistic_regression. hospitalization risk is 98%, primarily driven by distinct diagnosis count (value: 5.0) raised risk (SHAP +1.328), total claims (value: 301.0) raised risk (SHAP +1.077), carrier claims (value: 242.0) raised risk (SHAP +0.783). high utilization risk is 100%, primarily driven by carrier claims (value: 242.0) raised risk (SHAP +8.417), total claims (value: 301.0) raised risk (SHAP +7.929), inpatient claims (value: 31.0) lowered risk (SHAP -1.745). elevated cost risk is 100%, primarily driven by carrier claims (value: 242.0) raised risk (SHAP +4.196), total claims (value: 301.0) raised risk (SHAP +3.093), total payment amt (value: 293773.5) raised risk (SHAP +2.496). hospitalization explanation stability: yellow high_utilization explanation stability: red elevated_cost explanation stability: yellow",
+      "narrative": "Beneficiary -10000010263394 (2022) \u2014 model family logistic_regression. hospitalization risk is 25%, primarily driven by Race (value: 3) raised risk, Total payment (value: 136507.0) raised risk, Unique drugs (value: 9.0) raised risk. high utilization risk is 45%, primarily driven by Rx days supply (value: 727.0) raised risk, State (value: 16) raised risk, Outpatient claims (value: 1.0) lowered risk. elevated cost risk is 55%, primarily driven by Total payment (value: 136507.0) raised risk, Rx days supply (value: 727.0) raised risk, Unique drugs (value: 9.0) raised risk. hospitalization explanation stability: yellow high_utilization explanation stability: green elevated_cost explanation stability: green",
       "provider": "template",
       "grounded": {
-        "beneficiary_id": "-10000010260449",
+        "beneficiary_id": "-10000010263394",
         "cohort_id": null,
         "claims": [
           {
-            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +1.328).",
+            "statement": "race increased predicted hospitalization risk (SHAP +0.158).",
             "source_fields": [
-              "distinct_diagnosis_count"
+              "race"
             ],
-            "shap_feature": "distinct_diagnosis_count",
-            "shap_value": 1.328484
+            "shap_feature": "race",
+            "shap_value": 0.157668
           },
           {
-            "statement": "total_claims increased predicted hospitalization risk (SHAP +1.077).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 1.077336
-          },
-          {
-            "statement": "carrier_claims increased predicted hospitalization risk (SHAP +0.783).",
-            "source_fields": [
-              "carrier_claims"
-            ],
-            "shap_feature": "carrier_claims",
-            "shap_value": 0.783251
-          },
-          {
-            "statement": "carrier_claims increased predicted high utilization risk (SHAP +8.417).",
-            "source_fields": [
-              "carrier_claims"
-            ],
-            "shap_feature": "carrier_claims",
-            "shap_value": 8.416692
-          },
-          {
-            "statement": "total_claims increased predicted high utilization risk (SHAP +7.929).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 7.92945
-          },
-          {
-            "statement": "inpatient_claims decreased predicted high utilization risk (SHAP -1.745).",
-            "source_fields": [
-              "inpatient_claims"
-            ],
-            "shap_feature": "inpatient_claims",
-            "shap_value": -1.745428
-          },
-          {
-            "statement": "carrier_claims increased predicted elevated cost risk (SHAP +4.196).",
-            "source_fields": [
-              "carrier_claims"
-            ],
-            "shap_feature": "carrier_claims",
-            "shap_value": 4.195511
-          },
-          {
-            "statement": "total_claims increased predicted elevated cost risk (SHAP +3.093).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 3.093076
-          },
-          {
-            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +2.496).",
+            "statement": "total_payment_amt increased predicted hospitalization risk (SHAP +0.157).",
             "source_fields": [
               "total_payment_amt"
             ],
             "shap_feature": "total_payment_amt",
-            "shap_value": 2.495906
+            "shap_value": 0.156585
+          },
+          {
+            "statement": "rx_unique_drugs increased predicted hospitalization risk (SHAP +0.144).",
+            "source_fields": [
+              "rx_unique_drugs"
+            ],
+            "shap_feature": "rx_unique_drugs",
+            "shap_value": 0.144309
+          },
+          {
+            "statement": "rx_days_supply increased predicted high utilization risk (SHAP +0.496).",
+            "source_fields": [
+              "rx_days_supply"
+            ],
+            "shap_feature": "rx_days_supply",
+            "shap_value": 0.496237
+          },
+          {
+            "statement": "state_code increased predicted high utilization risk (SHAP +0.275).",
+            "source_fields": [
+              "state_code"
+            ],
+            "shap_feature": "state_code",
+            "shap_value": 0.27466
+          },
+          {
+            "statement": "outpatient_claims decreased predicted high utilization risk (SHAP -0.243).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": -0.243369
+          },
+          {
+            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +0.834).",
+            "source_fields": [
+              "total_payment_amt"
+            ],
+            "shap_feature": "total_payment_amt",
+            "shap_value": 0.833912
+          },
+          {
+            "statement": "rx_days_supply increased predicted elevated cost risk (SHAP +0.449).",
+            "source_fields": [
+              "rx_days_supply"
+            ],
+            "shap_feature": "rx_days_supply",
+            "shap_value": 0.449476
+          },
+          {
+            "statement": "rx_unique_drugs increased predicted elevated cost risk (SHAP +0.122).",
+            "source_fields": [
+              "rx_unique_drugs"
+            ],
+            "shap_feature": "rx_unique_drugs",
+            "shap_value": 0.121596
           }
         ],
         "fallback": null
@@ -91,34 +112,994 @@
         {
           "target": "next_year_hospitalization",
           "target_short": "hospitalization",
-          "risk_score": 0.9785697097705485,
+          "risk_score": 0.2483801295896328,
           "stability_badge": "yellow",
           "top_features": [
-            "distinct_diagnosis_count",
-            "total_claims",
-            "carrier_claims"
+            "race",
+            "total_payment_amt",
+            "rx_unique_drugs"
           ]
         },
         {
           "target": "next_year_high_utilization",
           "target_short": "high_utilization",
-          "risk_score": 0.9999999691114115,
-          "stability_badge": "red",
+          "risk_score": 0.45161290322580644,
+          "stability_badge": "green",
           "top_features": [
-            "carrier_claims",
-            "total_claims",
-            "inpatient_claims"
+            "rx_days_supply",
+            "state_code",
+            "outpatient_claims"
           ]
         },
         {
           "target": "next_year_elevated_cost",
           "target_short": "elevated_cost",
-          "risk_score": 0.9999462630910295,
-          "stability_badge": "yellow",
+          "risk_score": 0.5502645502645502,
+          "stability_badge": "green",
           "top_features": [
-            "carrier_claims",
+            "total_payment_amt",
+            "rx_days_supply",
+            "rx_unique_drugs"
+          ]
+        }
+      ]
+    },
+    "-10000010259298:2022": {
+      "bene_id": "-10000010259298",
+      "analytic_year": 2022,
+      "narrative": "Beneficiary -10000010259298 (2022) \u2014 model family logistic_regression. hospitalization risk is 41%, primarily driven by Total payment (value: 838041.8400000001) raised risk, hospice claims (value: 14.0) lowered risk, Distinct diagnoses (value: 4.0) raised risk. high utilization risk is 33%, primarily driven by Total claims (value: 44.0) raised risk, dme claims (value: 5.0) raised risk, Distinct diagnoses (value: 4.0) lowered risk. elevated cost risk is 84%, primarily driven by Total payment (value: 838041.8400000001) raised risk, hospice claims (value: 14.0) lowered risk, Distinct diagnoses (value: 4.0) lowered risk. hospitalization explanation stability: green high_utilization explanation stability: green elevated_cost explanation stability: green",
+      "provider": "template",
+      "grounded": {
+        "beneficiary_id": "-10000010259298",
+        "cohort_id": null,
+        "claims": [
+          {
+            "statement": "total_payment_amt increased predicted hospitalization risk (SHAP +1.207).",
+            "source_fields": [
+              "total_payment_amt"
+            ],
+            "shap_feature": "total_payment_amt",
+            "shap_value": 1.207236
+          },
+          {
+            "statement": "hospice_claims decreased predicted hospitalization risk (SHAP -0.376).",
+            "source_fields": [
+              "hospice_claims"
+            ],
+            "shap_feature": "hospice_claims",
+            "shap_value": -0.376371
+          },
+          {
+            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +0.252).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": 0.252354
+          },
+          {
+            "statement": "total_claims increased predicted high utilization risk (SHAP +0.595).",
+            "source_fields": [
+              "total_claims"
+            ],
+            "shap_feature": "total_claims",
+            "shap_value": 0.595227
+          },
+          {
+            "statement": "dme_claims increased predicted high utilization risk (SHAP +0.559).",
+            "source_fields": [
+              "dme_claims"
+            ],
+            "shap_feature": "dme_claims",
+            "shap_value": 0.558732
+          },
+          {
+            "statement": "distinct_diagnosis_count decreased predicted high utilization risk (SHAP -0.383).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": -0.383292
+          },
+          {
+            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +6.429).",
+            "source_fields": [
+              "total_payment_amt"
+            ],
+            "shap_feature": "total_payment_amt",
+            "shap_value": 6.42929
+          },
+          {
+            "statement": "hospice_claims decreased predicted elevated cost risk (SHAP -1.938).",
+            "source_fields": [
+              "hospice_claims"
+            ],
+            "shap_feature": "hospice_claims",
+            "shap_value": -1.937888
+          },
+          {
+            "statement": "distinct_diagnosis_count decreased predicted elevated cost risk (SHAP -0.255).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": -0.254805
+          }
+        ],
+        "fallback": null
+      },
+      "target_summaries": [
+        {
+          "target": "next_year_hospitalization",
+          "target_short": "hospitalization",
+          "risk_score": 0.41379310344827586,
+          "stability_badge": "green",
+          "top_features": [
+            "total_payment_amt",
+            "hospice_claims",
+            "distinct_diagnosis_count"
+          ]
+        },
+        {
+          "target": "next_year_high_utilization",
+          "target_short": "high_utilization",
+          "risk_score": 0.3271929838070218,
+          "stability_badge": "green",
+          "top_features": [
+            "total_claims",
+            "dme_claims",
+            "distinct_diagnosis_count"
+          ]
+        },
+        {
+          "target": "next_year_elevated_cost",
+          "target_short": "elevated_cost",
+          "risk_score": 0.8378378378378378,
+          "stability_badge": "green",
+          "top_features": [
+            "total_payment_amt",
+            "hospice_claims",
+            "distinct_diagnosis_count"
+          ]
+        }
+      ]
+    },
+    "-10000010276185:2022": {
+      "bene_id": "-10000010276185",
+      "analytic_year": 2022,
+      "narrative": "Beneficiary -10000010276185 (2022) \u2014 model family logistic_regression. hospitalization risk is 27%, primarily driven by Distinct diagnoses (value: 6.0) raised risk, Total payment (value: 130851.70999999999) raised risk, Inpatient claims (value: 2.0) raised risk. high utilization risk is 15%, primarily driven by Distinct diagnoses (value: 6.0) lowered risk, Age (value: 27) lowered risk, 30-day readmissions (value: 1.0) raised risk. elevated cost risk is 34%, primarily driven by Total payment (value: 130851.70999999999) raised risk, Distinct diagnoses (value: 6.0) lowered risk, 30-day readmissions (value: 1.0) raised risk. hospitalization explanation stability: green high_utilization explanation stability: green elevated_cost explanation stability: green",
+      "provider": "template",
+      "grounded": {
+        "beneficiary_id": "-10000010276185",
+        "cohort_id": null,
+        "claims": [
+          {
+            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +0.466).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": 0.466214
+          },
+          {
+            "statement": "total_payment_amt increased predicted hospitalization risk (SHAP +0.148).",
+            "source_fields": [
+              "total_payment_amt"
+            ],
+            "shap_feature": "total_payment_amt",
+            "shap_value": 0.148115
+          },
+          {
+            "statement": "inpatient_claims increased predicted hospitalization risk (SHAP +0.060).",
+            "source_fields": [
+              "inpatient_claims"
+            ],
+            "shap_feature": "inpatient_claims",
+            "shap_value": 0.059835
+          },
+          {
+            "statement": "distinct_diagnosis_count decreased predicted high utilization risk (SHAP -0.708).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": -0.708116
+          },
+          {
+            "statement": "age decreased predicted high utilization risk (SHAP -0.468).",
+            "source_fields": [
+              "age"
+            ],
+            "shap_feature": "age",
+            "shap_value": -0.468265
+          },
+          {
+            "statement": "readmission_30d_count increased predicted high utilization risk (SHAP +0.349).",
+            "source_fields": [
+              "readmission_30d_count"
+            ],
+            "shap_feature": "readmission_30d_count",
+            "shap_value": 0.349395
+          },
+          {
+            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +0.789).",
+            "source_fields": [
+              "total_payment_amt"
+            ],
+            "shap_feature": "total_payment_amt",
+            "shap_value": 0.788805
+          },
+          {
+            "statement": "distinct_diagnosis_count decreased predicted elevated cost risk (SHAP -0.471).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": -0.470742
+          },
+          {
+            "statement": "readmission_30d_count increased predicted elevated cost risk (SHAP +0.234).",
+            "source_fields": [
+              "readmission_30d_count"
+            ],
+            "shap_feature": "readmission_30d_count",
+            "shap_value": 0.233531
+          }
+        ],
+        "fallback": null
+      },
+      "target_summaries": [
+        {
+          "target": "next_year_hospitalization",
+          "target_short": "hospitalization",
+          "risk_score": 0.26627218934911245,
+          "stability_badge": "green",
+          "top_features": [
+            "distinct_diagnosis_count",
+            "total_payment_amt",
+            "inpatient_claims"
+          ]
+        },
+        {
+          "target": "next_year_high_utilization",
+          "target_short": "high_utilization",
+          "risk_score": 0.15245009074410162,
+          "stability_badge": "green",
+          "top_features": [
+            "distinct_diagnosis_count",
+            "age",
+            "readmission_30d_count"
+          ]
+        },
+        {
+          "target": "next_year_elevated_cost",
+          "target_short": "elevated_cost",
+          "risk_score": 0.3394495412844037,
+          "stability_badge": "green",
+          "top_features": [
+            "total_payment_amt",
+            "distinct_diagnosis_count",
+            "readmission_30d_count"
+          ]
+        }
+      ]
+    },
+    "-10000010262776:2022": {
+      "bene_id": "-10000010262776",
+      "analytic_year": 2022,
+      "narrative": "Beneficiary -10000010262776 (2022) \u2014 model family logistic_regression. hospitalization risk is 40%, primarily driven by Unique drugs (value: 31.0) raised risk, Rx fill count (value: 43.0) lowered risk, Outpatient claims (value: 37.0) raised risk. high utilization risk is 90%, primarily driven by Total claims (value: 115.0) raised risk, Outpatient claims (value: 37.0) raised risk, Carrier claims (value: 77.0) raised risk. elevated cost risk is 74%, primarily driven by Total claims (value: 115.0) raised risk, Rx days supply (value: 1118.0) raised risk, Rx fill count (value: 43.0) lowered risk. hospitalization explanation stability: green high_utilization explanation stability: green elevated_cost explanation stability: green",
+      "provider": "template",
+      "grounded": {
+        "beneficiary_id": "-10000010262776",
+        "cohort_id": null,
+        "claims": [
+          {
+            "statement": "rx_unique_drugs increased predicted hospitalization risk (SHAP +0.600).",
+            "source_fields": [
+              "rx_unique_drugs"
+            ],
+            "shap_feature": "rx_unique_drugs",
+            "shap_value": 0.600459
+          },
+          {
+            "statement": "rx_fill_count decreased predicted hospitalization risk (SHAP -0.309).",
+            "source_fields": [
+              "rx_fill_count"
+            ],
+            "shap_feature": "rx_fill_count",
+            "shap_value": -0.308619
+          },
+          {
+            "statement": "outpatient_claims increased predicted hospitalization risk (SHAP +0.270).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": 0.270142
+          },
+          {
+            "statement": "total_claims increased predicted high utilization risk (SHAP +2.176).",
+            "source_fields": [
+              "total_claims"
+            ],
+            "shap_feature": "total_claims",
+            "shap_value": 2.176263
+          },
+          {
+            "statement": "outpatient_claims increased predicted high utilization risk (SHAP +1.613).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": 1.612838
+          },
+          {
+            "statement": "carrier_claims increased predicted high utilization risk (SHAP +1.221).",
+            "source_fields": [
+              "carrier_claims"
+            ],
+            "shap_feature": "carrier_claims",
+            "shap_value": 1.220854
+          },
+          {
+            "statement": "total_claims increased predicted elevated cost risk (SHAP +0.826).",
+            "source_fields": [
+              "total_claims"
+            ],
+            "shap_feature": "total_claims",
+            "shap_value": 0.826367
+          },
+          {
+            "statement": "rx_days_supply increased predicted elevated cost risk (SHAP +0.750).",
+            "source_fields": [
+              "rx_days_supply"
+            ],
+            "shap_feature": "rx_days_supply",
+            "shap_value": 0.750013
+          },
+          {
+            "statement": "rx_fill_count decreased predicted elevated cost risk (SHAP -0.709).",
+            "source_fields": [
+              "rx_fill_count"
+            ],
+            "shap_feature": "rx_fill_count",
+            "shap_value": -0.709212
+          }
+        ],
+        "fallback": null
+      },
+      "target_summaries": [
+        {
+          "target": "next_year_hospitalization",
+          "target_short": "hospitalization",
+          "risk_score": 0.4,
+          "stability_badge": "green",
+          "top_features": [
+            "rx_unique_drugs",
+            "rx_fill_count",
+            "outpatient_claims"
+          ]
+        },
+        {
+          "target": "next_year_high_utilization",
+          "target_short": "high_utilization",
+          "risk_score": 0.8961625282167043,
+          "stability_badge": "green",
+          "top_features": [
+            "total_claims",
+            "outpatient_claims",
+            "carrier_claims"
+          ]
+        },
+        {
+          "target": "next_year_elevated_cost",
+          "target_short": "elevated_cost",
+          "risk_score": 0.7351778656126482,
+          "stability_badge": "green",
+          "top_features": [
+            "total_claims",
+            "rx_days_supply",
+            "rx_fill_count"
+          ]
+        }
+      ]
+    },
+    "-10000010267361:2022": {
+      "bene_id": "-10000010267361",
+      "analytic_year": 2022,
+      "narrative": "Beneficiary -10000010267361 (2022) \u2014 model family logistic_regression. hospitalization risk is 27%, primarily driven by State (value: 24) raised risk, Distinct diagnoses (value: 4.0) raised risk, Unique drugs (value: 0.0) lowered risk. high utilization risk is 13%, primarily driven by Distinct diagnoses (value: 4.0) lowered risk, State (value: 24) raised risk, Outpatient claims (value: 3.0) lowered risk. elevated cost risk is 12%, primarily driven by Distinct diagnoses (value: 4.0) lowered risk, State (value: 24) raised risk, Rx days supply (value: 0.0) lowered risk. hospitalization explanation stability: green high_utilization explanation stability: green elevated_cost explanation stability: green",
+      "provider": "template",
+      "grounded": {
+        "beneficiary_id": "-10000010267361",
+        "cohort_id": null,
+        "claims": [
+          {
+            "statement": "state_code increased predicted hospitalization risk (SHAP +0.353).",
+            "source_fields": [
+              "state_code"
+            ],
+            "shap_feature": "state_code",
+            "shap_value": 0.352653
+          },
+          {
+            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +0.252).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": 0.252354
+          },
+          {
+            "statement": "rx_unique_drugs decreased predicted hospitalization risk (SHAP -0.042).",
+            "source_fields": [
+              "rx_unique_drugs"
+            ],
+            "shap_feature": "rx_unique_drugs",
+            "shap_value": -0.042298
+          },
+          {
+            "statement": "distinct_diagnosis_count decreased predicted high utilization risk (SHAP -0.383).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": -0.383292
+          },
+          {
+            "statement": "state_code increased predicted high utilization risk (SHAP +0.189).",
+            "source_fields": [
+              "state_code"
+            ],
+            "shap_feature": "state_code",
+            "shap_value": 0.189443
+          },
+          {
+            "statement": "outpatient_claims decreased predicted high utilization risk (SHAP -0.140).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": -0.140247
+          },
+          {
+            "statement": "distinct_diagnosis_count decreased predicted elevated cost risk (SHAP -0.255).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": -0.254805
+          },
+          {
+            "statement": "state_code increased predicted elevated cost risk (SHAP +0.155).",
+            "source_fields": [
+              "state_code"
+            ],
+            "shap_feature": "state_code",
+            "shap_value": 0.155399
+          },
+          {
+            "statement": "rx_days_supply decreased predicted elevated cost risk (SHAP -0.109).",
+            "source_fields": [
+              "rx_days_supply"
+            ],
+            "shap_feature": "rx_days_supply",
+            "shap_value": -0.109323
+          }
+        ],
+        "fallback": null
+      },
+      "target_summaries": [
+        {
+          "target": "next_year_hospitalization",
+          "target_short": "hospitalization",
+          "risk_score": 0.26627218934911245,
+          "stability_badge": "green",
+          "top_features": [
+            "state_code",
+            "distinct_diagnosis_count",
+            "rx_unique_drugs"
+          ]
+        },
+        {
+          "target": "next_year_high_utilization",
+          "target_short": "high_utilization",
+          "risk_score": 0.128125,
+          "stability_badge": "green",
+          "top_features": [
+            "distinct_diagnosis_count",
+            "state_code",
+            "outpatient_claims"
+          ]
+        },
+        {
+          "target": "next_year_elevated_cost",
+          "target_short": "elevated_cost",
+          "risk_score": 0.11639344262295082,
+          "stability_badge": "green",
+          "top_features": [
+            "distinct_diagnosis_count",
+            "state_code",
+            "rx_days_supply"
+          ]
+        }
+      ]
+    },
+    "-10000010273567:2022": {
+      "bene_id": "-10000010273567",
+      "analytic_year": 2022,
+      "narrative": "Beneficiary -10000010273567 (2022) \u2014 model family logistic_regression. hospitalization risk is 18%, primarily driven by Distinct diagnoses (value: 4.0) raised risk, Unique drugs (value: 0.0) lowered risk, Outpatient claims (value: 2.0) lowered risk. high utilization risk is 13%, primarily driven by Distinct diagnoses (value: 4.0) lowered risk, Age (value: 82) raised risk, Outpatient claims (value: 2.0) lowered risk. elevated cost risk is 8%, primarily driven by Distinct diagnoses (value: 4.0) lowered risk, Total payment (value: 11333.67) lowered risk, State (value: 34) lowered risk. hospitalization explanation stability: green high_utilization explanation stability: green elevated_cost explanation stability: green",
+      "provider": "template",
+      "grounded": {
+        "beneficiary_id": "-10000010273567",
+        "cohort_id": null,
+        "claims": [
+          {
+            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +0.252).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": 0.252354
+          },
+          {
+            "statement": "rx_unique_drugs decreased predicted hospitalization risk (SHAP -0.042).",
+            "source_fields": [
+              "rx_unique_drugs"
+            ],
+            "shap_feature": "rx_unique_drugs",
+            "shap_value": -0.042298
+          },
+          {
+            "statement": "outpatient_claims decreased predicted hospitalization risk (SHAP -0.032).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": -0.032127
+          },
+          {
+            "statement": "distinct_diagnosis_count decreased predicted high utilization risk (SHAP -0.383).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": -0.383292
+          },
+          {
+            "statement": "age increased predicted high utilization risk (SHAP +0.354).",
+            "source_fields": [
+              "age"
+            ],
+            "shap_feature": "age",
+            "shap_value": 0.354039
+          },
+          {
+            "statement": "outpatient_claims decreased predicted high utilization risk (SHAP -0.192).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": -0.191808
+          },
+          {
+            "statement": "distinct_diagnosis_count decreased predicted elevated cost risk (SHAP -0.255).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": -0.254805
+          },
+          {
+            "statement": "total_payment_amt decreased predicted elevated cost risk (SHAP -0.164).",
+            "source_fields": [
+              "total_payment_amt"
+            ],
+            "shap_feature": "total_payment_amt",
+            "shap_value": -0.16446
+          },
+          {
+            "statement": "state_code decreased predicted elevated cost risk (SHAP -0.134).",
+            "source_fields": [
+              "state_code"
+            ],
+            "shap_feature": "state_code",
+            "shap_value": -0.133816
+          }
+        ],
+        "fallback": null
+      },
+      "target_summaries": [
+        {
+          "target": "next_year_hospitalization",
+          "target_short": "hospitalization",
+          "risk_score": 0.18010291595197256,
+          "stability_badge": "green",
+          "top_features": [
+            "distinct_diagnosis_count",
+            "rx_unique_drugs",
+            "outpatient_claims"
+          ]
+        },
+        {
+          "target": "next_year_high_utilization",
+          "target_short": "high_utilization",
+          "risk_score": 0.128125,
+          "stability_badge": "green",
+          "top_features": [
+            "distinct_diagnosis_count",
+            "age",
+            "outpatient_claims"
+          ]
+        },
+        {
+          "target": "next_year_elevated_cost",
+          "target_short": "elevated_cost",
+          "risk_score": 0.07776560788608981,
+          "stability_badge": "green",
+          "top_features": [
+            "distinct_diagnosis_count",
+            "total_payment_amt",
+            "state_code"
+          ]
+        }
+      ]
+    },
+    "-10000010283601:2022": {
+      "bene_id": "-10000010283601",
+      "analytic_year": 2022,
+      "narrative": "Beneficiary -10000010283601 (2022) \u2014 model family logistic_regression. hospitalization risk is 21%, primarily driven by Diabetes (value: 1.0) raised risk, Distinct diagnoses (value: 3.0) raised risk, State (value: 52) lowered risk. high utilization risk is 26%, primarily driven by Diabetes (value: 1.0) raised risk, Outpatient claims (value: 1.0) lowered risk, Distinct diagnoses (value: 3.0) lowered risk. elevated cost risk is 12%, primarily driven by State (value: 52) lowered risk, Inpatient payment (value: 21232.94) lowered risk, Distinct diagnoses (value: 3.0) lowered risk. hospitalization explanation stability: green high_utilization explanation stability: green elevated_cost explanation stability: green",
+      "provider": "template",
+      "grounded": {
+        "beneficiary_id": "-10000010283601",
+        "cohort_id": null,
+        "claims": [
+          {
+            "statement": "has_diabetes increased predicted hospitalization risk (SHAP +0.316).",
+            "source_fields": [
+              "has_diabetes"
+            ],
+            "shap_feature": "has_diabetes",
+            "shap_value": 0.316443
+          },
+          {
+            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +0.145).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": 0.145424
+          },
+          {
+            "statement": "state_code decreased predicted hospitalization risk (SHAP -0.086).",
+            "source_fields": [
+              "state_code"
+            ],
+            "shap_feature": "state_code",
+            "shap_value": -0.085717
+          },
+          {
+            "statement": "has_diabetes increased predicted high utilization risk (SHAP +0.401).",
+            "source_fields": [
+              "has_diabetes"
+            ],
+            "shap_feature": "has_diabetes",
+            "shap_value": 0.401437
+          },
+          {
+            "statement": "outpatient_claims decreased predicted high utilization risk (SHAP -0.243).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": -0.243369
+          },
+          {
+            "statement": "distinct_diagnosis_count decreased predicted high utilization risk (SHAP -0.221).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": -0.22088
+          },
+          {
+            "statement": "state_code decreased predicted elevated cost risk (SHAP -0.226).",
+            "source_fields": [
+              "state_code"
+            ],
+            "shap_feature": "state_code",
+            "shap_value": -0.225712
+          },
+          {
+            "statement": "inpatient_payment_amt decreased predicted elevated cost risk (SHAP -0.191).",
+            "source_fields": [
+              "inpatient_payment_amt"
+            ],
+            "shap_feature": "inpatient_payment_amt",
+            "shap_value": -0.191184
+          },
+          {
+            "statement": "distinct_diagnosis_count decreased predicted elevated cost risk (SHAP -0.147).",
+            "source_fields": [
+              "distinct_diagnosis_count"
+            ],
+            "shap_feature": "distinct_diagnosis_count",
+            "shap_value": -0.146837
+          }
+        ],
+        "fallback": null
+      },
+      "target_summaries": [
+        {
+          "target": "next_year_hospitalization",
+          "target_short": "hospitalization",
+          "risk_score": 0.2112676056338028,
+          "stability_badge": "green",
+          "top_features": [
+            "has_diabetes",
+            "distinct_diagnosis_count",
+            "state_code"
+          ]
+        },
+        {
+          "target": "next_year_high_utilization",
+          "target_short": "high_utilization",
+          "risk_score": 0.26315789473684215,
+          "stability_badge": "green",
+          "top_features": [
+            "has_diabetes",
+            "outpatient_claims",
+            "distinct_diagnosis_count"
+          ]
+        },
+        {
+          "target": "next_year_elevated_cost",
+          "target_short": "elevated_cost",
+          "risk_score": 0.11513583441138421,
+          "stability_badge": "green",
+          "top_features": [
+            "state_code",
+            "inpatient_payment_amt",
+            "distinct_diagnosis_count"
+          ]
+        }
+      ]
+    },
+    "-10000010284659:2022": {
+      "bene_id": "-10000010284659",
+      "analytic_year": 2022,
+      "narrative": "Beneficiary -10000010284659 (2022) \u2014 model family logistic_regression. hospitalization risk is 41%, primarily driven by Outpatient claims (value: 127.0) raised risk, Total claims (value: 139.0) raised risk, Total payment (value: 161847.85) raised risk. high utilization risk is 93%, primarily driven by Outpatient claims (value: 127.0) raised risk, Total claims (value: 139.0) raised risk, Age (value: 32) lowered risk. elevated cost risk is 91%, primarily driven by Outpatient claims (value: 127.0) raised risk, Total payment (value: 161847.85) raised risk, Total claims (value: 139.0) raised risk. hospitalization explanation stability: green high_utilization explanation stability: green elevated_cost explanation stability: green",
+      "provider": "template",
+      "grounded": {
+        "beneficiary_id": "-10000010284659",
+        "cohort_id": null,
+        "claims": [
+          {
+            "statement": "outpatient_claims increased predicted hospitalization risk (SHAP +1.047).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": 1.047405
+          },
+          {
+            "statement": "total_claims increased predicted hospitalization risk (SHAP +0.240).",
+            "source_fields": [
+              "total_claims"
+            ],
+            "shap_feature": "total_claims",
+            "shap_value": 0.240143
+          },
+          {
+            "statement": "total_payment_amt increased predicted hospitalization risk (SHAP +0.195).",
+            "source_fields": [
+              "total_payment_amt"
+            ],
+            "shap_feature": "total_payment_amt",
+            "shap_value": 0.194536
+          },
+          {
+            "statement": "outpatient_claims increased predicted high utilization risk (SHAP +6.253).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": 6.253357
+          },
+          {
+            "statement": "total_claims increased predicted high utilization risk (SHAP +2.711).",
+            "source_fields": [
+              "total_claims"
+            ],
+            "shap_feature": "total_claims",
+            "shap_value": 2.710698
+          },
+          {
+            "statement": "age decreased predicted high utilization risk (SHAP -0.394).",
+            "source_fields": [
+              "age"
+            ],
+            "shap_feature": "age",
+            "shap_value": -0.39351
+          },
+          {
+            "statement": "outpatient_claims increased predicted elevated cost risk (SHAP +2.679).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": 2.679008
+          },
+          {
+            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +1.036).",
+            "source_fields": [
+              "total_payment_amt"
+            ],
+            "shap_feature": "total_payment_amt",
+            "shap_value": 1.036028
+          },
+          {
+            "statement": "total_claims increased predicted elevated cost risk (SHAP +1.029).",
+            "source_fields": [
+              "total_claims"
+            ],
+            "shap_feature": "total_claims",
+            "shap_value": 1.029302
+          }
+        ],
+        "fallback": null
+      },
+      "target_summaries": [
+        {
+          "target": "next_year_hospitalization",
+          "target_short": "hospitalization",
+          "risk_score": 0.41379310344827586,
+          "stability_badge": "green",
+          "top_features": [
+            "outpatient_claims",
             "total_claims",
             "total_payment_amt"
+          ]
+        },
+        {
+          "target": "next_year_high_utilization",
+          "target_short": "high_utilization",
+          "risk_score": 0.9285714285714286,
+          "stability_badge": "green",
+          "top_features": [
+            "outpatient_claims",
+            "total_claims",
+            "age"
+          ]
+        },
+        {
+          "target": "next_year_elevated_cost",
+          "target_short": "elevated_cost",
+          "risk_score": 0.9123711340206185,
+          "stability_badge": "green",
+          "top_features": [
+            "outpatient_claims",
+            "total_payment_amt",
+            "total_claims"
+          ]
+        }
+      ]
+    },
+    "-10000010260449:2022": {
+      "bene_id": "-10000010260449",
+      "analytic_year": 2022,
+      "narrative": "Beneficiary -10000010260449 (2022) \u2014 model family logistic_regression. hospitalization risk is 48%, primarily driven by Inpatient claims (value: 31.0) raised risk, Total claims (value: 301.0) raised risk, Total payment (value: 293773.5) raised risk. high utilization risk is 99%, primarily driven by Total claims (value: 301.0) raised risk, Carrier claims (value: 242.0) raised risk, 30-day readmissions (value: 8.0) raised risk. elevated cost risk is 94%, primarily driven by Total claims (value: 301.0) raised risk, Total payment (value: 293773.5) raised risk, Carrier claims (value: 242.0) raised risk. hospitalization explanation stability: green high_utilization explanation stability: green elevated_cost explanation stability: green",
+      "provider": "template",
+      "grounded": {
+        "beneficiary_id": "-10000010260449",
+        "cohort_id": null,
+        "claims": [
+          {
+            "statement": "inpatient_claims increased predicted hospitalization risk (SHAP +1.046).",
+            "source_fields": [
+              "inpatient_claims"
+            ],
+            "shap_feature": "inpatient_claims",
+            "shap_value": 1.045745
+          },
+          {
+            "statement": "total_claims increased predicted hospitalization risk (SHAP +0.560).",
+            "source_fields": [
+              "total_claims"
+            ],
+            "shap_feature": "total_claims",
+            "shap_value": 0.559728
+          },
+          {
+            "statement": "total_payment_amt increased predicted hospitalization risk (SHAP +0.392).",
+            "source_fields": [
+              "total_payment_amt"
+            ],
+            "shap_feature": "total_payment_amt",
+            "shap_value": 0.392114
+          },
+          {
+            "statement": "total_claims increased predicted high utilization risk (SHAP +6.318).",
+            "source_fields": [
+              "total_claims"
+            ],
+            "shap_feature": "total_claims",
+            "shap_value": 6.318134
+          },
+          {
+            "statement": "carrier_claims increased predicted high utilization risk (SHAP +4.222).",
+            "source_fields": [
+              "carrier_claims"
+            ],
+            "shap_feature": "carrier_claims",
+            "shap_value": 4.222059
+          },
+          {
+            "statement": "readmission_30d_count increased predicted high utilization risk (SHAP +2.795).",
+            "source_fields": [
+              "readmission_30d_count"
+            ],
+            "shap_feature": "readmission_30d_count",
+            "shap_value": 2.795161
+          },
+          {
+            "statement": "total_claims increased predicted elevated cost risk (SHAP +2.399).",
+            "source_fields": [
+              "total_claims"
+            ],
+            "shap_feature": "total_claims",
+            "shap_value": 2.399111
+          },
+          {
+            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +2.088).",
+            "source_fields": [
+              "total_payment_amt"
+            ],
+            "shap_feature": "total_payment_amt",
+            "shap_value": 2.088255
+          },
+          {
+            "statement": "carrier_claims increased predicted elevated cost risk (SHAP +2.068).",
+            "source_fields": [
+              "carrier_claims"
+            ],
+            "shap_feature": "carrier_claims",
+            "shap_value": 2.068156
+          }
+        ],
+        "fallback": null
+      },
+      "target_summaries": [
+        {
+          "target": "next_year_hospitalization",
+          "target_short": "hospitalization",
+          "risk_score": 0.47580645161290336,
+          "stability_badge": "green",
+          "top_features": [
+            "inpatient_claims",
+            "total_claims",
+            "total_payment_amt"
+          ]
+        },
+        {
+          "target": "next_year_high_utilization",
+          "target_short": "high_utilization",
+          "risk_score": 0.9906103286384976,
+          "stability_badge": "green",
+          "top_features": [
+            "total_claims",
+            "carrier_claims",
+            "readmission_30d_count"
+          ]
+        },
+        {
+          "target": "next_year_elevated_cost",
+          "target_short": "elevated_cost",
+          "risk_score": 0.9351351351351351,
+          "stability_badge": "green",
+          "top_features": [
+            "total_claims",
+            "total_payment_amt",
+            "carrier_claims"
           ]
         }
       ]
@@ -126,83 +1107,83 @@
     "-10000010271299:2022": {
       "bene_id": "-10000010271299",
       "analytic_year": 2022,
-      "narrative": "Beneficiary -10000010271299 (2022) \u2014 model family logistic_regression. hospitalization risk is 97%, primarily driven by distinct diagnosis count (value: 7.0) raised risk (SHAP +2.119), rx days supply (value: 1592.0) raised risk (SHAP +0.826), total claims (value: 143.0) raised risk (SHAP +0.477). high utilization risk is 100%, primarily driven by total claims (value: 143.0) raised risk (SHAP +3.514), carrier claims (value: 87.0) raised risk (SHAP +2.796), rx days supply (value: 1592.0) raised risk (SHAP +2.001). elevated cost risk is 100%, primarily driven by rx days supply (value: 1592.0) raised risk (SHAP +1.838), total payment amt (value: 204296.82) raised risk (SHAP +1.643), carrier claims (value: 87.0) raised risk (SHAP +1.394). hospitalization explanation stability: green high_utilization explanation stability: yellow elevated_cost explanation stability: red",
+      "narrative": "Beneficiary -10000010271299 (2022) \u2014 model family logistic_regression. hospitalization risk is 48%, primarily driven by Unique drugs (value: 47.0) raised risk, Distinct diagnoses (value: 7.0) raised risk, Rx fill count (value: 48.0) lowered risk. high utilization risk is 99%, primarily driven by Total claims (value: 143.0) raised risk, dme claims (value: 15.0) raised risk, Outpatient claims (value: 41.0) raised risk. elevated cost risk is 91%, primarily driven by Total payment (value: 204296.82) raised risk, Rx days supply (value: 1592.0) raised risk, Total claims (value: 143.0) raised risk. hospitalization explanation stability: green high_utilization explanation stability: green elevated_cost explanation stability: green",
       "provider": "template",
       "grounded": {
         "beneficiary_id": "-10000010271299",
         "cohort_id": null,
         "claims": [
           {
-            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +2.119).",
+            "statement": "rx_unique_drugs increased predicted hospitalization risk (SHAP +0.932).",
+            "source_fields": [
+              "rx_unique_drugs"
+            ],
+            "shap_feature": "rx_unique_drugs",
+            "shap_value": 0.932204
+          },
+          {
+            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +0.573).",
             "source_fields": [
               "distinct_diagnosis_count"
             ],
             "shap_feature": "distinct_diagnosis_count",
-            "shap_value": 2.119248
+            "shap_value": 0.573143
           },
           {
-            "statement": "rx_days_supply increased predicted hospitalization risk (SHAP +0.826).",
+            "statement": "rx_fill_count decreased predicted hospitalization risk (SHAP -0.348).",
             "source_fields": [
-              "rx_days_supply"
+              "rx_fill_count"
             ],
-            "shap_feature": "rx_days_supply",
-            "shap_value": 0.826048
+            "shap_feature": "rx_fill_count",
+            "shap_value": -0.347943
           },
           {
-            "statement": "total_claims increased predicted hospitalization risk (SHAP +0.477).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 0.477403
-          },
-          {
-            "statement": "total_claims increased predicted high utilization risk (SHAP +3.514).",
+            "statement": "total_claims increased predicted high utilization risk (SHAP +2.800).",
             "source_fields": [
               "total_claims"
             ],
             "shap_feature": "total_claims",
-            "shap_value": 3.513798
+            "shap_value": 2.799771
           },
           {
-            "statement": "carrier_claims increased predicted high utilization risk (SHAP +2.796).",
+            "statement": "dme_claims increased predicted high utilization risk (SHAP +1.999).",
             "source_fields": [
-              "carrier_claims"
+              "dme_claims"
             ],
-            "shap_feature": "carrier_claims",
-            "shap_value": 2.796378
+            "shap_feature": "dme_claims",
+            "shap_value": 1.998764
           },
           {
-            "statement": "rx_days_supply increased predicted high utilization risk (SHAP +2.001).",
+            "statement": "outpatient_claims increased predicted high utilization risk (SHAP +1.819).",
             "source_fields": [
-              "rx_days_supply"
+              "outpatient_claims"
             ],
-            "shap_feature": "rx_days_supply",
-            "shap_value": 2.000655
+            "shap_feature": "outpatient_claims",
+            "shap_value": 1.819084
           },
           {
-            "statement": "rx_days_supply increased predicted elevated cost risk (SHAP +1.838).",
-            "source_fields": [
-              "rx_days_supply"
-            ],
-            "shap_feature": "rx_days_supply",
-            "shap_value": 1.837574
-          },
-          {
-            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +1.643).",
+            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +1.375).",
             "source_fields": [
               "total_payment_amt"
             ],
             "shap_feature": "total_payment_amt",
-            "shap_value": 1.642934
+            "shap_value": 1.374597
           },
           {
-            "statement": "carrier_claims increased predicted elevated cost risk (SHAP +1.394).",
+            "statement": "rx_days_supply increased predicted elevated cost risk (SHAP +1.114).",
             "source_fields": [
-              "carrier_claims"
+              "rx_days_supply"
             ],
-            "shap_feature": "carrier_claims",
-            "shap_value": 1.393925
+            "shap_feature": "rx_days_supply",
+            "shap_value": 1.114348
+          },
+          {
+            "statement": "total_claims increased predicted elevated cost risk (SHAP +1.063).",
+            "source_fields": [
+              "total_claims"
+            ],
+            "shap_feature": "total_claims",
+            "shap_value": 1.063124
           }
         ],
         "fallback": null
@@ -211,34 +1192,34 @@
         {
           "target": "next_year_hospitalization",
           "target_short": "hospitalization",
-          "risk_score": 0.9722889416587308,
+          "risk_score": 0.47580645161290336,
           "stability_badge": "green",
           "top_features": [
+            "rx_unique_drugs",
             "distinct_diagnosis_count",
-            "rx_days_supply",
-            "total_claims"
+            "rx_fill_count"
           ]
         },
         {
           "target": "next_year_high_utilization",
           "target_short": "high_utilization",
-          "risk_score": 0.9999952683436165,
-          "stability_badge": "yellow",
+          "risk_score": 0.9906103286384976,
+          "stability_badge": "green",
           "top_features": [
             "total_claims",
-            "carrier_claims",
-            "rx_days_supply"
+            "dme_claims",
+            "outpatient_claims"
           ]
         },
         {
           "target": "next_year_elevated_cost",
           "target_short": "elevated_cost",
-          "risk_score": 0.9989178647434455,
-          "stability_badge": "red",
+          "risk_score": 0.9123711340206185,
+          "stability_badge": "green",
           "top_features": [
-            "rx_days_supply",
             "total_payment_amt",
-            "carrier_claims"
+            "rx_days_supply",
+            "total_claims"
           ]
         }
       ]
@@ -246,83 +1227,83 @@
     "-10000010273042:2022": {
       "bene_id": "-10000010273042",
       "analytic_year": 2022,
-      "narrative": "Beneficiary -10000010273042 (2022) \u2014 model family logistic_regression. hospitalization risk is 99%, primarily driven by distinct diagnosis count (value: 8.0) raised risk (SHAP +2.515), rx fill count (value: 186.0) lowered risk (SHAP -1.770), rx days supply (value: 2934.0) raised risk (SHAP +1.591). high utilization risk is 100%, primarily driven by total claims (value: 260.0) raised risk (SHAP +6.784), outpatient claims (value: 115.0) raised risk (SHAP +5.488), carrier claims (value: 118.0) raised risk (SHAP +3.920). elevated cost risk is 100%, primarily driven by total payment amt (value: 1152909.09) raised risk (SHAP +10.686), inpatient payment amt (value: 920513.1799999999) lowered risk (SHAP -8.513), rx days supply (value: 2934.0) raised risk (SHAP +3.539). hospitalization explanation stability: yellow high_utilization explanation stability: yellow elevated_cost explanation stability: yellow",
+      "narrative": "Beneficiary -10000010273042 (2022) \u2014 model family logistic_regression. hospitalization risk is 75%, primarily driven by Unique drugs (value: 141.0) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk, Total payment (value: 1152909.09) raised risk. high utilization risk is 99%, primarily driven by Outpatient claims (value: 115.0) raised risk, Total claims (value: 260.0) raised risk, Unique drugs (value: 141.0) raised risk. elevated cost risk is 94%, primarily driven by Total payment (value: 1152909.09) raised risk, Inpatient payment (value: 920513.1799999999) lowered risk, Rx fill count (value: 186.0) lowered risk. hospitalization explanation stability: green high_utilization explanation stability: green elevated_cost explanation stability: green",
       "provider": "template",
       "grounded": {
         "beneficiary_id": "-10000010273042",
         "cohort_id": null,
         "claims": [
           {
-            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +2.515).",
+            "statement": "rx_unique_drugs increased predicted hospitalization risk (SHAP +2.881).",
             "source_fields": [
-              "distinct_diagnosis_count"
+              "rx_unique_drugs"
             ],
-            "shap_feature": "distinct_diagnosis_count",
-            "shap_value": 2.51463
+            "shap_feature": "rx_unique_drugs",
+            "shap_value": 2.881208
           },
           {
-            "statement": "rx_fill_count decreased predicted hospitalization risk (SHAP -1.770).",
-            "source_fields": [
-              "rx_fill_count"
-            ],
-            "shap_feature": "rx_fill_count",
-            "shap_value": -1.76965
-          },
-          {
-            "statement": "rx_days_supply increased predicted hospitalization risk (SHAP +1.591).",
-            "source_fields": [
-              "rx_days_supply"
-            ],
-            "shap_feature": "rx_days_supply",
-            "shap_value": 1.590691
-          },
-          {
-            "statement": "total_claims increased predicted high utilization risk (SHAP +6.784).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 6.783617
-          },
-          {
-            "statement": "outpatient_claims increased predicted high utilization risk (SHAP +5.488).",
-            "source_fields": [
-              "outpatient_claims"
-            ],
-            "shap_feature": "outpatient_claims",
-            "shap_value": 5.48802
-          },
-          {
-            "statement": "carrier_claims increased predicted high utilization risk (SHAP +3.920).",
-            "source_fields": [
-              "carrier_claims"
-            ],
-            "shap_feature": "carrier_claims",
-            "shap_value": 3.920441
-          },
-          {
-            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +10.686).",
-            "source_fields": [
-              "total_payment_amt"
-            ],
-            "shap_feature": "total_payment_amt",
-            "shap_value": 10.685957
-          },
-          {
-            "statement": "inpatient_payment_amt decreased predicted elevated cost risk (SHAP -8.513).",
+            "statement": "inpatient_payment_amt decreased predicted hospitalization risk (SHAP -2.771).",
             "source_fields": [
               "inpatient_payment_amt"
             ],
             "shap_feature": "inpatient_payment_amt",
-            "shap_value": -8.512905
+            "shap_value": -2.77135
           },
           {
-            "statement": "rx_days_supply increased predicted elevated cost risk (SHAP +3.539).",
+            "statement": "total_payment_amt increased predicted hospitalization risk (SHAP +1.679).",
             "source_fields": [
-              "rx_days_supply"
+              "total_payment_amt"
             ],
-            "shap_feature": "rx_days_supply",
-            "shap_value": 3.538551
+            "shap_feature": "total_payment_amt",
+            "shap_value": 1.678796
+          },
+          {
+            "statement": "outpatient_claims increased predicted high utilization risk (SHAP +5.635).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": 5.634622
+          },
+          {
+            "statement": "total_claims increased predicted high utilization risk (SHAP +5.405).",
+            "source_fields": [
+              "total_claims"
+            ],
+            "shap_feature": "total_claims",
+            "shap_value": 5.405141
+          },
+          {
+            "statement": "rx_unique_drugs increased predicted high utilization risk (SHAP +4.386).",
+            "source_fields": [
+              "rx_unique_drugs"
+            ],
+            "shap_feature": "rx_unique_drugs",
+            "shap_value": 4.385814
+          },
+          {
+            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +8.941).",
+            "source_fields": [
+              "total_payment_amt"
+            ],
+            "shap_feature": "total_payment_amt",
+            "shap_value": 8.940642
+          },
+          {
+            "statement": "inpatient_payment_amt decreased predicted elevated cost risk (SHAP -8.829).",
+            "source_fields": [
+              "inpatient_payment_amt"
+            ],
+            "shap_feature": "inpatient_payment_amt",
+            "shap_value": -8.828791
+          },
+          {
+            "statement": "rx_fill_count decreased predicted elevated cost risk (SHAP -3.294).",
+            "source_fields": [
+              "rx_fill_count"
+            ],
+            "shap_feature": "rx_fill_count",
+            "shap_value": -3.293749
           }
         ],
         "fallback": null
@@ -331,34 +1312,34 @@
         {
           "target": "next_year_hospitalization",
           "target_short": "hospitalization",
-          "risk_score": 0.9892794120406588,
-          "stability_badge": "yellow",
+          "risk_score": 0.75,
+          "stability_badge": "green",
           "top_features": [
-            "distinct_diagnosis_count",
-            "rx_fill_count",
-            "rx_days_supply"
+            "rx_unique_drugs",
+            "inpatient_payment_amt",
+            "total_payment_amt"
           ]
         },
         {
           "target": "next_year_high_utilization",
           "target_short": "high_utilization",
-          "risk_score": 0.9999999515824841,
-          "stability_badge": "yellow",
+          "risk_score": 0.9906103286384976,
+          "stability_badge": "green",
           "top_features": [
-            "total_claims",
             "outpatient_claims",
-            "carrier_claims"
+            "total_claims",
+            "rx_unique_drugs"
           ]
         },
         {
           "target": "next_year_elevated_cost",
           "target_short": "elevated_cost",
-          "risk_score": 0.999873305640063,
-          "stability_badge": "yellow",
+          "risk_score": 0.9351351351351351,
+          "stability_badge": "green",
           "top_features": [
             "total_payment_amt",
             "inpatient_payment_amt",
-            "rx_days_supply"
+            "rx_fill_count"
           ]
         }
       ]
@@ -366,83 +1347,83 @@
     "-10000010266211:2022": {
       "bene_id": "-10000010266211",
       "analytic_year": 2022,
-      "narrative": "Beneficiary -10000010266211 (2022) \u2014 model family logistic_regression. hospitalization risk is 93%, primarily driven by rx days supply (value: 2406.0) raised risk (SHAP +1.290), distinct diagnosis count (value: 4.0) raised risk (SHAP +0.933), outpatient claims (value: 66.0) raised risk (SHAP +0.783). high utilization risk is 100%, primarily driven by rx days supply (value: 2406.0) raised risk (SHAP +3.124), outpatient claims (value: 66.0) raised risk (SHAP +3.027), total claims (value: 118.0) raised risk (SHAP +2.815). elevated cost risk is 100%, primarily driven by rx days supply (value: 2406.0) raised risk (SHAP +2.869), outpatient claims (value: 66.0) raised risk (SHAP +1.280), rx fill count (value: 74.0) lowered risk (SHAP -1.188). hospitalization explanation stability: yellow high_utilization explanation stability: red elevated_cost explanation stability: green",
+      "narrative": "Beneficiary -10000010266211 (2022) \u2014 model family logistic_regression. hospitalization risk is 43%, primarily driven by Unique drugs (value: 64.0) raised risk, Rx fill count (value: 74.0) lowered risk, Outpatient claims (value: 66.0) raised risk. high utilization risk is 99%, primarily driven by Outpatient claims (value: 66.0) raised risk, Total claims (value: 118.0) raised risk, Unique drugs (value: 64.0) raised risk. elevated cost risk is 91%, primarily driven by Rx days supply (value: 2406.0) raised risk, Outpatient claims (value: 66.0) raised risk, Rx fill count (value: 74.0) lowered risk. hospitalization explanation stability: green high_utilization explanation stability: green elevated_cost explanation stability: green",
       "provider": "template",
       "grounded": {
         "beneficiary_id": "-10000010266211",
         "cohort_id": null,
         "claims": [
           {
-            "statement": "rx_days_supply increased predicted hospitalization risk (SHAP +1.290).",
+            "statement": "rx_unique_drugs increased predicted hospitalization risk (SHAP +1.285).",
+            "source_fields": [
+              "rx_unique_drugs"
+            ],
+            "shap_feature": "rx_unique_drugs",
+            "shap_value": 1.284684
+          },
+          {
+            "statement": "rx_fill_count decreased predicted hospitalization risk (SHAP -0.552).",
+            "source_fields": [
+              "rx_fill_count"
+            ],
+            "shap_feature": "rx_fill_count",
+            "shap_value": -0.552431
+          },
+          {
+            "statement": "outpatient_claims increased predicted hospitalization risk (SHAP +0.521).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": 0.520593
+          },
+          {
+            "statement": "outpatient_claims increased predicted high utilization risk (SHAP +3.108).",
+            "source_fields": [
+              "outpatient_claims"
+            ],
+            "shap_feature": "outpatient_claims",
+            "shap_value": 3.108117
+          },
+          {
+            "statement": "total_claims increased predicted high utilization risk (SHAP +2.243).",
+            "source_fields": [
+              "total_claims"
+            ],
+            "shap_feature": "total_claims",
+            "shap_value": 2.243068
+          },
+          {
+            "statement": "rx_unique_drugs increased predicted high utilization risk (SHAP +1.956).",
+            "source_fields": [
+              "rx_unique_drugs"
+            ],
+            "shap_feature": "rx_unique_drugs",
+            "shap_value": 1.955563
+          },
+          {
+            "statement": "rx_days_supply increased predicted elevated cost risk (SHAP +1.740).",
             "source_fields": [
               "rx_days_supply"
             ],
             "shap_feature": "rx_days_supply",
-            "shap_value": 1.289847
+            "shap_value": 1.740019
           },
           {
-            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +0.933).",
-            "source_fields": [
-              "distinct_diagnosis_count"
-            ],
-            "shap_feature": "distinct_diagnosis_count",
-            "shap_value": 0.933102
-          },
-          {
-            "statement": "outpatient_claims increased predicted hospitalization risk (SHAP +0.783).",
+            "statement": "outpatient_claims increased predicted elevated cost risk (SHAP +1.332).",
             "source_fields": [
               "outpatient_claims"
             ],
             "shap_feature": "outpatient_claims",
-            "shap_value": 0.783203
+            "shap_value": 1.331552
           },
           {
-            "statement": "rx_days_supply increased predicted high utilization risk (SHAP +3.124).",
-            "source_fields": [
-              "rx_days_supply"
-            ],
-            "shap_feature": "rx_days_supply",
-            "shap_value": 3.12396
-          },
-          {
-            "statement": "outpatient_claims increased predicted high utilization risk (SHAP +3.027).",
-            "source_fields": [
-              "outpatient_claims"
-            ],
-            "shap_feature": "outpatient_claims",
-            "shap_value": 3.02725
-          },
-          {
-            "statement": "total_claims increased predicted high utilization risk (SHAP +2.815).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 2.815118
-          },
-          {
-            "statement": "rx_days_supply increased predicted elevated cost risk (SHAP +2.869).",
-            "source_fields": [
-              "rx_days_supply"
-            ],
-            "shap_feature": "rx_days_supply",
-            "shap_value": 2.869314
-          },
-          {
-            "statement": "outpatient_claims increased predicted elevated cost risk (SHAP +1.280).",
-            "source_fields": [
-              "outpatient_claims"
-            ],
-            "shap_feature": "outpatient_claims",
-            "shap_value": 1.279502
-          },
-          {
-            "statement": "rx_fill_count decreased predicted elevated cost risk (SHAP -1.188).",
+            "statement": "rx_fill_count decreased predicted elevated cost risk (SHAP -1.269).",
             "source_fields": [
               "rx_fill_count"
             ],
             "shap_feature": "rx_fill_count",
-            "shap_value": -1.188012
+            "shap_value": -1.269496
           }
         ],
         "fallback": null
@@ -451,994 +1432,34 @@
         {
           "target": "next_year_hospitalization",
           "target_short": "hospitalization",
-          "risk_score": 0.9314111988776702,
-          "stability_badge": "yellow",
-          "top_features": [
-            "rx_days_supply",
-            "distinct_diagnosis_count",
-            "outpatient_claims"
-          ]
-        },
-        {
-          "target": "next_year_high_utilization",
-          "target_short": "high_utilization",
-          "risk_score": 0.9999527825158281,
-          "stability_badge": "red",
-          "top_features": [
-            "rx_days_supply",
-            "outpatient_claims",
-            "total_claims"
-          ]
-        },
-        {
-          "target": "next_year_elevated_cost",
-          "target_short": "elevated_cost",
-          "risk_score": 0.9967090655476684,
+          "risk_score": 0.43,
           "stability_badge": "green",
           "top_features": [
-            "rx_days_supply",
-            "outpatient_claims",
-            "rx_fill_count"
-          ]
-        }
-      ]
-    },
-    "-10000010263023:2022": {
-      "bene_id": "-10000010263023",
-      "analytic_year": 2022,
-      "narrative": "Beneficiary -10000010263023 (2022) \u2014 model family logistic_regression. hospitalization risk is 100%, primarily driven by total payment amt (value: 4860169.21) raised risk (SHAP +6.301), distinct diagnosis count (value: 3.0) raised risk (SHAP +0.538), outpatient claims (value: 42.0) raised risk (SHAP +0.471). high utilization risk is 80%, primarily driven by outpatient claims (value: 42.0) raised risk (SHAP +1.822), total payment amt (value: 4860169.21) lowered risk (SHAP -1.773), total claims (value: 71.0) raised risk (SHAP +1.502). elevated cost risk is 100%, primarily driven by total payment amt (value: 4860169.21) raised risk (SHAP +46.027), hospice claims (value: 8.0) lowered risk (SHAP -1.220), outpatient claims (value: 42.0) raised risk (SHAP +0.770). hospitalization explanation stability: green high_utilization explanation stability: red elevated_cost explanation stability: green",
-      "provider": "template",
-      "grounded": {
-        "beneficiary_id": "-10000010263023",
-        "cohort_id": null,
-        "claims": [
-          {
-            "statement": "total_payment_amt increased predicted hospitalization risk (SHAP +6.301).",
-            "source_fields": [
-              "total_payment_amt"
-            ],
-            "shap_feature": "total_payment_amt",
-            "shap_value": 6.300588
-          },
-          {
-            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +0.538).",
-            "source_fields": [
-              "distinct_diagnosis_count"
-            ],
-            "shap_feature": "distinct_diagnosis_count",
-            "shap_value": 0.53772
-          },
-          {
-            "statement": "outpatient_claims increased predicted hospitalization risk (SHAP +0.471).",
-            "source_fields": [
-              "outpatient_claims"
-            ],
-            "shap_feature": "outpatient_claims",
-            "shap_value": 0.471377
-          },
-          {
-            "statement": "outpatient_claims increased predicted high utilization risk (SHAP +1.822).",
-            "source_fields": [
-              "outpatient_claims"
-            ],
-            "shap_feature": "outpatient_claims",
-            "shap_value": 1.821974
-          },
-          {
-            "statement": "total_payment_amt decreased predicted high utilization risk (SHAP -1.773).",
-            "source_fields": [
-              "total_payment_amt"
-            ],
-            "shap_feature": "total_payment_amt",
-            "shap_value": -1.773066
-          },
-          {
-            "statement": "total_claims increased predicted high utilization risk (SHAP +1.502).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 1.501601
-          },
-          {
-            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +46.027).",
-            "source_fields": [
-              "total_payment_amt"
-            ],
-            "shap_feature": "total_payment_amt",
-            "shap_value": 46.026885
-          },
-          {
-            "statement": "hospice_claims decreased predicted elevated cost risk (SHAP -1.220).",
-            "source_fields": [
-              "hospice_claims"
-            ],
-            "shap_feature": "hospice_claims",
-            "shap_value": -1.220287
-          },
-          {
-            "statement": "outpatient_claims increased predicted elevated cost risk (SHAP +0.770).",
-            "source_fields": [
-              "outpatient_claims"
-            ],
-            "shap_feature": "outpatient_claims",
-            "shap_value": 0.770078
-          }
-        ],
-        "fallback": null
-      },
-      "target_summaries": [
-        {
-          "target": "next_year_hospitalization",
-          "target_short": "hospitalization",
-          "risk_score": 0.9992036482821351,
-          "stability_badge": "green",
-          "top_features": [
-            "total_payment_amt",
-            "distinct_diagnosis_count",
-            "outpatient_claims"
-          ]
-        },
-        {
-          "target": "next_year_high_utilization",
-          "target_short": "high_utilization",
-          "risk_score": 0.8035964020506705,
-          "stability_badge": "red",
-          "top_features": [
-            "outpatient_claims",
-            "total_payment_amt",
-            "total_claims"
-          ]
-        },
-        {
-          "target": "next_year_elevated_cost",
-          "target_short": "elevated_cost",
-          "risk_score": 1.0,
-          "stability_badge": "green",
-          "top_features": [
-            "total_payment_amt",
-            "hospice_claims",
-            "outpatient_claims"
-          ]
-        }
-      ]
-    },
-    "-10000010266687:2022": {
-      "bene_id": "-10000010266687",
-      "analytic_year": 2022,
-      "narrative": "Beneficiary -10000010266687 (2022) \u2014 model family logistic_regression. hospitalization risk is 99%, primarily driven by distinct diagnosis count (value: 10.0) raised risk (SHAP +3.305), total claims (value: 252.0) raised risk (SHAP +0.891), rx fill count (value: 90.0) lowered risk (SHAP -0.837). high utilization risk is 100%, primarily driven by total claims (value: 252.0) raised risk (SHAP +6.560), carrier claims (value: 151.0) raised risk (SHAP +5.117), outpatient claims (value: 63.0) raised risk (SHAP +2.877). elevated cost risk is 100%, primarily driven by total payment amt (value: 392599.63) raised risk (SHAP +3.438), total claims (value: 252.0) raised risk (SHAP +2.559), carrier claims (value: 151.0) raised risk (SHAP +2.551). hospitalization explanation stability: green high_utilization explanation stability: yellow elevated_cost explanation stability: yellow",
-      "provider": "template",
-      "grounded": {
-        "beneficiary_id": "-10000010266687",
-        "cohort_id": null,
-        "claims": [
-          {
-            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +3.305).",
-            "source_fields": [
-              "distinct_diagnosis_count"
-            ],
-            "shap_feature": "distinct_diagnosis_count",
-            "shap_value": 3.305394
-          },
-          {
-            "statement": "total_claims increased predicted hospitalization risk (SHAP +0.891).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 0.891281
-          },
-          {
-            "statement": "rx_fill_count decreased predicted hospitalization risk (SHAP -0.837).",
-            "source_fields": [
-              "rx_fill_count"
-            ],
-            "shap_feature": "rx_fill_count",
-            "shap_value": -0.837438
-          },
-          {
-            "statement": "total_claims increased predicted high utilization risk (SHAP +6.560).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 6.560039
-          },
-          {
-            "statement": "carrier_claims increased predicted high utilization risk (SHAP +5.117).",
-            "source_fields": [
-              "carrier_claims"
-            ],
-            "shap_feature": "carrier_claims",
-            "shap_value": 5.117024
-          },
-          {
-            "statement": "outpatient_claims increased predicted high utilization risk (SHAP +2.877).",
-            "source_fields": [
-              "outpatient_claims"
-            ],
-            "shap_feature": "outpatient_claims",
-            "shap_value": 2.87659
-          },
-          {
-            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +3.438).",
-            "source_fields": [
-              "total_payment_amt"
-            ],
-            "shap_feature": "total_payment_amt",
-            "shap_value": 3.438005
-          },
-          {
-            "statement": "total_claims increased predicted elevated cost risk (SHAP +2.559).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 2.558903
-          },
-          {
-            "statement": "carrier_claims increased predicted elevated cost risk (SHAP +2.551).",
-            "source_fields": [
-              "carrier_claims"
-            ],
-            "shap_feature": "carrier_claims",
-            "shap_value": 2.550709
-          }
-        ],
-        "fallback": null
-      },
-      "target_summaries": [
-        {
-          "target": "next_year_hospitalization",
-          "target_short": "hospitalization",
-          "risk_score": 0.9903386263766623,
-          "stability_badge": "green",
-          "top_features": [
-            "distinct_diagnosis_count",
-            "total_claims",
-            "rx_fill_count"
-          ]
-        },
-        {
-          "target": "next_year_high_utilization",
-          "target_short": "high_utilization",
-          "risk_score": 0.9999962924687207,
-          "stability_badge": "yellow",
-          "top_features": [
-            "total_claims",
-            "carrier_claims",
-            "outpatient_claims"
-          ]
-        },
-        {
-          "target": "next_year_elevated_cost",
-          "target_short": "elevated_cost",
-          "risk_score": 0.9986484810194356,
-          "stability_badge": "yellow",
-          "top_features": [
-            "total_payment_amt",
-            "total_claims",
-            "carrier_claims"
-          ]
-        }
-      ]
-    },
-    "-10000010279991:2022": {
-      "bene_id": "-10000010279991",
-      "analytic_year": 2022,
-      "narrative": "Beneficiary -10000010279991 (2022) \u2014 model family logistic_regression. hospitalization risk is 99%, primarily driven by distinct diagnosis count (value: 8.0) raised risk (SHAP +2.515), total payment amt (value: 1041455.01) raised risk (SHAP +1.317), rx days supply (value: 1568.0) raised risk (SHAP +0.812). high utilization risk is 100%, primarily driven by carrier claims (value: 90.0) raised risk (SHAP +2.905), total claims (value: 119.0) raised risk (SHAP +2.843), rx days supply (value: 1568.0) raised risk (SHAP +1.968). elevated cost risk is 100%, primarily driven by total payment amt (value: 1041455.01) raised risk (SHAP +9.623), rx days supply (value: 1568.0) raised risk (SHAP +1.807), inpatient payment amt (value: 192254.41) lowered risk (SHAP -1.768). hospitalization explanation stability: green high_utilization explanation stability: red elevated_cost explanation stability: green",
-      "provider": "template",
-      "grounded": {
-        "beneficiary_id": "-10000010279991",
-        "cohort_id": null,
-        "claims": [
-          {
-            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +2.515).",
-            "source_fields": [
-              "distinct_diagnosis_count"
-            ],
-            "shap_feature": "distinct_diagnosis_count",
-            "shap_value": 2.51463
-          },
-          {
-            "statement": "total_payment_amt increased predicted hospitalization risk (SHAP +1.317).",
-            "source_fields": [
-              "total_payment_amt"
-            ],
-            "shap_feature": "total_payment_amt",
-            "shap_value": 1.317351
-          },
-          {
-            "statement": "rx_days_supply increased predicted hospitalization risk (SHAP +0.812).",
-            "source_fields": [
-              "rx_days_supply"
-            ],
-            "shap_feature": "rx_days_supply",
-            "shap_value": 0.812373
-          },
-          {
-            "statement": "carrier_claims increased predicted high utilization risk (SHAP +2.905).",
-            "source_fields": [
-              "carrier_claims"
-            ],
-            "shap_feature": "carrier_claims",
-            "shap_value": 2.905158
-          },
-          {
-            "statement": "total_claims increased predicted high utilization risk (SHAP +2.843).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 2.843066
-          },
-          {
-            "statement": "rx_days_supply increased predicted high utilization risk (SHAP +1.968).",
-            "source_fields": [
-              "rx_days_supply"
-            ],
-            "shap_feature": "rx_days_supply",
-            "shap_value": 1.967536
-          },
-          {
-            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +9.623).",
-            "source_fields": [
-              "total_payment_amt"
-            ],
-            "shap_feature": "total_payment_amt",
-            "shap_value": 9.623477
-          },
-          {
-            "statement": "rx_days_supply increased predicted elevated cost risk (SHAP +1.807).",
-            "source_fields": [
-              "rx_days_supply"
-            ],
-            "shap_feature": "rx_days_supply",
-            "shap_value": 1.807154
-          },
-          {
-            "statement": "inpatient_payment_amt decreased predicted elevated cost risk (SHAP -1.768).",
-            "source_fields": [
-              "inpatient_payment_amt"
-            ],
-            "shap_feature": "inpatient_payment_amt",
-            "shap_value": -1.768235
-          }
-        ],
-        "fallback": null
-      },
-      "target_summaries": [
-        {
-          "target": "next_year_hospitalization",
-          "target_short": "hospitalization",
-          "risk_score": 0.9919204999588875,
-          "stability_badge": "green",
-          "top_features": [
-            "distinct_diagnosis_count",
-            "total_payment_amt",
-            "rx_days_supply"
-          ]
-        },
-        {
-          "target": "next_year_high_utilization",
-          "target_short": "high_utilization",
-          "risk_score": 0.999243664042103,
-          "stability_badge": "red",
-          "top_features": [
-            "carrier_claims",
-            "total_claims",
-            "rx_days_supply"
-          ]
-        },
-        {
-          "target": "next_year_elevated_cost",
-          "target_short": "elevated_cost",
-          "risk_score": 0.9999942163900313,
-          "stability_badge": "green",
-          "top_features": [
-            "total_payment_amt",
-            "rx_days_supply",
-            "inpatient_payment_amt"
-          ]
-        }
-      ]
-    },
-    "-10000010259786:2022": {
-      "bene_id": "-10000010259786",
-      "analytic_year": 2022,
-      "narrative": "Beneficiary -10000010259786 (2022) \u2014 model family logistic_regression. hospitalization risk is 100%, primarily driven by distinct diagnosis count (value: 10.0) raised risk (SHAP +3.305), readmission 30d count (value: 36.0) raised risk (SHAP +2.658), total claims (value: 282.0) raised risk (SHAP +1.005). high utilization risk is 100%, primarily driven by inpatient claims (value: 135.0) lowered risk (SHAP -7.647), total claims (value: 282.0) raised risk (SHAP +7.398), readmission 30d count (value: 36.0) raised risk (SHAP +6.894). elevated cost risk is 100%, primarily driven by readmission 30d count (value: 36.0) raised risk (SHAP +9.017), inpatient claims (value: 135.0) lowered risk (SHAP -8.323), total payment amt (value: 389299.59) raised risk (SHAP +3.407). hospitalization explanation stability: yellow high_utilization explanation stability: red elevated_cost explanation stability: red",
-      "provider": "template",
-      "grounded": {
-        "beneficiary_id": "-10000010259786",
-        "cohort_id": null,
-        "claims": [
-          {
-            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +3.305).",
-            "source_fields": [
-              "distinct_diagnosis_count"
-            ],
-            "shap_feature": "distinct_diagnosis_count",
-            "shap_value": 3.305394
-          },
-          {
-            "statement": "readmission_30d_count increased predicted hospitalization risk (SHAP +2.658).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 2.658473
-          },
-          {
-            "statement": "total_claims increased predicted hospitalization risk (SHAP +1.005).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 1.005192
-          },
-          {
-            "statement": "inpatient_claims decreased predicted high utilization risk (SHAP -7.647).",
-            "source_fields": [
-              "inpatient_claims"
-            ],
-            "shap_feature": "inpatient_claims",
-            "shap_value": -7.646743
-          },
-          {
-            "statement": "total_claims increased predicted high utilization risk (SHAP +7.398).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 7.398454
-          },
-          {
-            "statement": "readmission_30d_count increased predicted high utilization risk (SHAP +6.894).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 6.894063
-          },
-          {
-            "statement": "readmission_30d_count increased predicted elevated cost risk (SHAP +9.017).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 9.016666
-          },
-          {
-            "statement": "inpatient_claims decreased predicted elevated cost risk (SHAP -8.323).",
-            "source_fields": [
-              "inpatient_claims"
-            ],
-            "shap_feature": "inpatient_claims",
-            "shap_value": -8.323376
-          },
-          {
-            "statement": "total_payment_amt increased predicted elevated cost risk (SHAP +3.407).",
-            "source_fields": [
-              "total_payment_amt"
-            ],
-            "shap_feature": "total_payment_amt",
-            "shap_value": 3.406546
-          }
-        ],
-        "fallback": null
-      },
-      "target_summaries": [
-        {
-          "target": "next_year_hospitalization",
-          "target_short": "hospitalization",
-          "risk_score": 0.9986995314889665,
-          "stability_badge": "yellow",
-          "top_features": [
-            "distinct_diagnosis_count",
-            "readmission_30d_count",
-            "total_claims"
-          ]
-        },
-        {
-          "target": "next_year_high_utilization",
-          "target_short": "high_utilization",
-          "risk_score": 0.9999909142623794,
-          "stability_badge": "red",
-          "top_features": [
-            "inpatient_claims",
-            "total_claims",
-            "readmission_30d_count"
-          ]
-        },
-        {
-          "target": "next_year_elevated_cost",
-          "target_short": "elevated_cost",
-          "risk_score": 0.9997509352137812,
-          "stability_badge": "red",
-          "top_features": [
-            "readmission_30d_count",
-            "inpatient_claims",
-            "total_payment_amt"
-          ]
-        }
-      ]
-    },
-    "-10000010275202:2022": {
-      "bene_id": "-10000010275202",
-      "analytic_year": 2022,
-      "narrative": "Beneficiary -10000010275202 (2022) \u2014 model family logistic_regression. hospitalization risk is 86%, primarily driven by dme claims (value: 126.0) lowered risk (SHAP -4.279), readmission 30d count (value: 46.0) raised risk (SHAP +3.397), distinct diagnosis count (value: 9.0) raised risk (SHAP +2.910). high utilization risk is 100%, primarily driven by dme claims (value: 126.0) raised risk (SHAP +17.661), inpatient claims (value: 183.0) lowered risk (SHAP -10.370), total claims (value: 387.0) raised risk (SHAP +10.333). elevated cost risk is 99%, primarily driven by readmission 30d count (value: 46.0) raised risk (SHAP +11.521), inpatient claims (value: 183.0) lowered risk (SHAP -11.288), total claims (value: 387.0) raised risk (SHAP +4.031). hospitalization explanation stability: yellow high_utilization explanation stability: green elevated_cost explanation stability: red",
-      "provider": "template",
-      "grounded": {
-        "beneficiary_id": "-10000010275202",
-        "cohort_id": null,
-        "claims": [
-          {
-            "statement": "dme_claims decreased predicted hospitalization risk (SHAP -4.279).",
-            "source_fields": [
-              "dme_claims"
-            ],
-            "shap_feature": "dme_claims",
-            "shap_value": -4.278927
-          },
-          {
-            "statement": "readmission_30d_count increased predicted hospitalization risk (SHAP +3.397).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 3.396938
-          },
-          {
-            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +2.910).",
-            "source_fields": [
-              "distinct_diagnosis_count"
-            ],
-            "shap_feature": "distinct_diagnosis_count",
-            "shap_value": 2.910012
-          },
-          {
-            "statement": "dme_claims increased predicted high utilization risk (SHAP +17.661).",
-            "source_fields": [
-              "dme_claims"
-            ],
-            "shap_feature": "dme_claims",
-            "shap_value": 17.660681
-          },
-          {
-            "statement": "inpatient_claims decreased predicted high utilization risk (SHAP -10.370).",
-            "source_fields": [
-              "inpatient_claims"
-            ],
-            "shap_feature": "inpatient_claims",
-            "shap_value": -10.370428
-          },
-          {
-            "statement": "total_claims increased predicted high utilization risk (SHAP +10.333).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 10.332907
-          },
-          {
-            "statement": "readmission_30d_count increased predicted elevated cost risk (SHAP +11.521).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 11.521295
-          },
-          {
-            "statement": "inpatient_claims decreased predicted elevated cost risk (SHAP -11.288).",
-            "source_fields": [
-              "inpatient_claims"
-            ],
-            "shap_feature": "inpatient_claims",
-            "shap_value": -11.28807
-          },
-          {
-            "statement": "total_claims increased predicted elevated cost risk (SHAP +4.031).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 4.030603
-          }
-        ],
-        "fallback": null
-      },
-      "target_summaries": [
-        {
-          "target": "next_year_hospitalization",
-          "target_short": "hospitalization",
-          "risk_score": 0.8581635287551509,
-          "stability_badge": "yellow",
-          "top_features": [
-            "dme_claims",
-            "readmission_30d_count",
-            "distinct_diagnosis_count"
-          ]
-        },
-        {
-          "target": "next_year_high_utilization",
-          "target_short": "high_utilization",
-          "risk_score": 0.9999999999996771,
-          "stability_badge": "green",
-          "top_features": [
-            "dme_claims",
-            "inpatient_claims",
-            "total_claims"
-          ]
-        },
-        {
-          "target": "next_year_elevated_cost",
-          "target_short": "elevated_cost",
-          "risk_score": 0.9947022518615385,
-          "stability_badge": "red",
-          "top_features": [
-            "readmission_30d_count",
-            "inpatient_claims",
-            "total_claims"
-          ]
-        }
-      ]
-    },
-    "-10000010262670:2022": {
-      "bene_id": "-10000010262670",
-      "analytic_year": 2022,
-      "narrative": "Beneficiary -10000010262670 (2022) \u2014 model family logistic_regression. hospitalization risk is 99%, primarily driven by readmission 30d count (value: 46.0) raised risk (SHAP +3.397), distinct diagnosis count (value: 8.0) raised risk (SHAP +2.515), rx fill count (value: 208.0) lowered risk (SHAP -1.983). high utilization risk is 100%, primarily driven by inpatient claims (value: 168.0) lowered risk (SHAP -9.519), readmission 30d count (value: 46.0) raised risk (SHAP +8.809), total claims (value: 229.0) raised risk (SHAP +5.917). elevated cost risk is 97%, primarily driven by readmission 30d count (value: 46.0) raised risk (SHAP +11.521), inpatient claims (value: 168.0) lowered risk (SHAP -10.362), rx fill count (value: 208.0) lowered risk (SHAP -3.454). hospitalization explanation stability: yellow high_utilization explanation stability: red elevated_cost explanation stability: red",
-      "provider": "template",
-      "grounded": {
-        "beneficiary_id": "-10000010262670",
-        "cohort_id": null,
-        "claims": [
-          {
-            "statement": "readmission_30d_count increased predicted hospitalization risk (SHAP +3.397).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 3.396938
-          },
-          {
-            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +2.515).",
-            "source_fields": [
-              "distinct_diagnosis_count"
-            ],
-            "shap_feature": "distinct_diagnosis_count",
-            "shap_value": 2.51463
-          },
-          {
-            "statement": "rx_fill_count decreased predicted hospitalization risk (SHAP -1.983).",
-            "source_fields": [
-              "rx_fill_count"
-            ],
-            "shap_feature": "rx_fill_count",
-            "shap_value": -1.983282
-          },
-          {
-            "statement": "inpatient_claims decreased predicted high utilization risk (SHAP -9.519).",
-            "source_fields": [
-              "inpatient_claims"
-            ],
-            "shap_feature": "inpatient_claims",
-            "shap_value": -9.519276
-          },
-          {
-            "statement": "readmission_30d_count increased predicted high utilization risk (SHAP +8.809).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 8.80908
-          },
-          {
-            "statement": "total_claims increased predicted high utilization risk (SHAP +5.917).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 5.917254
-          },
-          {
-            "statement": "readmission_30d_count increased predicted elevated cost risk (SHAP +11.521).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 11.521295
-          },
-          {
-            "statement": "inpatient_claims decreased predicted elevated cost risk (SHAP -10.362).",
-            "source_fields": [
-              "inpatient_claims"
-            ],
-            "shap_feature": "inpatient_claims",
-            "shap_value": -10.361603
-          },
-          {
-            "statement": "rx_fill_count decreased predicted elevated cost risk (SHAP -3.454).",
-            "source_fields": [
-              "rx_fill_count"
-            ],
-            "shap_feature": "rx_fill_count",
-            "shap_value": -3.454437
-          }
-        ],
-        "fallback": null
-      },
-      "target_summaries": [
-        {
-          "target": "next_year_hospitalization",
-          "target_short": "hospitalization",
-          "risk_score": 0.9921702627931956,
-          "stability_badge": "yellow",
-          "top_features": [
-            "readmission_30d_count",
-            "distinct_diagnosis_count",
-            "rx_fill_count"
-          ]
-        },
-        {
-          "target": "next_year_high_utilization",
-          "target_short": "high_utilization",
-          "risk_score": 0.9986933899371783,
-          "stability_badge": "red",
-          "top_features": [
-            "inpatient_claims",
-            "readmission_30d_count",
-            "total_claims"
-          ]
-        },
-        {
-          "target": "next_year_elevated_cost",
-          "target_short": "elevated_cost",
-          "risk_score": 0.9726168207609603,
-          "stability_badge": "red",
-          "top_features": [
-            "readmission_30d_count",
-            "inpatient_claims",
-            "rx_fill_count"
-          ]
-        }
-      ]
-    },
-    "-10000010256636:2022": {
-      "bene_id": "-10000010256636",
-      "analytic_year": 2022,
-      "narrative": "Beneficiary -10000010256636 (2022) \u2014 model family logistic_regression. hospitalization risk is 94%, primarily driven by rx fill count (value: 468.0) lowered risk (SHAP -4.508), readmission 30d count (value: 45.0) raised risk (SHAP +3.323), distinct diagnosis count (value: 7.0) raised risk (SHAP +2.119). high utilization risk is 96%, primarily driven by inpatient claims (value: 162.0) lowered risk (SHAP -9.179), rx fill count (value: 468.0) lowered risk (SHAP -9.005), readmission 30d count (value: 45.0) raised risk (SHAP +8.618). elevated cost risk is 45%, primarily driven by readmission 30d count (value: 45.0) raised risk (SHAP +11.271), inpatient claims (value: 162.0) lowered risk (SHAP -9.991), rx fill count (value: 468.0) lowered risk (SHAP -7.852). hospitalization explanation stability: yellow high_utilization explanation stability: red elevated_cost explanation stability: red",
-      "provider": "template",
-      "grounded": {
-        "beneficiary_id": "-10000010256636",
-        "cohort_id": null,
-        "claims": [
-          {
-            "statement": "rx_fill_count decreased predicted hospitalization risk (SHAP -4.508).",
-            "source_fields": [
-              "rx_fill_count"
-            ],
-            "shap_feature": "rx_fill_count",
-            "shap_value": -4.508024
-          },
-          {
-            "statement": "readmission_30d_count increased predicted hospitalization risk (SHAP +3.323).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 3.323091
-          },
-          {
-            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +2.119).",
-            "source_fields": [
-              "distinct_diagnosis_count"
-            ],
-            "shap_feature": "distinct_diagnosis_count",
-            "shap_value": 2.119248
-          },
-          {
-            "statement": "inpatient_claims decreased predicted high utilization risk (SHAP -9.179).",
-            "source_fields": [
-              "inpatient_claims"
-            ],
-            "shap_feature": "inpatient_claims",
-            "shap_value": -9.178816
-          },
-          {
-            "statement": "rx_fill_count decreased predicted high utilization risk (SHAP -9.005).",
-            "source_fields": [
-              "rx_fill_count"
-            ],
-            "shap_feature": "rx_fill_count",
-            "shap_value": -9.005435
-          },
-          {
-            "statement": "readmission_30d_count increased predicted high utilization risk (SHAP +8.618).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 8.617578
-          },
-          {
-            "statement": "readmission_30d_count increased predicted elevated cost risk (SHAP +11.271).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 11.270832
-          },
-          {
-            "statement": "inpatient_claims decreased predicted elevated cost risk (SHAP -9.991).",
-            "source_fields": [
-              "inpatient_claims"
-            ],
-            "shap_feature": "inpatient_claims",
-            "shap_value": -9.991016
-          },
-          {
-            "statement": "rx_fill_count decreased predicted elevated cost risk (SHAP -7.852).",
-            "source_fields": [
-              "rx_fill_count"
-            ],
-            "shap_feature": "rx_fill_count",
-            "shap_value": -7.851977
-          }
-        ],
-        "fallback": null
-      },
-      "target_summaries": [
-        {
-          "target": "next_year_hospitalization",
-          "target_short": "hospitalization",
-          "risk_score": 0.9352408876407863,
-          "stability_badge": "yellow",
-          "top_features": [
+            "rx_unique_drugs",
             "rx_fill_count",
-            "readmission_30d_count",
-            "distinct_diagnosis_count"
+            "outpatient_claims"
           ]
         },
         {
           "target": "next_year_high_utilization",
           "target_short": "high_utilization",
-          "risk_score": 0.9560083239905137,
-          "stability_badge": "red",
-          "top_features": [
-            "inpatient_claims",
-            "rx_fill_count",
-            "readmission_30d_count"
-          ]
-        },
-        {
-          "target": "next_year_elevated_cost",
-          "target_short": "elevated_cost",
-          "risk_score": 0.4450956311857146,
-          "stability_badge": "red",
-          "top_features": [
-            "readmission_30d_count",
-            "inpatient_claims",
-            "rx_fill_count"
-          ]
-        }
-      ]
-    },
-    "-10000010265432:2022": {
-      "bene_id": "-10000010265432",
-      "analytic_year": 2022,
-      "narrative": "Beneficiary -10000010265432 (2022) \u2014 model family logistic_regression. hospitalization risk is 99%, primarily driven by readmission 30d count (value: 40.0) raised risk (SHAP +2.954), distinct diagnosis count (value: 6.0) raised risk (SHAP +1.724), rx fill count (value: 106.0) lowered risk (SHAP -0.993). high utilization risk is 100%, primarily driven by inpatient claims (value: 141.0) lowered risk (SHAP -7.987), readmission 30d count (value: 40.0) raised risk (SHAP +7.660), total claims (value: 249.0) raised risk (SHAP +6.476). elevated cost risk is 100%, primarily driven by readmission 30d count (value: 40.0) raised risk (SHAP +10.019), inpatient claims (value: 141.0) lowered risk (SHAP -8.694), total claims (value: 249.0) raised risk (SHAP +2.526). hospitalization explanation stability: green high_utilization explanation stability: red elevated_cost explanation stability: red",
-      "provider": "template",
-      "grounded": {
-        "beneficiary_id": "-10000010265432",
-        "cohort_id": null,
-        "claims": [
-          {
-            "statement": "readmission_30d_count increased predicted hospitalization risk (SHAP +2.954).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 2.953859
-          },
-          {
-            "statement": "distinct_diagnosis_count increased predicted hospitalization risk (SHAP +1.724).",
-            "source_fields": [
-              "distinct_diagnosis_count"
-            ],
-            "shap_feature": "distinct_diagnosis_count",
-            "shap_value": 1.723866
-          },
-          {
-            "statement": "rx_fill_count decreased predicted hospitalization risk (SHAP -0.993).",
-            "source_fields": [
-              "rx_fill_count"
-            ],
-            "shap_feature": "rx_fill_count",
-            "shap_value": -0.992806
-          },
-          {
-            "statement": "inpatient_claims decreased predicted high utilization risk (SHAP -7.987).",
-            "source_fields": [
-              "inpatient_claims"
-            ],
-            "shap_feature": "inpatient_claims",
-            "shap_value": -7.987204
-          },
-          {
-            "statement": "readmission_30d_count increased predicted high utilization risk (SHAP +7.660).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 7.66007
-          },
-          {
-            "statement": "total_claims increased predicted high utilization risk (SHAP +6.476).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 6.476198
-          },
-          {
-            "statement": "readmission_30d_count increased predicted elevated cost risk (SHAP +10.019).",
-            "source_fields": [
-              "readmission_30d_count"
-            ],
-            "shap_feature": "readmission_30d_count",
-            "shap_value": 10.018517
-          },
-          {
-            "statement": "inpatient_claims decreased predicted elevated cost risk (SHAP -8.694).",
-            "source_fields": [
-              "inpatient_claims"
-            ],
-            "shap_feature": "inpatient_claims",
-            "shap_value": -8.693963
-          },
-          {
-            "statement": "total_claims increased predicted elevated cost risk (SHAP +2.526).",
-            "source_fields": [
-              "total_claims"
-            ],
-            "shap_feature": "total_claims",
-            "shap_value": 2.526199
-          }
-        ],
-        "fallback": null
-      },
-      "target_summaries": [
-        {
-          "target": "next_year_hospitalization",
-          "target_short": "hospitalization",
-          "risk_score": 0.9873445247970258,
+          "risk_score": 0.9900990099009901,
           "stability_badge": "green",
           "top_features": [
-            "readmission_30d_count",
-            "distinct_diagnosis_count",
-            "rx_fill_count"
-          ]
-        },
-        {
-          "target": "next_year_high_utilization",
-          "target_short": "high_utilization",
-          "risk_score": 0.9998748265465112,
-          "stability_badge": "red",
-          "top_features": [
-            "inpatient_claims",
-            "readmission_30d_count",
-            "total_claims"
+            "outpatient_claims",
+            "total_claims",
+            "rx_unique_drugs"
           ]
         },
         {
           "target": "next_year_elevated_cost",
           "target_short": "elevated_cost",
-          "risk_score": 0.9963372610268442,
-          "stability_badge": "red",
+          "risk_score": 0.9123711340206185,
+          "stability_badge": "green",
           "top_features": [
-            "readmission_30d_count",
-            "inpatient_claims",
-            "total_claims"
+            "rx_days_supply",
+            "outpatient_claims",
+            "rx_fill_count"
           ]
         }
       ]

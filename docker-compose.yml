@@ -1,0 +1,15 @@
+services:
+  medastrax:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      HC_STUDY_MODE: "true"
+      HC_LOG_EVENTS: "true"
+      HC_EXPERIMENTAL_CONDITION: baseline
+      # Remove after OpenMP/XGBoost artifacts are baked into the image:
+      HC_ALLOW_LOGISTIC_FALLBACK: "true"
+    volumes:
+      - ./data/processed:/app/data/processed:ro
+      - ./artifacts:/app/artifacts
+      - ./study:/app/study

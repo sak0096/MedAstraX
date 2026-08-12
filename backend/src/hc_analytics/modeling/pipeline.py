@@ -20,7 +20,7 @@ from hc_analytics.modeling.constants import (
     RiskTarget,
     risk_score_column,
 )
-from hc_analytics.modeling.split import time_based_year_split
+from hc_analytics.modeling.split import calibration_frame, time_based_year_split
 from hc_analytics.modeling.trainers import (
     load_model_artifact,
     require_primary_model_family,
@@ -138,6 +138,12 @@ def train_all_models(
             labeled,
             label_column=target.value,
             test_year_count=test_year_count,
+            calibration_year_count=1,
+        )
+        calib = calibration_frame(
+            labeled,
+            year_column="analytic_year",
+            calibration_years=split_spec.calibration_years,
         )
         split_payload = asdict(split_spec)
 
@@ -149,6 +155,8 @@ def train_all_models(
                 train_y=train[target.value],
                 test_x=test,
                 test_y=test[target.value],
+                calibration_x=calib if len(calib) else None,
+                calibration_y=calib[target.value] if len(calib) else None,
             )
             save_model_artifact(
                 pipeline=pipeline,

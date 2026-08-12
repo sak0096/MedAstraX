@@ -165,9 +165,23 @@ def test_assign_manipulations_v2_is_deterministic() -> None:
     second = assign_manipulations("P001")
     assert first == second
     assert first["S1-T5"] in {"M2", "correct"}
-    assert first["S2-T2"] in {"M4", "M6", "M7"}
+    assert first["S2-T2"] in {"M4", "M6", "M7", "correct"}
     assert first["S2-T3"] in {"M3", "correct"}
     assert first["S2-T6"] in {"M4", "M6", "M7", "correct"}
+
+
+def test_study2_error_density_near_proposal_range() -> None:
+    slots = ("S2-T2", "S2-T3", "S2-T6")
+    error_hits = 0
+    total = 0
+    for index in range(200):
+        assigned = assign_manipulations(f"P{index:03d}")
+        for slot in slots:
+            total += 1
+            if assigned[slot] != "correct":
+                error_hits += 1
+    rate = error_hits / total
+    assert 0.15 <= rate <= 0.35
 
 
 def test_study1_outreach_counterbalancing() -> None:

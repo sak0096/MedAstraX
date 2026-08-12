@@ -27,7 +27,7 @@ from hc_analytics.explainability.shap_engine import (
     select_background,
     top_contributors,
 )
-from hc_analytics.explainability.stability import attach_margin_stability
+from hc_analytics.explainability.stability import attach_margin_stability, bootstrap_top_feature_stability
 from hc_analytics.ingestion.io import git_commit_hash
 from hc_analytics.modeling.constants import (
     FEATURE_COLUMNS,
@@ -35,13 +35,30 @@ from hc_analytics.modeling.constants import (
     TARGET_SHORT_NAMES,
     risk_score_column,
 )
-from hc_analytics.modeling.trainers import load_model_artifact, require_primary_model_family
+from hc_analytics.modeling.trainers import (
+    load_model_artifact,
+    require_primary_model_family,
+    unwrap_model_for_shap,
+)
 
 RowKey = Tuple[str, int]
 
 
 def _primary_model_family() -> str:
     return require_primary_model_family()
+
+
+def _study_case_keys(settings: Settings) -> set[RowKey]:
+    from hc_analytics.study.loader import load_study_catalog, study_cases_path
+
+    path = study_cases_path(settings)
+    if not path.exists():
+        return set()
+    try:
+        catalog = load_study_catalog(settings)
+    except Exception:
+        return set()
+    return {(case.bene_id, int(case.analytic_year)) for case in catalog.cases}
 
 
 def _load_feature_store(processed_dir: Path) -> pd.DataFrame:
@@ -124,14 +141,32 @@ def _build_target_explanation(
     shap_row: Dict[str, float],
     risk_score: Optional[float],
     top_k: int,
-) -> TargetExplanation:
+    pipeline=None,
+    background: Optional[pd.DataFrame] = None,
+    stability_method: str = "margin",
+    bootstrap_iterations: int = 5,
+) -> Tuple[TargetExplanation, str]:
     from hc_analytics.explainability.bundles import LocalContributor
 
     feature_values = {column: row[column] for column in FEATURE_COLUMNS}
     contributors = top_contributors(shap_row, top_k=top_k, feature_values=feature_values)
-    badge, score = attach_margin_stability(contributors)
-    # Production badge is top-feature dominance (margin), not perturbation stability.
-    return TargetExplanation(
+    method_used = "top_feature_dominance_margin"
+    if (
+        stability_method == "bootstrap"
+        and pipeline is not None
+        and background is not None
+        and len(background) > 0
+    ):
+        badge, score, _top = bootstrap_top_feature_stability(
+            pipeline,
+            row,
+            background=background,
+            bootstrap_iterations=bootstrap_iterations,
+        )
+        method_used = "bootstrap_top_feature"
+    else:
+        badge, score = attach_margin_stability(contributors)
+    explanation = TargetExplanation(
         target=target.value,
         target_short=TARGET_SHORT_NAMES[target],
         risk_score=risk_score,
@@ -139,6 +174,7 @@ def _build_target_explanation(
         stability_badge=badge,
         stability_score=round(score, 4),
     )
+    return explanation, method_used
 
 
 def _write_global_importance(
@@ -186,6 +222,7 @@ def _write_manifest(
     top_k: int,
     row_count: int,
     git_commit: Optional[str],
+    stability_method: str,
 ) -> Path:
     path = explanations_dir / "manifest.json"
     payload = {
@@ -199,7 +236,7 @@ def _write_manifest(
         "global_dir": str(explanations_dir / "global"),
         "bundles_dir": str(explanations_dir / "bundles"),
         "local_topk": str(explanations_dir / "local_topk.parquet"),
-        "stability_method": "top_feature_dominance_margin",
+        "stability_method": stability_method,
     }
     path.write_text(json.dumps(payload, indent=2), encoding="utf-8")
     return path
@@ -211,6 +248,7 @@ def run_explainability(
     top_k: int = DEFAULT_TOP_K,
     background_size: int = DEFAULT_BACKGROUND_SIZE,
     max_rows: Optional[int] = None,
+    study_cases_only: bool = False,
 ) -> Dict[str, object]:
     settings = settings or get_settings()
     features = _load_feature_store(settings.processed_data_path)
@@ -222,16 +260,28 @@ def run_explainability(
     models_dir = settings.artifacts_path / "models"
     background = select_background(features, size=background_size)
     git_commit = git_commit_hash(settings.repo_root)
+    study_keys = _study_case_keys(settings)
+    requested_stability = (settings.stability_method or "margin").strip().lower()
+    methods_used: set[str] = set()
 
     work_frame = features.reset_index(drop=True)
+    if study_cases_only:
+        if not study_keys:
+            raise ValueError("study_cases_only requested but no study catalog cases were found.")
+        mask = work_frame.apply(
+            lambda row: (str(row["bene_id"]), int(row["analytic_year"])) in study_keys,
+            axis=1,
+        )
+        work_frame = work_frame.loc[mask].copy()
     if max_rows is not None:
         work_frame = work_frame.head(max_rows).copy()
+    work_frame = work_frame.reset_index(drop=True)
 
     per_row_targets: Dict[RowKey, List[TargetExplanation]] = {}
     local_rows: List[Dict[str, object]] = []
 
     for target in RiskTarget:
-        pipeline = load_model_artifact(models_dir, target, model_family)
+        pipeline = unwrap_model_for_shap(load_model_artifact(models_dir, target, model_family))
         shap_matrix, transformed_names = compute_shap_matrix(
             pipeline,
             work_frame,
@@ -251,7 +301,12 @@ def run_explainability(
             analytic_year = int(row["analytic_year"])
             key = (bene_id, analytic_year)
             aggregated = aggregate_shap_to_features(transformed_names, shap_matrix[index])
-            target_explanation = _build_target_explanation(
+            row_method = (
+                "bootstrap"
+                if requested_stability == "bootstrap" and key in study_keys
+                else "margin"
+            )
+            target_explanation, method_used = _build_target_explanation(
                 target=target,
                 row=row,
                 shap_row=aggregated,
@@ -262,7 +317,12 @@ def run_explainability(
                     target=target,
                 ),
                 top_k=top_k,
+                pipeline=pipeline,
+                background=background,
+                stability_method=row_method,
+                bootstrap_iterations=settings.bootstrap_iterations,
             )
+            methods_used.add(method_used)
             per_row_targets.setdefault(key, []).append(target_explanation)
             for contributor in target_explanation.top_contributors:
                 local_rows.append(
@@ -277,6 +337,7 @@ def run_explainability(
                         "rank": contributor.rank,
                         "stability_badge": target_explanation.stability_badge,
                         "stability_score": target_explanation.stability_score,
+                        "stability_method": method_used,
                         "model_family": model_family,
                     }
                 )
@@ -293,12 +354,16 @@ def run_explainability(
         bundle_paths.append(str(_write_bundle(bundle, explanations_dir)))
 
     local_path = _write_local_topk_parquet(local_rows, explanations_dir)
+    stability_label = (
+        "+".join(sorted(methods_used)) if methods_used else "top_feature_dominance_margin"
+    )
     manifest_path = _write_manifest(
         explanations_dir=explanations_dir,
         model_family=model_family,
         top_k=top_k,
         row_count=len(work_frame),
         git_commit=git_commit,
+        stability_method=stability_label,
     )
 
     return {
@@ -308,4 +373,5 @@ def run_explainability(
         "bundle_count": len(bundle_paths),
         "row_count": len(work_frame),
         "model_family": model_family,
+        "stability_method": stability_label,
     }

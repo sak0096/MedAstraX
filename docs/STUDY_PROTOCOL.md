@@ -265,7 +265,9 @@ See [STUDY_APPENDICES.md](./STUDY_APPENDICES.md) for behavioral metric definitio
 - Feature-dominance badges remain in the XAI UI (top-contribution gap; not perturbation stability). Bootstrap stability code exists but is not the production method.
 - Operational priority rule is frozen: inpatient×3, outpatient×0.5, chronic×2, total_claims×0.1.
 - Study 2 “LLM” condition currently serves **frozen template** grounded summaries / regex-parsed queries. Treat as grounded natural-language augmentation unless a named-model freeze pipeline is completed and artifacts regenerated.
-- Risk percentages require a calibrated XGBoost artifact before confirmatory claims about calibrated reliance; install OpenMP and retrain with `HC_ALLOW_LOGISTIC_FALLBACK` unset.
+- Risk percentages require a calibrated **XGBoost** artifact before confirmatory claims about calibrated reliance. Install OpenMP (`brew install libomp`), unset `HC_ALLOW_LOGISTIC_FALLBACK`, retrain, and regenerate explanations/cases/summaries.
+- Study-case explanation badges use bootstrap top-feature agreement when `HC_STABILITY_METHOD=bootstrap`; bulk rows still use dominance margin for cost.
+- Docker/`docker-compose` provides a localhost-to-cloud packaging scaffold; online recruitment still needs HTTPS, durable Postgres event storage, and auth.
 
 ---
 
