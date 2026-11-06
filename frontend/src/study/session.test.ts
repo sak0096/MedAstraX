@@ -5,6 +5,7 @@ import {
   getStudyArmFromUrl,
   isFacilitatorModeFromUrl,
   isStudyModeFromUrl,
+  takeLaunchCredential,
 } from "./session";
 
 function setSearch(search: string): void {
@@ -33,5 +34,12 @@ describe("study session URL helpers", () => {
   it("detects facilitator mode", () => {
     setSearch("?study=study1&facilitator=1");
     expect(isFacilitatorModeFromUrl()).toBe(true);
+  });
+
+  it("removes a launch credential from the query string", () => {
+    const parsed = takeLaunchCredential("?study=study1&launch_token=abc123&condition=baseline");
+    expect(parsed.token).toBe("abc123");
+    expect(parsed.nextSearch).not.toContain("launch_token");
+    expect(parsed.nextSearch).toContain("study=study1");
   });
 });

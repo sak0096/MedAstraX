@@ -4,7 +4,6 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-
 from hc_analytics.api.app import app
 from hc_analytics.config import Settings
 from hc_analytics.instrumentation.events import EventType, StudyEvent, log_event

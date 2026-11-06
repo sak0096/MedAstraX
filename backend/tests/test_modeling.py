@@ -6,11 +6,9 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
-
 from hc_analytics.api.app import app
 from hc_analytics.config import Settings
 from hc_analytics.modeling.constants import (
-    FEATURE_COLUMNS,
     RiskTarget,
     risk_score_column,
 )
@@ -202,9 +200,10 @@ def test_run_training_writes_models_predictions_and_manifest(
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
     assert manifest["schema_version"] == "1.0"
     assert len(manifest["targets"]) == 3
-    assert manifest["label_definitions"][RiskTarget.HIGH_UTILIZATION.value][
-        "threshold_source"
-    ] == "training_years_only"
+    assert (
+        manifest["label_definitions"][RiskTarget.HIGH_UTILIZATION.value]["threshold_source"]
+        == "training_years_only"
+    )
     assert manifest["split"]["train_years"] == [2019]
     assert manifest["split"]["calibration_years"] == [2020]
     assert manifest["split"]["test_years"] == [2021, 2022]
@@ -231,7 +230,9 @@ def test_prediction_api_returns_rows(modeling_settings: Settings, monkeypatch) -
     )
 
     client = TestClient(app)
-    response = client.get("/api/predictions", params={"limit": 5, "sort_by": "hospitalization_risk"})
+    response = client.get(
+        "/api/predictions", params={"limit": 5, "sort_by": "hospitalization_risk"}
+    )
     assert response.status_code == 200
     payload = response.json()
     assert payload["count"] == 5

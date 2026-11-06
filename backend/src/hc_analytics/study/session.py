@@ -44,7 +44,9 @@ def assignment_plan(participant_id: str) -> Dict[str, object]:
     }
 
 
-def _study_order(plan: Dict[str, object], study: Optional[str], condition: Optional[str]) -> List[str]:
+def _study_order(
+    plan: Dict[str, object], study: Optional[str], condition: Optional[str]
+) -> List[str]:
     if study == "study2" or condition == "llm":
         return list(plan["study2_order"])
     return list(plan["study1_order"])
@@ -165,7 +167,10 @@ def resolve_study_session(
         participant_id=participant_id,
         study_mode_enabled=runtime.study_mode,
         assignments=assignments,
-        condition_order={"study1": list(plan["study1_order"]), "study2": list(plan["study2_order"])},
+        condition_order={
+            "study1": list(plan["study1_order"]),
+            "study2": list(plan["study2_order"]),
+        },
         manipulation_catalog=manipulation_catalog,
         task_sets=task_sets,
         cases=cases,

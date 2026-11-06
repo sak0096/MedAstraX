@@ -9,6 +9,7 @@ import {
   getMeta,
   getStudyMeta,
   getStudySession,
+  exchangeLaunchToken,
 } from "./api/client";
 import { BeneficiaryDetail } from "./components/BeneficiaryDetail";
 import { CohortFilterBar, type CohortFilterState } from "./components/CohortFilterBar";
@@ -22,7 +23,7 @@ import { StudyExportButton } from "./components/StudyExportButton";
 import { TaskPanel } from "./components/TaskPanel";
 import { CONDITION_COPY } from "./config/conditions";
 import { getParticipantId, getSessionId, setActiveStudyTaskId, trackEvent, trackLatency } from "./instrumentation/logger";
-import { getConditionFromUrl, getStudyArmFromUrl, isFacilitatorModeFromUrl, isStudyModeFromUrl } from "./study/session";
+import { getConditionFromUrl, getStudyArmFromUrl, isStudyModeFromUrl, takeLaunchCredential } from "./study/session";
 import type {
   ApiMeta,
   BeneficiaryDetail as BeneficiaryDetailType,
@@ -71,15 +72,38 @@ export default function App() {
   const [explanationUnavailable, setExplanationUnavailable] = useState(false);
   const [summaryUnavailable, setSummaryUnavailable] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [pendingLaunchToken, setPendingLaunchToken] = useState<string | null>(null);
 
-  const condition = getConditionFromUrl() ?? meta?.experimental_condition ?? "baseline";
+  const condition = meta?.study_mode_enabled
+    ? meta.experimental_condition
+    : getConditionFromUrl() ?? meta?.experimental_condition ?? "baseline";
   const isXai = condition === "xai";
   const isLlm = condition === "llm";
   const copy = CONDITION_COPY[condition];
-  const studyMode = Boolean(meta?.study_mode_enabled) && isStudyModeFromUrl();
-  const studyArm = getStudyArmFromUrl();
-  const facilitatorMode = isFacilitatorModeFromUrl();
-  const showGlobalImportance = isXai && (!studyMode || activeTaskId === "S1-T4a");
+  const studyMode =
+    Boolean(meta?.study_mode_enabled) &&
+    (Boolean(meta?.assigned_study) || isStudyModeFromUrl());
+  const studyArm = meta?.assigned_study ?? getStudyArmFromUrl();
+
+  useEffect(() => {
+    const parsed = takeLaunchCredential(window.location.search);
+    if (!parsed.token) return;
+    const nextUrl = `${window.location.pathname}${parsed.nextSearch}${window.location.hash}`;
+    window.history.replaceState({}, "", nextUrl);
+    setPendingLaunchToken(parsed.token);
+  }, []);
+
+  const continueFromLaunch = async () => {
+    if (!pendingLaunchToken) return;
+    try {
+      await exchangeLaunchToken(pendingLaunchToken);
+      setPendingLaunchToken(null);
+      window.location.reload();
+    } catch {
+      setError("The study link could not be opened. Request a new link from the survey.");
+    }
+  };
+  const showGlobalImportance = isXai && !studyMode;
   const allowSummary =
     isLlm && (activeTaskId !== "S2-T3" || studyPhase === "awaiting_ai" || studyPhase === "final");
 
@@ -362,12 +386,12 @@ export default function App() {
           <p className="header-copy">{copy.subtitle}</p>
         </div>
         <div className="header-meta">
-          {(!studyMode || facilitatorMode) ? (
+          {!studyMode ? (
             <span className={`condition-badge ${condition}`}>{condition}</span>
           ) : (
             <span className="meta-pill">Study session</span>
           )}
-          {(!studyMode || facilitatorMode) ? (
+          {!studyMode ? (
             <span className="meta-pill">Phase {meta?.prototype_phase ?? "8"}</span>
           ) : null}
           {meta?.predictions_ready ? (
@@ -375,7 +399,7 @@ export default function App() {
           ) : (
             <span className="meta-pill warn">Data missing</span>
           )}
-          {(!studyMode || facilitatorMode) && (isXai || isLlm) ? (
+          {!studyMode && (isXai || isLlm) ? (
             meta?.explanations_ready ? (
               <span className="meta-pill ready">Panels ready</span>
             ) : (
@@ -385,12 +409,21 @@ export default function App() {
         </div>
       </header>
 
+      {pendingLaunchToken ? (
+        <div className="error-banner">
+          <p>Continue to open your study session.</p>
+          <button type="button" className="secondary-button" onClick={() => void continueFromLaunch()}>
+            Continue
+          </button>
+        </div>
+      ) : null}
+
       {error ? <div className="error-banner">{error}</div> : null}
 
       {isXai && meta && !meta.explanations_ready ? (
         <div className="error-banner">
           {studyMode
-            ? "Some dashboard panels are unavailable. Please notify the facilitator."
+            ? "Some dashboard panels are temporarily unavailable. You can continue when they load, or use the closing questions if the session cannot continue."
             : (
               <>
                 This dashboard version requires cached explanations. Run{" "}
@@ -403,7 +436,7 @@ export default function App() {
       {isLlm && meta && !meta.language_ready ? (
         <div className="error-banner">
           {studyMode
-            ? "Some dashboard panels are unavailable. Please notify the facilitator."
+            ? "Some dashboard panels are temporarily unavailable. You can continue when they load, or use the closing questions if the session cannot continue."
             : (
               <>
                 This dashboard version requires evidence bundles. Run{" "}
@@ -414,8 +447,8 @@ export default function App() {
       ) : null}
 
       <div className="toolbar">
-        <ExportMenu rows={rows} summary={summary} condition={condition} />
-        <StudyExportButton enabled={Boolean(meta?.instrumentation_enabled)} />
+        {studyMode ? null : <ExportMenu rows={rows} summary={summary} condition={condition} />}
+        {studyMode ? null : <StudyExportButton enabled={Boolean(meta?.instrumentation_enabled)} />}
         <button type="button" className="ghost-button" onClick={() => void loadDashboard()}>
           Refresh data
         </button>
@@ -430,6 +463,7 @@ export default function App() {
           onStudyPhaseChange={handleStudyPhaseChange}
           onOpenCase={handleOpenStudyCase}
           lastQueryResult={lastQueryResult}
+          summaryClaims={groundedSummary?.grounded.claims ?? []}
         />
       ) : null}
 

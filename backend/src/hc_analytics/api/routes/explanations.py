@@ -1,25 +1,31 @@
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 import pandas as pd
 from fastapi import APIRouter, Depends, HTTPException, Query
 
 from hc_analytics.config import get_settings
-from hc_analytics.explainability.bundles import EvidenceBundle
 from hc_analytics.explainability.constants import EQUITY_RELEVANT_FEATURES
 from hc_analytics.explainability.pipeline import (
     _explanations_dir,
     load_cached_bundle,
     load_global_importance,
 )
-from hc_analytics.modeling.constants import RiskTarget, TARGET_SHORT_NAMES
+from hc_analytics.modeling.constants import TARGET_SHORT_NAMES, RiskTarget
 from hc_analytics.study.context import StudyRequestContext, get_study_context
 from hc_analytics.study.loader import get_case_for_beneficiary
 from hc_analytics.study.manipulations import apply_explanation_manipulations
 
 router = APIRouter(prefix="/api", tags=["explanations"])
+
+
+def _require_xai(study_ctx: StudyRequestContext) -> None:
+    if study_ctx.study_mode and study_ctx.condition != "xai":
+        raise HTTPException(
+            status_code=404, detail="This panel is not part of the current session."
+        )
 
 
 def _local_topk_path() -> Path:
@@ -84,7 +90,9 @@ def explanations_meta() -> Dict[str, Any]:
 @router.get("/explanations/global")
 def global_explanations(
     target: Optional[str] = Query(default="hospitalization"),
+    study_ctx: StudyRequestContext = Depends(get_study_context),
 ) -> Dict[str, Any]:
+    _require_xai(study_ctx)
     selected = _parse_target(target)
     payload = load_global_importance(selected, settings=get_settings())
     if payload is None:
@@ -103,6 +111,7 @@ def beneficiary_explanations(
     top_k: int = Query(default=5, ge=1, le=10),
     study_ctx: StudyRequestContext = Depends(get_study_context),
 ) -> Dict[str, Any]:
+    _require_xai(study_ctx)
     frame = _load_local_topk()
     frame = frame.loc[frame["bene_id"] == bene_id]
     if analytic_year is not None:
@@ -148,8 +157,9 @@ def beneficiary_explanations(
 def beneficiary_evidence_bundle(
     bene_id: str,
     analytic_year: Optional[int] = Query(default=None),
+    study_ctx: StudyRequestContext = Depends(get_study_context),
 ) -> Dict[str, Any]:
-    settings = get_settings()
+    _require_xai(study_ctx)
     if analytic_year is None:
         local = _load_local_topk()
         years = local.loc[local["bene_id"] == bene_id, "analytic_year"]

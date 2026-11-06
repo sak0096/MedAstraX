@@ -90,7 +90,7 @@ class TaskResponseSubmission(BaseModel):
     trial_id: Optional[str] = None
     phase: Literal["initial", "final", "single"] = "single"
     responses: Dict[str, Any] = Field(default_factory=dict)
-    confidence: Optional[int] = Field(default=None, ge=1, le=7)
+    confidence: Optional[int] = Field(default=None, ge=0, le=100)
     reliance_source: Optional[str] = None
     time_ms: Optional[int] = None
     notes: Optional[str] = None
@@ -101,6 +101,7 @@ class ComprehensionSubmission(BaseModel):
     session_id: str
     answers: Dict[str, int] = Field(default_factory=dict)
     study: Optional[Literal["study1", "study2"]] = None
+    idempotency_key: Optional[str] = Field(default=None, max_length=80)
 
 
 class StudyContextPayload(BaseModel):

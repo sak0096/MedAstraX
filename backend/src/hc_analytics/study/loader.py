@@ -40,7 +40,9 @@ def get_study_catalog(settings: Optional[Settings] = None) -> Optional[StudyCata
     return _cached_catalog(str(path), path.stat().st_mtime_ns)
 
 
-def get_case_by_id(case_id: str, settings: Optional[Settings] = None) -> Optional[StudyCaseDefinition]:
+def get_case_by_id(
+    case_id: str, settings: Optional[Settings] = None
+) -> Optional[StudyCaseDefinition]:
     catalog = get_study_catalog(settings)
     if catalog is None:
         return None
@@ -67,7 +69,9 @@ def get_case_for_beneficiary(
     return None
 
 
-def get_task_by_id(task_id: str, settings: Optional[Settings] = None) -> Optional[StudyTaskDefinition]:
+def get_task_by_id(
+    task_id: str, settings: Optional[Settings] = None
+) -> Optional[StudyTaskDefinition]:
     catalog = get_study_catalog(settings)
     if catalog is None:
         return None

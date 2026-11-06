@@ -1,17 +1,19 @@
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional
-
-import pandas as pd
-
-from hc_analytics.api.data_access import frame_to_records, load_cohort_summary_payload, load_merged_dashboard_frame
+from hc_analytics.api.data_access import (
+    frame_to_records,
+    load_cohort_summary_payload,
+    load_merged_dashboard_frame,
+)
 from hc_analytics.config import get_settings
 from hc_analytics.language.models import InterpretedQuery, QueryResult
 from hc_analytics.language.summaries import cohort_query_narrative
 from hc_analytics.study.cohort_spec import apply_cohort_filters, study_analytic_year
 
 
-def execute_interpreted_query(interpreted: InterpretedQuery, *, use_cache: bool = True) -> QueryResult:
+def execute_interpreted_query(
+    interpreted: InterpretedQuery, *, use_cache: bool = True
+) -> QueryResult:
     del use_cache  # cache lookup handled by route layer
 
     if interpreted.action == "cohort_summary":
@@ -52,7 +54,14 @@ def execute_interpreted_query(interpreted: InterpretedQuery, *, use_cache: bool 
     limit = int(parameters.get("limit", 100))
 
     if sort_by in frame.columns:
-        frame = frame.sort_values(sort_by, ascending=not descending)
+        sort_columns = [sort_by]
+        ascending = [not descending]
+        if "bene_id" in frame.columns and sort_by != "bene_id":
+            # Deterministic tie break. Confirm before the confirmatory stimulus freeze
+            # because a cutoff can change which tied record is shown.
+            sort_columns.append("bene_id")
+            ascending.append(True)
+        frame = frame.sort_values(sort_columns, ascending=ascending, kind="mergesort")
     frame = frame.head(limit)
 
     list_columns = [

@@ -1,13 +1,12 @@
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
-import json
 import httpx
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
-
 from hc_analytics.api.app import app
 from hc_analytics.config import Settings
 from hc_analytics.explainability.pipeline import run_explainability
@@ -243,7 +242,9 @@ def test_openai_polish_and_claim_guard(language_settings: Settings, monkeypatch)
                                 {
                                     "narrative": (
                                         "Care review for B1 emphasizes the same drivers already "
-                                        + " ".join(claim.statement for claim in bundle.grounded.claims[:2])
+                                        + " ".join(
+                                            claim.statement for claim in bundle.grounded.claims[:2]
+                                        )
                                     )
                                 }
                             )
@@ -272,7 +273,15 @@ def test_openai_polish_and_claim_guard(language_settings: Settings, monkeypatch)
 
     class _DriftResponse(_FakeResponse):
         def json(self) -> dict:
-            return {"choices": [{"message": {"content": json.dumps({"narrative": "Invented sepsis crisis tomorrow."})}}]}
+            return {
+                "choices": [
+                    {
+                        "message": {
+                            "content": json.dumps({"narrative": "Invented sepsis crisis tomorrow."})
+                        }
+                    }
+                ]
+            }
 
     class _DriftClient(_FakeClient):
         def post(self, *args, **kwargs):

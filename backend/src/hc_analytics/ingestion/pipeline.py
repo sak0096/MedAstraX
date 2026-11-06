@@ -138,7 +138,9 @@ def run_ingestion(settings: Optional[Settings] = None) -> ProvenanceRecord:
 
     source_files = _collect_source_files(raw_dir)
     beneficiary_files = [
-        path for name, path in source_files.items() if name.startswith("beneficiary/") and path.exists()
+        path
+        for name, path in source_files.items()
+        if name.startswith("beneficiary/") and path.exists()
     ]
     prescription_file = source_files["prescription/pde.csv"]
     claim_files = [

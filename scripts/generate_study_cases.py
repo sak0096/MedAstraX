@@ -12,7 +12,11 @@ import pandas as pd
 REPO_ROOT = Path(__file__).resolve().parents[1]
 sys.path.insert(0, str(REPO_ROOT / "backend" / "src"))
 
-from hc_analytics.study.priority import PRIORITY_RULE_DESCRIPTION, PRIORITY_RULE_WEIGHTS, compute_priority_score
+from hc_analytics.study.priority import (
+    PRIORITY_RULE_DESCRIPTION,
+    PRIORITY_RULE_WEIGHTS,
+    compute_priority_score,
+)
 
 SHARED_CASE_IDS = {
     "B-07": "-10000010260449",
@@ -69,11 +73,15 @@ def sample_matched_outreach_sets(
         & (~frame["bene_id"].astype(str).isin(reserved))
     ].copy()
     if len(eligible) < quartet_size * 2:
-        return FALLBACK_ALPHA_OUTREACH, FALLBACK_BETA_OUTREACH, {
-            "method": "fallback_hardcoded",
-            "reason": "insufficient_eligible_rows",
-            "eligible_rows": int(len(eligible)),
-        }
+        return (
+            FALLBACK_ALPHA_OUTREACH,
+            FALLBACK_BETA_OUTREACH,
+            {
+                "method": "fallback_hardcoded",
+                "reason": "insufficient_eligible_rows",
+                "eligible_rows": int(len(eligible)),
+            },
+        )
 
     eligible = eligible.sort_values("priority_score")
     eligible["priority_bin"] = pd.qcut(
@@ -103,11 +111,15 @@ def sample_matched_outreach_sets(
         used.update({alpha_bene, beta_bene})
 
     if len(alpha) < quartet_size or len(beta) < quartet_size:
-        return FALLBACK_ALPHA_OUTREACH, FALLBACK_BETA_OUTREACH, {
-            "method": "fallback_hardcoded",
-            "reason": "insufficient_binned_pairs",
-            "eligible_rows": int(len(eligible)),
-        }
+        return (
+            FALLBACK_ALPHA_OUTREACH,
+            FALLBACK_BETA_OUTREACH,
+            {
+                "method": "fallback_hardcoded",
+                "reason": "insufficient_binned_pairs",
+                "eligible_rows": int(len(eligible)),
+            },
+        )
 
     meta = {
         "method": "stratified_priority_bins",
@@ -431,8 +443,85 @@ def main() -> None:
         },
     ]
 
+    # Preserve only the October-approved tutorial plus three tasks per study.
+    # Case/model generation must not reintroduce prototype-only tasks.
+    approved_ids = {
+        "S1-T0",
+        "S1-T2",
+        "S1-T3",
+        "S1-T5",
+        "S2-T0",
+        "S2-T1",
+        "S2-T3",
+        "S2-T6",
+    }
+    tasks = [task for task in tasks if task["task_id"] in approved_ids]
+    approved_updates = {
+        "S1-T2": {
+            "title": "Identify high-risk members",
+            "instructions": (
+                "Using the risk table and available filters, identify the five members with "
+                "the highest hospitalization-risk values in the displayed cohort."
+            ),
+        },
+        "S1-T3": {
+            "title": "Interpret an individual risk estimate",
+            "instructions": (
+                "Open the assigned member record. Based on the information available in this "
+                "dashboard version, identify the three factors that most strongly support the "
+                "displayed hospitalization-risk estimate. For each selected factor, indicate "
+                "whether it increases or decreases the estimate."
+            ),
+        },
+        "S1-T5": {
+            "title": "Outreach prioritization with sequential judgment",
+            "instructions": (
+                "Four synthetic members are shown. First, rank them from highest to lowest "
+                "outreach priority using the displayed rule and record values. Submit and lock "
+                "the initial ranking before reviewing the automated outreach recommendation, "
+                "then keep or revise the ranking and submit a final answer."
+            ),
+        },
+        "S2-T1": {
+            "title": "Build a target cohort",
+            "instructions": (
+                "Find members in analytic year 2022 who have diabetes, have at least 50 total "
+                "claims, and are among the 25 highest hospitalization-risk results. Use the "
+                "available filters or query controls."
+            ),
+            "conditions": [],
+            "manipulation_slot": "study2",
+            "suggested_query": (
+                "Top 25 hospitalization risk with diabetes in analytic year 2022 with at least "
+                "50 claims"
+            ),
+        },
+        "S2-T3": {
+            "title": "Evaluate a member record",
+            "instructions": (
+                "Review the assigned synthetic member record and decide whether the available "
+                "evidence supports the proposed high-priority follow-up designation. Record an "
+                "initial judgment before any optional narrative-assistance panel is opened. If "
+                "a narrative summary is available, inspect relevant linked evidence, classify "
+                "highlighted claims, and submit a final judgment."
+            ),
+            "conditions": [],
+        },
+        "S2-T6": {
+            "title": "Control and correct a second cohort request",
+            "instructions": (
+                "Find the 10 members with the highest elevated cost risk who have heart failure "
+                "in analytic year 2022 and at least 30 total claims. Use the available filters "
+                "or natural-language controls. Before executing, verify every requested element."
+            ),
+            "conditions": [],
+        },
+    }
+    for task in tasks:
+        task.update(approved_updates.get(task["task_id"], {}))
+
     payload = {
-        "schema_version": "2.0",
+        "schema_version": "3.0-october-working-counterpart",
         "default_analytic_year": year,
         "case_selection": selection_meta,
         "manipulation_catalog": {
@@ -530,26 +619,8 @@ def main() -> None:
         "cases": cases,
         "tasks": tasks,
         "task_sets": {
-            "study1": [
-                "S1-T0",
-                "S1-T1",
-                "S1-T2",
-                "S1-T3",
-                "S1-T4a",
-                "S1-T4b",
-                "S1-T5",
-                "S1-T6",
-            ],
-            "study2": [
-                "S2-T0",
-                "S2-T1",
-                "S2-T2",
-                "S2-T3",
-                "S2-T4",
-                "S2-T5",
-                "S2-T6",
-                "S2-T7",
-            ],
+            "study1": ["S1-T0", "S1-T2", "S1-T3", "S1-T5"],
+            "study2": ["S2-T0", "S2-T1", "S2-T3", "S2-T6"],
         },
     }
 

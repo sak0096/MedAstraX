@@ -5,7 +5,6 @@ import subprocess
 import sys
 from pathlib import Path
 
-
 REPO_ROOT = Path(__file__).resolve().parents[2]
 APPLY_SCRIPT = REPO_ROOT / "scripts" / "apply_adjudication.py"
 
@@ -50,7 +49,9 @@ def _write_inputs(tmp_path: Path, *, reviewer_type: str) -> tuple[Path, Path]:
     return queue_path, summaries_path
 
 
-def _run_apply(queue_path: Path, summaries_path: Path, *extra: str) -> subprocess.CompletedProcess[str]:
+def _run_apply(
+    queue_path: Path, summaries_path: Path, *extra: str
+) -> subprocess.CompletedProcess[str]:
     return subprocess.run(
         [
             sys.executable,

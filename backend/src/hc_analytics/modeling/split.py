@@ -111,7 +111,11 @@ def time_based_year_split(
 
     train = frame[frame[year_column].isin(train_years)].copy()
     test = frame[frame[year_column].isin(test_years)].copy()
-    calibration = frame[frame[year_column].isin(calibration_years)].copy() if calibration_years else frame.iloc[0:0]
+    calibration = (
+        frame[frame[year_column].isin(calibration_years)].copy()
+        if calibration_years
+        else frame.iloc[0:0]
+    )
     spec = SplitSpec(
         strategy="time_based_year_holdout",
         train_years=train_years,

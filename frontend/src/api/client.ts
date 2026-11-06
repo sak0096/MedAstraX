@@ -21,6 +21,7 @@ import { getParticipantId, getSessionId } from "../instrumentation/logger";
 
 function studyHeaders(): Record<string, string> {
   const headers: Record<string, string> = {
+    "X-MedAstraX-Request": "1",
     "X-Participant-Id": getParticipantId(),
     "X-Study-Session-Id": getSessionId(),
   };
@@ -188,12 +189,6 @@ export function getStudyMeta(): Promise<{
 
 export function getStudySession(participantId: string): Promise<StudySession> {
   const search = new URLSearchParams({ participant_id: participantId });
-  if (typeof window !== "undefined") {
-    const params = new URLSearchParams(window.location.search);
-    if (params.get("facilitator") === "1") {
-      search.set("facilitator", "true");
-    }
-  }
   return fetchJson(`/api/study/session?${search.toString()}`);
 }
 
@@ -208,7 +203,6 @@ export function startStudyTask(
   sessionId: string,
 ): Promise<{
   task: StudyTaskDefinition;
-  active_manipulation: string | null;
   trial_id: string | null;
   outreach_case_ids: string[];
   cases: StudySession["cases"];
@@ -246,8 +240,10 @@ export function submitStudyTaskResponse(
 export function getOutreachRecommendation(
   taskId: string,
   participantId: string,
+  trialId?: string,
 ): Promise<OutreachRecommendation> {
   const search = new URLSearchParams({ participant_id: participantId });
+  if (trialId) search.set("trial_id", trialId);
   return fetchJson(
     `/api/study/tasks/${encodeURIComponent(taskId)}/recommendation?${search.toString()}`,
   );
@@ -258,16 +254,45 @@ export function submitComprehension(submission: {
   session_id: string;
   answers: Record<string, number>;
   study?: "study1" | "study2";
+  idempotency_key?: string;
 }): Promise<{
   passed: boolean;
   correct: number;
   total: number;
   results: Array<{ question_id: string; correct: boolean }>;
   study?: string;
+  attempt_number?: number | null;
+  research_tasks_ended?: boolean;
+  exit_reason?: string | null;
 }> {
   return fetchJson("/api/study/comprehension", {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(submission),
+  });
+}
+
+export function reviseQuery(
+  queryId: string,
+  corrections: { analytic_year?: number; chronic_filter?: string; min_total_claims?: number },
+): Promise<InterpretedQuery> {
+  return fetchJson(`/api/language/query/${encodeURIComponent(queryId)}/revise`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(corrections),
+  });
+}
+
+export function rejectQuery(queryId: string): Promise<{ query_id: string; status: string }> {
+  return fetchJson(`/api/language/query/${encodeURIComponent(queryId)}/reject`, {
+    method: "POST",
+  });
+}
+
+export function exchangeLaunchToken(launchToken: string): Promise<{ study: string; stage: string }> {
+  return fetchJson("/api/integration/exchange", {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ launch_token: launchToken }),
   });
 }

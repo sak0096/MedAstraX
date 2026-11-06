@@ -83,7 +83,9 @@ def score_outreach_trial(
         "final_correct": final_correct,
         "top1_correct": top1_correct(final_ranking, correct_ranking),
         "kendall_tau_distance": kendall_tau_distance(final_ranking, correct_ranking),
-        "weight_of_advice": weight_of_advice(initial_ranking, final_ranking, recommendation_ranking),
+        "weight_of_advice": weight_of_advice(
+            initial_ranking, final_ranking, recommendation_ranking
+        ),
         "followed_ai_recommendation": followed_ai,
         "harmful_switching": initial_correct and not final_correct and manipulated,
         "beneficial_correction": not initial_correct and final_correct and not manipulated,
@@ -179,8 +181,8 @@ def score_query_set(
         else (expected[0] if expected else None)
     )
     return {
-        "exact_match": predicted_set == expected_set and bool(expected_set),
-        "exact_ordered_match": predicted == expected and bool(expected),
+        "exact_match": predicted_set == expected_set,
+        "exact_ordered_match": predicted == expected,
         "precision": precision,
         "recall": recall,
         "result_count": count,
@@ -229,7 +231,11 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
             continue
         # Sparse client duplicates (task_id/trial_id/phase only) must not erase rich server events.
         responses = payload.get("responses")
-        if responses is None and payload.get("ground_truth") is None and payload.get("confidence") is None:
+        if (
+            responses is None
+            and payload.get("ground_truth") is None
+            and payload.get("confidence") is None
+        ):
             continue
         responses = responses or {}
         phase = payload.get("phase")
@@ -279,7 +285,9 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
                 recommendation_ranking=recommendation,
                 manipulated=bool(trial.get("manipulated")),
             )
-            outreach.append({"trial_id": trial_id, "manipulated": bool(trial.get("manipulated")), **metrics})
+            outreach.append(
+                {"trial_id": trial_id, "manipulated": bool(trial.get("manipulated")), **metrics}
+            )
         expected_drivers = ground_truth.get("expected_drivers") or []
         if trial.get("drivers") and expected_drivers:
             interpretations.append(
@@ -301,7 +309,11 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
                 }
             )
         expected_ids = ground_truth.get("expected_ids") or []
-        if trial.get("result_ids") is not None or trial.get("result_count") is not None or trial.get("top_bene_id"):
+        if (
+            trial.get("result_ids") is not None
+            or trial.get("result_count") is not None
+            or trial.get("top_bene_id")
+        ):
             query_metrics = score_query_set(
                 trial.get("result_ids") or [],
                 expected_ids,
@@ -312,7 +324,9 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
             )
             queries.append({"trial_id": trial_id, **query_metrics})
 
-    harmful_eligible = [row for row in outreach if row.get("manipulated") and row.get("initial_correct")]
+    harmful_eligible = [
+        row for row in outreach if row.get("manipulated") and row.get("initial_correct")
+    ]
     beneficial_eligible = [
         row for row in outreach if (not row.get("manipulated")) and (not row.get("initial_correct"))
     ]
@@ -363,3 +377,30 @@ def _mean(values: List[Any]) -> Optional[float]:
     if not numeric:
         return None
     return round(sum(numeric) / len(numeric), 4)
+
+
+def score_designation_transition(
+    *,
+    initial: Optional[str],
+    final: Optional[str],
+    displayed_designation: Optional[str],
+) -> Dict[str, Any]:
+    """Keep initial and final summary judgments separate.
+
+    Harmful adoption is unresolved until the PI defines whether it is only a
+    transition category or must also match the displayed unsupported claim.
+    A final error by itself is not coded as adoption.
+    """
+    changed = initial is not None and final is not None and initial != final
+    return {
+        "initial": initial,
+        "final": final,
+        "changed": changed,
+        "matches_displayed_final": (
+            final == displayed_designation
+            if final is not None and displayed_designation is not None
+            else None
+        ),
+        "harmful_adoption": None,
+        "harmful_adoption_status": "unresolved",
+    }

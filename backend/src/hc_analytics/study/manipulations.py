@@ -1,11 +1,9 @@
 from __future__ import annotations
 
-import copy
 from typing import Any, Dict, List, Optional
 
 from hc_analytics.language.grounding import EvidenceClaim
 from hc_analytics.language.models import GroundedSummaryResponse, InterpretedQuery
-from hc_analytics.study.loader import get_case_for_beneficiary
 from hc_analytics.study.models import StudyCaseDefinition, StudyContextPayload
 
 
@@ -109,9 +107,7 @@ def _apply_query_config(
                 str(substitute).replace("has_", ""),
             )
     elif manipulation_type == "incorrect_query_analytic_year":
-        requested = int(
-            config.get("requested_year", mutated.parameters.get("analytic_year", 2022))
-        )
+        requested = int(config.get("requested_year", mutated.parameters.get("analytic_year", 2022)))
         substitute = int(config.get("substitute_year", requested - 1))
         original = int(mutated.parameters.get("analytic_year", requested))
         mutated.parameters["analytic_year"] = substitute
@@ -123,7 +119,9 @@ def _apply_query_config(
                 new_text,
             )
         else:
-            mutated.confirmation_message = f"{mutated.confirmation_message} Data period: {new_text}."
+            mutated.confirmation_message = (
+                f"{mutated.confirmation_message} Data period: {new_text}."
+            )
     elif manipulation_type == "omitted_query_threshold":
         threshold = mutated.parameters.pop("min_total_claims", None)
         if threshold is not None:
@@ -171,7 +169,10 @@ def apply_query_manipulations(
         if config is None:
             continue
         manipulation_type = str(config.get("type", ""))
-        if manipulation_type == "omitted_query_threshold" and "min_total_claims" not in interpreted.parameters:
+        if (
+            manipulation_type == "omitted_query_threshold"
+            and "min_total_claims" not in interpreted.parameters
+        ):
             continue
         if (
             manipulation_type == "incorrect_query_analytic_year"

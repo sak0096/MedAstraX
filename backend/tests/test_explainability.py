@@ -6,7 +6,6 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
-
 from hc_analytics.api.app import app
 from hc_analytics.config import Settings
 from hc_analytics.explainability.bundles import EvidenceBundle
@@ -16,7 +15,10 @@ from hc_analytics.explainability.pipeline import (
     run_explainability,
 )
 from hc_analytics.explainability.shap_engine import aggregate_shap_to_features, top_contributors
-from hc_analytics.explainability.stability import bootstrap_top_feature_stability, stability_from_margin
+from hc_analytics.explainability.stability import (
+    bootstrap_top_feature_stability,
+    stability_from_margin,
+)
 from hc_analytics.modeling.constants import RiskTarget
 from hc_analytics.modeling.pipeline import run_training
 from hc_analytics.modeling.trainers import build_model_pipeline

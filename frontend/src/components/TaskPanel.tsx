@@ -6,13 +6,11 @@ import {
   startStudyTask,
   submitStudyTaskResponse,
 } from "../api/client";
-import { getParticipantId, getSessionId, trackEvent } from "../instrumentation/logger";
-import {
-  hasPassedComprehension,
-  isFacilitatorModeFromUrl,
-} from "../study/session";
+import { getParticipantId, getSessionId } from "../instrumentation/logger";
+import { hasPassedComprehension } from "../study/session";
 import type {
   ComprehensionQuestion,
+  EvidenceClaim,
   ExperimentalCondition,
   OutreachRecommendation,
   QueryResult,
@@ -32,10 +30,11 @@ interface TaskPanelProps {
   onStudyPhaseChange?: (phase: "initial" | "awaiting_ai" | "final" | "single" | null) => void;
   onOpenCase: (caseRef: StudyCaseRef) => void;
   lastQueryResult?: QueryResult | null;
+  summaryClaims?: EvidenceClaim[];
 }
 
-const STUDY1_TASKS = ["S1-T0", "S1-T1", "S1-T2", "S1-T3", "S1-T4a", "S1-T4b", "S1-T5", "S1-T6"];
-const STUDY2_TASKS = ["S2-T0", "S2-T1", "S2-T2", "S2-T3", "S2-T4", "S2-T5", "S2-T6", "S2-T7"];
+const STUDY1_TASKS = ["S1-T0", "S1-T2", "S1-T3", "S1-T5"];
+const STUDY2_TASKS = ["S2-T0", "S2-T1", "S2-T3", "S2-T6"];
 const DRIVER_FEATURES = Object.keys(FEATURE_LABELS);
 const EMPTY_DRIVERS = [
   { feature: "", direction: "increases_risk" },
@@ -43,7 +42,8 @@ const EMPTY_DRIVERS = [
   { feature: "", direction: "increases_risk" },
 ];
 
-const CONFIDENCE_OPTIONS = [1, 2, 3, 4, 5, 6, 7];
+const CONFIDENCE_MIN = 0;
+const CONFIDENCE_MAX = 100;
 const RELIANCE_OPTIONS = [
   { value: "priority_rule", label: "Operational priority rule" },
   { value: "risk_scores", label: "Risk scores" },
@@ -59,17 +59,15 @@ export function TaskPanel({
   onStudyPhaseChange,
   onOpenCase,
   lastQueryResult = null,
+  summaryClaims = [],
 }: TaskPanelProps) {
-  const facilitatorMode = isFacilitatorModeFromUrl();
   const [tasks, setTasks] = useState<StudyTaskDefinition[]>([]);
   const [cases, setCases] = useState<StudyCaseRef[]>([]);
-  const [assignments, setAssignments] = useState<Record<string, string>>({});
   const [priorityRuleDescription, setPriorityRuleDescription] = useState<string>("");
   const [comprehensionQuestions, setComprehensionQuestions] = useState<ComprehensionQuestion[]>([]);
   const [comprehensionThreshold, setComprehensionThreshold] = useState(2);
   const [comprehensionPassed, setComprehensionPassed] = useState(hasPassedComprehension(studyArm));
   const [activeTaskId, setActiveTaskId] = useState<string | null>(null);
-  const [activeManipulation, setActiveManipulation] = useState<string | null>(null);
   const [trialId, setTrialId] = useState<string | null>(null);
   const [outreachCaseIds, setOutreachCaseIds] = useState<string[]>([]);
   const [startedAt, setStartedAt] = useState<number | null>(null);
@@ -80,10 +78,17 @@ export function TaskPanel({
   const [beneficiaryIds, setBeneficiaryIds] = useState(["", "", "", "", ""]);
   const [resultCount, setResultCount] = useState("");
   const [topBeneId, setTopBeneId] = useState("");
-  const [confidence, setConfidence] = useState<number>(4);
+  const [confidence, setConfidence] = useState<number>(50);
   const [relianceSource, setRelianceSource] = useState("priority_rule");
-  const [claimSupported, setClaimSupported] = useState<"supported" | "unsupported" | "">("");
+  const [claimSupported, setClaimSupported] = useState<
+    "supported" | "not_supported" | "insufficient_information" | ""
+  >("");
   const [flaggedClaim, setFlaggedClaim] = useState("");
+  const [claimAssessments, setClaimAssessments] = useState<Record<number, string>>({});
+  const [decisionAction, setDecisionAction] = useState("");
+  const [decisionReason, setDecisionReason] = useState("");
+  const [recommendationSupport, setRecommendationSupport] = useState(4);
+  const [queryDecision, setQueryDecision] = useState("confirm");
   const [recommendation, setRecommendation] = useState<OutreachRecommendation | null>(null);
   const [recommendationLoading, setRecommendationLoading] = useState(false);
   const [status, setStatus] = useState<string | null>(null);
@@ -117,7 +122,6 @@ export function TaskPanel({
     void Promise.all([getStudySession(participantId), getStudyTasks()])
       .then(([session, taskPayload]) => {
         setCases(session.cases);
-        setAssignments(session.assignments);
         setPriorityRuleDescription(String(session.priority_rule?.description ?? ""));
         const comprehension =
           studyArm === "study2"
@@ -140,10 +144,15 @@ export function TaskPanel({
     setBeneficiaryIds(["", "", "", "", ""]);
     setResultCount("");
     setTopBeneId("");
-    setConfidence(4);
+    setConfidence(50);
     setRelianceSource("priority_rule");
     setClaimSupported("");
     setFlaggedClaim("");
+    setClaimAssessments({});
+    setDecisionAction("");
+    setDecisionReason("");
+    setRecommendationSupport(4);
+    setQueryDecision("confirm");
     setRecommendation(null);
     setPhase("single");
   };
@@ -155,7 +164,6 @@ export function TaskPanel({
     try {
       const started = await startStudyTask(taskId, getParticipantId(), getSessionId());
       setActiveTaskId(taskId);
-      setActiveManipulation(started.active_manipulation);
       setTrialId(started.trial_id);
       setOutreachCaseIds(started.outreach_case_ids ?? []);
       setRanking(started.outreach_case_ids ?? []);
@@ -164,14 +172,6 @@ export function TaskPanel({
       const nextPhase = started.task.sequential_judgment ? "initial" : "single";
       setPhase(nextPhase);
       onStudyPhaseChange?.(nextPhase);
-      void trackEvent(
-      "task_start",
-      {
-        task_id: taskId,
-        trial_id: started.trial_id,
-      },
-      condition,
-    );
     } catch (startError) {
       setError(startError instanceof Error ? startError.message : "Failed to start task.");
     }
@@ -179,7 +179,12 @@ export function TaskPanel({
 
   const buildResponses = () => {
     if (activeTask?.response_type === "sequential_ranking" || activeTask?.response_type === "ranking") {
-      return { ranking };
+      return {
+        ranking,
+        decision_action: phase === "final" ? decisionAction : null,
+        decision_reason: phase === "final" ? decisionReason.trim() : null,
+        recommendation_support: phase === "final" ? recommendationSupport : null,
+      };
     }
     if (activeTask?.response_type === "feature_list") {
       return { drivers };
@@ -201,6 +206,7 @@ export function TaskPanel({
         result_count: lastQueryResult?.row_count ?? null,
         top_bene_id: ids[0] ?? null,
         parameters: lastQueryResult?.parameters ?? null,
+        confirmation_action: queryDecision,
       };
     }
     if (activeTask?.response_type === "sequential_claim_review") {
@@ -208,6 +214,16 @@ export function TaskPanel({
         supported: claimSupported,
         flagged_claim: flaggedClaim.trim() || null,
         notes: responseText.trim() || null,
+        decision_action: phase === "final" ? decisionAction : null,
+        decision_reason: phase === "final" ? decisionReason.trim() : null,
+        claim_assessments:
+          phase === "final"
+            ? summaryClaims.map((claim, index) => ({
+                claim_index: index,
+                statement: claim.statement,
+                designation: claimAssessments[index] ?? "",
+              }))
+            : [],
       };
     }
     return { text: responseText.trim() };
@@ -237,7 +253,6 @@ export function TaskPanel({
 
       setStatus(`Saved ${submitPhase} response for ${activeTask.task_id}.`);
       setActiveTaskId(null);
-      setActiveManipulation(null);
       setTrialId(null);
       setStartedAt(null);
       resetResponseFields();
@@ -253,7 +268,11 @@ export function TaskPanel({
     setRecommendationLoading(true);
     setError(null);
     try {
-      const payload = await getOutreachRecommendation(activeTask.task_id, getParticipantId());
+      const payload = await getOutreachRecommendation(
+        activeTask.task_id,
+        getParticipantId(),
+        trialId ?? undefined,
+      );
       setRecommendation(payload);
     } catch (loadError) {
       setError(loadError instanceof Error ? loadError.message : "Failed to load recommendation.");
@@ -293,14 +312,23 @@ export function TaskPanel({
         {isClaimReview ? (
           <>
             <label className="study-response-field">
-              <span>Is the summary supported by the record?</span>
+              <span>Does the available evidence support the proposed high-priority follow-up?</span>
               <select
                 value={claimSupported}
-                onChange={(event) => setClaimSupported(event.target.value as "supported" | "unsupported")}
+                onChange={(event) =>
+                  setClaimSupported(
+                    event.target.value as
+                      | "supported"
+                      | "not_supported"
+                      | "insufficient_information"
+                      | "",
+                  )
+                }
               >
                 <option value="">Select…</option>
                 <option value="supported">Supported</option>
-                <option value="unsupported">Contains unsupported claim(s)</option>
+                <option value="not_supported">Not supported</option>
+                <option value="insufficient_information">Insufficient information</option>
               </select>
             </label>
             <label className="study-response-field">
@@ -393,11 +421,21 @@ export function TaskPanel({
         ) : null}
 
         {activeTask.response_type === "query_flow" ? (
-          <p className="panel-subtitle">
-            {lastQueryResult
-              ? `Captured count ${lastQueryResult.row_count} and top ID ${lastQueryResult.rows[0]?.bene_id ?? "—"}. Mark complete when finished.`
-              : "Complete the search in the dashboard, then mark complete."}
-          </p>
+          <>
+            <p className="panel-subtitle">
+              {lastQueryResult
+                ? `Captured count ${lastQueryResult.row_count} and top ID ${lastQueryResult.rows[0]?.bene_id ?? "—"}. Mark complete when finished.`
+                : "Complete the search in the dashboard, then mark complete."}
+            </p>
+            <label className="study-response-field">
+              <span>Interpretation-card decision</span>
+              <select value={queryDecision} onChange={(event) => setQueryDecision(event.target.value)}>
+                <option value="confirm">Confirmed as shown</option>
+                <option value="revise">Revised before execution</option>
+                <option value="reject">Rejected</option>
+              </select>
+            </label>
+          </>
         ) : null}
 
         {!isRanking &&
@@ -422,17 +460,18 @@ export function TaskPanel({
           <p className="panel-subtitle">Complete the task in the dashboard interface, then mark complete.</p>
         ) : null}
 
-        {phase !== "single" || isRanking || isClaimReview ? (
+        {activeTask.response_type !== "comprehension" &&
+        activeTask.response_type !== "completion" ? (
           <>
             <label className="study-response-field">
-              <span>Confidence (1 = low, 7 = high)</span>
-              <select value={confidence} onChange={(event) => setConfidence(Number(event.target.value))}>
-                {CONFIDENCE_OPTIONS.map((value) => (
-                  <option key={value} value={value}>
-                    {value}
-                  </option>
-                ))}
-              </select>
+              <span>Confidence (0–100)</span>
+              <input
+                type="number"
+                min={CONFIDENCE_MIN}
+                max={CONFIDENCE_MAX}
+                value={confidence}
+                onChange={(event) => setConfidence(Number(event.target.value))}
+              />
             </label>
             <label className="study-response-field">
               <span>Primary reliance source</span>
@@ -465,11 +504,39 @@ export function TaskPanel({
         ) : null}
 
         {phase === "final" && isRanking ? (
-          <div className="query-actions">
-            <button type="button" className="secondary-button" onClick={() => void submitPhase("final")}>
-              Submit final ranking
-            </button>
-          </div>
+          <>
+            <label className="study-response-field">
+              <span>After reviewing the recommendation</span>
+              <select value={decisionAction} onChange={(event) => setDecisionAction(event.target.value)}>
+                <option value="">Select…</option>
+                <option value="keep">Keep my initial ranking</option>
+                <option value="revise">Revise my ranking</option>
+              </select>
+            </label>
+            <label className="study-response-field">
+              <span>How strongly does the recommendation support your final ranking? (1–7)</span>
+              <input
+                type="number"
+                min={1}
+                max={7}
+                value={recommendationSupport}
+                onChange={(event) => setRecommendationSupport(Number(event.target.value))}
+              />
+            </label>
+            <label className="study-response-field">
+              <span>Reason for your final decision</span>
+              <textarea
+                rows={3}
+                value={decisionReason}
+                onChange={(event) => setDecisionReason(event.target.value)}
+              />
+            </label>
+            <div className="query-actions">
+              <button type="button" className="secondary-button" onClick={() => void submitPhase("final")}>
+                Submit final ranking
+              </button>
+            </div>
+          </>
         ) : null}
 
         {phase === "initial" && (isRanking || isClaimReview) ? (
@@ -492,11 +559,48 @@ export function TaskPanel({
         ) : null}
 
         {phase === "final" && isClaimReview ? (
-          <div className="query-actions">
-            <button type="button" className="secondary-button" onClick={() => void submitPhase("final")}>
-              Submit final judgment
-            </button>
-          </div>
+          <>
+            {summaryClaims.map((claim, index) => (
+              <label key={`claim-${index}`} className="study-response-field">
+                <span>{claim.statement}</span>
+                <select
+                  value={claimAssessments[index] ?? ""}
+                  onChange={(event) =>
+                    setClaimAssessments((current) => ({
+                      ...current,
+                      [index]: event.target.value,
+                    }))
+                  }
+                >
+                  <option value="">Select…</option>
+                  <option value="supported_by_linked_data">Supported by linked data</option>
+                  <option value="not_supported">Not supported</option>
+                  <option value="cannot_determine">Cannot determine</option>
+                </select>
+              </label>
+            ))}
+            <label className="study-response-field">
+              <span>Final judgment relative to your initial judgment</span>
+              <select value={decisionAction} onChange={(event) => setDecisionAction(event.target.value)}>
+                <option value="">Select…</option>
+                <option value="keep">Keep initial judgment</option>
+                <option value="change">Change judgment</option>
+              </select>
+            </label>
+            <label className="study-response-field">
+              <span>Reason for your final decision</span>
+              <textarea
+                rows={3}
+                value={decisionReason}
+                onChange={(event) => setDecisionReason(event.target.value)}
+              />
+            </label>
+            <div className="query-actions">
+              <button type="button" className="secondary-button" onClick={() => void submitPhase("final")}>
+                Submit final judgment
+              </button>
+            </div>
+          </>
         ) : null}
 
         {phase === "single" && activeTask.response_type !== "comprehension" ? (
@@ -536,15 +640,6 @@ export function TaskPanel({
 
       {!collapsed ? (
         <>
-          {facilitatorMode ? (
-            <div className="study-assignments facilitator-only">
-              <span>S1-T5: {assignments["S1-T5"] ?? assignments.study1 ?? "—"}</span>
-              <span>S2-T2: {assignments["S2-T2"] ?? "—"}</span>
-              <span>S2-T3: {assignments["S2-T3"] ?? "—"}</span>
-              <span>S2-T6: {assignments["S2-T6"] ?? "—"}</span>
-            </div>
-          ) : null}
-
           {error ? <p className="query-error">{error}</p> : null}
           {status ? <p className="study-export-status">{status}</p> : null}
           {priorityRuleDescription ? (
@@ -573,11 +668,6 @@ export function TaskPanel({
                 {activeTask.task_id}: {activeTask.title}
               </h3>
               <p>{activeTask.instructions}</p>
-              {facilitatorMode && activeManipulation ? (
-                <p className="study-manipulation-note facilitator-only">
-                  Facilitator note — active manipulation: <strong>{activeManipulation}</strong>
-                </p>
-              ) : null}
               {activeTask.suggested_query ? (
                 <p className="panel-subtitle">Suggested query: “{activeTask.suggested_query}”</p>
               ) : null}
@@ -626,7 +716,6 @@ export function TaskPanel({
                   className="ghost-button"
                   onClick={() => {
                     setActiveTaskId(null);
-                    setActiveManipulation(null);
                     setTrialId(null);
                     setStartedAt(null);
                     resetResponseFields();

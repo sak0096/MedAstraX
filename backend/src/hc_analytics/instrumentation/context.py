@@ -7,7 +7,10 @@ from typing import Any, Dict, Optional
 
 from hc_analytics import __version__
 from hc_analytics.config import Settings, get_settings
-from hc_analytics.instrumentation.constants import DASHBOARD_BUILD_VERSION, INSTRUMENTATION_SCHEMA_VERSION
+from hc_analytics.instrumentation.constants import (
+    DASHBOARD_BUILD_VERSION,
+    INSTRUMENTATION_SCHEMA_VERSION,
+)
 from hc_analytics.language.constants import LANGUAGE_SCHEMA_VERSION
 from hc_analytics.modeling.constants import TARGET_SHORT_NAMES, RiskTarget
 from hc_analytics.modeling.trainers import require_primary_model_family
@@ -50,7 +53,9 @@ def build_version_context(settings: Optional[Settings] = None) -> Dict[str, Any]
     frozen = _read_json(settings.repo_root / "study" / "frozen_summaries.json")
 
     try:
-        primary_family = model_manifest.get("primary_model_family") or require_primary_model_family()
+        primary_family = (
+            model_manifest.get("primary_model_family") or require_primary_model_family()
+        )
     except Exception:
         primary_family = model_manifest.get("primary_model_family")
 
@@ -78,7 +83,9 @@ def build_version_context(settings: Optional[Settings] = None) -> Dict[str, Any]
         "language_version": LANGUAGE_SCHEMA_VERSION,
         "frozen_summary_provider": frozen.get("provider"),
         "frozen_summary_model_version": frozen.get("model_version"),
-        "frozen_summaries_hash": _sha256_file(settings.repo_root / "study" / "frozen_summaries.json"),
+        "frozen_summaries_hash": _sha256_file(
+            settings.repo_root / "study" / "frozen_summaries.json"
+        ),
         "study_cases_hash": _sha256_file(settings.repo_root / "study" / "study_cases.json"),
         "study_id": settings.study_id,
         "experimental_condition": settings.experimental_condition.value,

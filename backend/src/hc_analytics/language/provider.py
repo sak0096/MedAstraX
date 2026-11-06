@@ -43,7 +43,9 @@ def prompt_fingerprint(
             "prompt_version": "grounded-template-v1",
             "template": build_template_narrative(bundle),
         }
-    digest = hashlib.sha256(json.dumps(payload, sort_keys=True, default=str).encode("utf-8")).hexdigest()
+    digest = hashlib.sha256(
+        json.dumps(payload, sort_keys=True, default=str).encode("utf-8")
+    ).hexdigest()
     return digest[:16]
 
 
@@ -118,7 +120,9 @@ def freeze_metadata(settings: Optional[Settings] = None) -> dict:
         "llm_temperature": settings.llm_temperature if configured else None,
         "prompt_version": prompt_version,
         "model_version": (
-            f"frozen-{settings.llm_model}" if configured and settings.llm_model else "frozen-template-v1"
+            f"frozen-{settings.llm_model}"
+            if configured and settings.llm_model
+            else "frozen-template-v1"
         ),
         "adjudication_required": configured,
         "technical_adjudication_required": configured,

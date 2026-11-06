@@ -1,16 +1,48 @@
 services:
+  postgres:
+    image: postgres:18-alpine
+    environment:
+      POSTGRES_DB: medastrax
+      POSTGRES_USER: medastrax
+      POSTGRES_PASSWORD: synthetic-local-only
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U medastrax -d medastrax"]
+      interval: 3s
+      timeout: 3s
+      retries: 20
+    volumes:
+      - medastrax-postgres:/var/lib/postgresql/data
+
   medastrax:
     build: .
     ports:
       - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
     environment:
       HC_STUDY_MODE: "true"
       HC_LOG_EVENTS: "true"
       HC_EXPERIMENTAL_CONDITION: baseline
+      HC_ENVIRONMENT: local
+      HC_STORAGE_BACKEND: postgres
+      HC_DATABASE_URL: postgresql://medastrax:synthetic-local-only@postgres:5432/medastrax
+      HC_ENFORCE_PROGRESSION: "true"
+      HC_ENROLLMENT_NAMESPACE: test
+      HC_RECRUITMENT_ENABLED: "false"
+      HC_INTEGRATION_SECRET: synthetic-integration-only
+      HC_ADMIN_TOKEN: synthetic-admin-only
       HC_ALLOW_LOGISTIC_FALLBACK: "false"
       HC_STABILITY_METHOD: bootstrap
       HC_BOOTSTRAP_ITERATIONS: "5"
     volumes:
       - ./data/processed:/app/data/processed:ro
-      - ./artifacts:/app/artifacts
-      - ./study:/app/study
+      - ./artifacts:/app/artifacts:ro
+      - ./study:/app/study:ro
+    command:
+      - /bin/sh
+      - -c
+      - python -m hc_analytics.persistence migrate && exec uvicorn hc_analytics.api.app:app --host 0.0.0.0 --port 8000
+
+volumes:
+  medastrax-postgres:

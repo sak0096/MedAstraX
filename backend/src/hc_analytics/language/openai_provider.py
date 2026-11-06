@@ -46,7 +46,7 @@ def build_polish_prompt(bundle: EvidenceBundle, template_narrative: str) -> Dict
         f"Template draft:\n{template_narrative}\n\n"
         "Allowed claims (must remain supported):\n"
         + "\n".join(_claim_lines(bundle))
-        + "\n\nReturn JSON only: {\"narrative\": \"...\"}"
+        + '\n\nReturn JSON only: {"narrative": "..."}'
     )
     return {"system": system, "user": user, "prompt_version": PROMPT_VERSION}
 
@@ -56,7 +56,9 @@ def _endpoint(settings: Settings) -> str:
     if provider in {"openai", "openai_compatible"}:
         return "https://api.openai.com/v1/chat/completions"
     if provider in {"azure", "azure_openai"}:
-        raise ValueError("Azure OpenAI requires a custom endpoint; set HC_LLM_PROVIDER=openai_compatible and pass full URL via model config.")
+        raise ValueError(
+            "Azure OpenAI requires a custom endpoint; set HC_LLM_PROVIDER=openai_compatible and pass full URL via model config."
+        )
     # Allow custom base URL style providers that still speak OpenAI chat schema.
     if provider.startswith("http://") or provider.startswith("https://"):
         return provider.rstrip("/") + "/chat/completions"
@@ -99,9 +101,7 @@ def _retry_delay_seconds(
 def _raise_sanitized_api_error(response: httpx.Response) -> None:
     code, message = _error_details(response)
     code_label = f", code={code}" if code else ""
-    raise RuntimeError(
-        f"LLM request failed (HTTP {response.status_code}{code_label}): {message}"
-    )
+    raise RuntimeError(f"LLM request failed (HTTP {response.status_code}{code_label}): {message}")
 
 
 def polish_narrative_with_llm(
@@ -110,6 +110,8 @@ def polish_narrative_with_llm(
     settings: Settings,
     timeout_s: float = 60.0,
 ) -> Dict[str, Any]:
+    if settings.study_mode:
+        raise RuntimeError("Live language generation is disabled during study sessions.")
     if not (settings.llm_api_key and settings.llm_model):
         raise RuntimeError("LLM provider is not configured (HC_LLM_API_KEY / HC_LLM_MODEL).")
 

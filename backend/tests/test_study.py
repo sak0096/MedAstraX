@@ -5,14 +5,16 @@ from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
-
 from hc_analytics.api.app import app
 from hc_analytics.config import Settings
 from hc_analytics.language.models import InterpretedQuery
-from hc_analytics.study.manipulations import apply_query_manipulations, apply_summary_manipulations
 from hc_analytics.study.cohort_spec import cohort_spec_for_task
-from hc_analytics.study.models import StudyCaseDefinition
-from hc_analytics.study.priority import compute_priority_score, incorrect_recommendation_ranking, rank_case_ids
+from hc_analytics.study.manipulations import apply_query_manipulations
+from hc_analytics.study.priority import (
+    compute_priority_score,
+    incorrect_recommendation_ranking,
+    rank_case_ids,
+)
 from hc_analytics.study.recommendations import build_outreach_recommendation
 from hc_analytics.study.scoring import score_outreach_trial, score_session_events
 from hc_analytics.study.session import assign_case_set, assign_manipulations
@@ -217,8 +219,18 @@ def test_assign_case_set() -> None:
 
 def test_priority_ranking() -> None:
     records = {
-        "B-01": {"inpatient_claims": 1, "outpatient_claims": 0, "chronic_condition_count": 0, "total_claims": 5},
-        "B-02": {"inpatient_claims": 4, "outpatient_claims": 0, "chronic_condition_count": 0, "total_claims": 5},
+        "B-01": {
+            "inpatient_claims": 1,
+            "outpatient_claims": 0,
+            "chronic_condition_count": 0,
+            "total_claims": 5,
+        },
+        "B-02": {
+            "inpatient_claims": 4,
+            "outpatient_claims": 0,
+            "chronic_condition_count": 0,
+            "total_claims": 5,
+        },
     }
     assert rank_case_ids(["B-01", "B-02"], case_records=records) == ["B-02", "B-01"]
     assert compute_priority_score(records["B-02"]) == 12.5
@@ -232,11 +244,15 @@ def test_incorrect_recommendation_ranking() -> None:
 
 
 def test_build_outreach_recommendation(study_settings: Settings) -> None:
-    faithful = build_outreach_recommendation(["B-01", "B-02"], manipulated=False, settings=study_settings)
+    faithful = build_outreach_recommendation(
+        ["B-01", "B-02"], manipulated=False, settings=study_settings
+    )
     assert faithful["correct_ranking"] == ["B-02", "B-01"]
     assert faithful["recommended_ranking"] == faithful["correct_ranking"]
 
-    manipulated = build_outreach_recommendation(["B-01", "B-02"], manipulated=True, settings=study_settings)
+    manipulated = build_outreach_recommendation(
+        ["B-01", "B-02"], manipulated=True, settings=study_settings
+    )
     assert manipulated["recommended_ranking"][0] == "B-01"
     assert manipulated["manipulated"] is True
 
@@ -246,7 +262,12 @@ def test_query_filter_manipulation() -> None:
         query_id="q1",
         natural_language="top 25 with diabetes",
         action="list_beneficiaries",
-        parameters={"chronic_filter": "has_diabetes", "chronic_value": 1, "limit": 25, "sort_by": "hospitalization_risk"},
+        parameters={
+            "chronic_filter": "has_diabetes",
+            "chronic_value": 1,
+            "limit": 25,
+            "sort_by": "hospitalization_risk",
+        },
         confirmation_message="with diabetes flagged",
     )
     mutated = apply_query_manipulations(interpreted, active_manipulations=["M4"])
@@ -269,7 +290,9 @@ def test_query_analytic_year_manipulation_changes_execution_and_confirmation() -
 def test_canonical_cohort_specs_are_frozen_by_task(study_settings: Settings) -> None:
     assert cohort_spec_for_task("S1-T2", settings=study_settings)["limit"] == 5
     assert cohort_spec_for_task("S1-T2", settings=study_settings)["chronic_filter"] is None
-    assert cohort_spec_for_task("S2-T2", settings=study_settings)["chronic_filter"] == "has_diabetes"
+    assert (
+        cohort_spec_for_task("S2-T2", settings=study_settings)["chronic_filter"] == "has_diabetes"
+    )
     assert cohort_spec_for_task("S2-T6", settings=study_settings)["chronic_filter"] == "has_chf"
     assert cohort_spec_for_task("S2-T6", settings=study_settings)["analytic_year"] == 2022
 
@@ -337,7 +360,12 @@ def test_score_outreach_trial_beneficial_correction() -> None:
 
 
 def test_kendall_and_interpretation_scoring() -> None:
-    from hc_analytics.study.scoring import kendall_tau_distance, score_claim_detection, score_interpretation, score_query_set
+    from hc_analytics.study.scoring import (
+        kendall_tau_distance,
+        score_claim_detection,
+        score_interpretation,
+        score_query_set,
+    )
 
     assert kendall_tau_distance(["A", "B", "C"], ["A", "B", "C"]) == 0.0
     interpretation = score_interpretation(
@@ -370,6 +398,9 @@ def test_kendall_and_interpretation_scoring() -> None:
     set_match = score_query_set(["2", "1", "3"], ["1", "2", "3"])
     assert set_match["exact_match"] is True
     assert set_match["exact_ordered_match"] is False
+    empty = score_query_set([], [])
+    assert empty["exact_match"] is True
+    assert empty["exact_ordered_match"] is True
 
 
 def test_sparse_duplicate_events_do_not_erase_ground_truth() -> None:
@@ -401,7 +432,7 @@ def test_sparse_duplicate_events_do_not_erase_ground_truth() -> None:
     assert report["trials"][0]["final_correct"] is True
 
 
-def test_study_session_hides_assignments_unless_facilitator(
+def test_study_session_hides_assignments_from_facilitator_query(
     study_settings: Settings, monkeypatch: pytest.MonkeyPatch
 ) -> None:
     monkeypatch.setattr("hc_analytics.config.get_settings", lambda: study_settings)
@@ -413,12 +444,14 @@ def test_study_session_hides_assignments_unless_facilitator(
     public = client.get("/api/study/session", params={"participant_id": "P001"})
     assert public.status_code == 200
     assert public.json()["assignments"] == {}
+    assert "correct_index" not in public.text
     facilitator = client.get(
         "/api/study/session",
         params={"participant_id": "P001", "facilitator": True},
     )
     assert facilitator.status_code == 200
-    assert facilitator.json()["assignments"]["S1-T5"] in {"correct", "M2"}
+    assert facilitator.json()["assignments"] == {}
+    assert "correct_index" not in facilitator.text
 
 
 def test_score_session_events_reads_initial_response_event() -> None:
@@ -455,7 +488,9 @@ def test_score_session_events_reads_initial_response_event() -> None:
     assert report["trials"][0]["beneficial_correction"] is True
 
 
-def test_study_api_session_and_sequential_response(study_settings: Settings, monkeypatch: pytest.MonkeyPatch) -> None:
+def test_study_api_session_and_sequential_response(
+    study_settings: Settings, monkeypatch: pytest.MonkeyPatch
+) -> None:
     monkeypatch.setattr("hc_analytics.config.get_settings", lambda: study_settings)
     monkeypatch.setattr("hc_analytics.study.loader.get_settings", lambda: study_settings)
     monkeypatch.setattr("hc_analytics.api.routes.study.get_settings", lambda: study_settings)
@@ -500,6 +535,8 @@ def test_study_api_session_and_sequential_response(study_settings: Settings, mon
     )
     assert recommendation.status_code == 200
     assert "recommended_ranking" in recommendation.json()
+    assert "correct_ranking" not in recommendation.json()
+    assert "manipulated" not in recommendation.json()
 
     initial = client.post(
         "/api/study/tasks/S1-T5/response",

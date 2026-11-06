@@ -5,7 +5,6 @@ from pathlib import Path
 
 import pandas as pd
 import pytest
-
 from hc_analytics.config import Settings
 from hc_analytics.features.pipeline import build_feature_store, run_feature_engineering
 

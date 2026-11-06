@@ -86,9 +86,7 @@ def load_merged_dashboard_frame(settings: Optional[Settings] = None) -> pd.DataF
     predictions = load_predictions(settings)
     feature_columns = [column for column in FEATURE_OUTPUT_COLUMNS if column in features.columns]
     prediction_columns = [
-        column
-        for column in predictions.columns
-        if column not in {"bene_id", "analytic_year"}
+        column for column in predictions.columns if column not in {"bene_id", "analytic_year"}
     ]
     merged = features[feature_columns].merge(
         predictions[["bene_id", "analytic_year", *prediction_columns]],

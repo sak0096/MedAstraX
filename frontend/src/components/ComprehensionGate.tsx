@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { submitComprehension } from "../api/client";
 import { getParticipantId, getSessionId } from "../instrumentation/logger";
 import {
@@ -10,7 +10,6 @@ export interface ComprehensionQuestion {
   question_id: string;
   prompt: string;
   choices: string[];
-  correct_index: number;
 }
 
 interface ComprehensionGateProps {
@@ -34,6 +33,7 @@ export function ComprehensionGate({
   const [error, setError] = useState<string | null>(null);
   const [result, setResult] = useState<string | null>(null);
   const [lockedOut, setLockedOut] = useState(false);
+  const pendingKey = useRef<string | null>(null);
 
   const allAnswered = useMemo(
     () => questions.every((question) => answers[question.question_id] !== undefined),
@@ -43,23 +43,26 @@ export function ComprehensionGate({
   const submit = async () => {
     setError(null);
     try {
-      const attempts = incrementComprehensionAttempts(attemptKey);
+      if (!pendingKey.current) pendingKey.current = crypto.randomUUID();
       const response = await submitComprehension({
         participant_id: getParticipantId(),
         session_id: getSessionId(),
         answers,
         study,
+        idempotency_key: pendingKey.current,
       });
+      pendingKey.current = null;
+      const attempts = response.attempt_number ?? incrementComprehensionAttempts(attemptKey);
       if (response.passed) {
         markComprehensionPassed(attemptKey);
         setResult(`Passed (${response.correct}/${response.total}).`);
         onPassed();
         return;
       }
-      if (attempts >= maxAttempts) {
+      if (response.research_tasks_ended || attempts >= maxAttempts) {
         setLockedOut(true);
         setResult(
-          `Did not pass after ${maxAttempts} attempts (${response.correct}/${response.total}). Please notify the facilitator.`,
+          `The research tasks end here (${response.correct}/${response.total}). You will continue to the closing questions.`,
         );
         return;
       }

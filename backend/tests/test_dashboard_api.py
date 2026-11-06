@@ -5,7 +5,6 @@ from pathlib import Path
 import pandas as pd
 import pytest
 from fastapi.testclient import TestClient
-
 from hc_analytics.api.app import app
 from hc_analytics.config import Settings
 from hc_analytics.features.cohort_summary import write_cohort_summary

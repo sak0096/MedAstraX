@@ -40,14 +40,16 @@ def build_outreach_recommendation(
         "rule_description": PRIORITY_RULE_DESCRIPTION,
         "case_ids": list(case_ids),
         "priority_scores": {
-            case_id: records[case_id].get("priority_score", compute_priority_score(records[case_id]))
+            case_id: records[case_id].get(
+                "priority_score", compute_priority_score(records[case_id])
+            )
             for case_id in case_ids
         },
         "correct_ranking": correct_ranking,
         "recommended_ranking": displayed_ranking,
         "manipulated": manipulated,
         "rationale": (
-            "Model recommends prioritizing cases in the order shown based on utilization "
+            "The automated aid recommends prioritizing cases in the order shown based on utilization "
             "burden and chronic-condition signals."
         ),
     }
