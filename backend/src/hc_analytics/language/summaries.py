@@ -1,11 +1,10 @@
 from __future__ import annotations
 
-from typing import Dict, List, Optional
+from typing import Dict, List
 
 from hc_analytics.explainability.bundles import EvidenceBundle, TargetExplanation
 from hc_analytics.language.grounding import FALLBACK_INSUFFICIENT_EVIDENCE, GroundedExplanation
 from hc_analytics.language.models import GroundedSummaryResponse
-
 
 FEATURE_LABELS = {
     "age": "Age",
@@ -62,7 +61,9 @@ def _target_sentence(target: TargetExplanation) -> str:
         direction = "raised" if contributor.direction == "increases_risk" else "lowered"
         value_text = ""
         if contributor.feature_value is not None:
-            value_text = f" (value: {_feature_value(contributor.feature, contributor.feature_value)})"
+            value_text = (
+                f" (value: {_feature_value(contributor.feature, contributor.feature_value)})"
+            )
         contributor_bits.append(
             f"{_feature_label(contributor.feature)}{value_text} {direction} risk"
         )

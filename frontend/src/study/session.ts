@@ -40,6 +40,17 @@ export function isFacilitatorModeFromUrl(): boolean {
   return params.get("facilitator") === "1";
 }
 
+export function takeLaunchCredential(search: string): { token: string | null; nextSearch: string } {
+  const params = new URLSearchParams(search.startsWith("?") ? search.slice(1) : search);
+  const token = params.get("launch_token");
+  if (!token) {
+    return { token: null, nextSearch: search.startsWith("?") || search === "" ? search : `?${search}` };
+  }
+  params.delete("launch_token");
+  const rest = params.toString();
+  return { token, nextSearch: rest ? `?${rest}` : "" };
+}
+
 export function hasPassedComprehension(arm = "default"): boolean {
   return sessionStorage.getItem(`${COMPREHENSION_KEY}:${arm}`) === "1";
 }

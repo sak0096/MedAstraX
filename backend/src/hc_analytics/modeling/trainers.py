@@ -11,7 +11,6 @@ import numpy as np
 import pandas as pd
 from sklearn.compose import ColumnTransformer
 from sklearn.impute import SimpleImputer
-from sklearn.preprocessing import StandardScaler
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import (
     average_precision_score,
@@ -19,16 +18,15 @@ from sklearn.metrics import (
     roc_auc_score,
 )
 from sklearn.pipeline import Pipeline
-from sklearn.preprocessing import OneHotEncoder
+from sklearn.preprocessing import OneHotEncoder, StandardScaler
 
 from hc_analytics.modeling.constants import (
     CATEGORICAL_COLUMNS,
     FEATURE_COLUMNS,
-    MODEL_FAMILIES,
     MODEL_SCHEMA_VERSION,
     PRIMARY_MODEL_FAMILY,
-    RiskTarget,
     TARGET_SHORT_NAMES,
+    RiskTarget,
 )
 
 
@@ -174,8 +172,9 @@ def train_model(
         and len(calibration_x) > 0
         and calibration_y.nunique() > 1
     ):
-        from sklearn.calibration import CalibratedClassifierCV
         import warnings
+
+        from sklearn.calibration import CalibratedClassifierCV
 
         with warnings.catch_warnings():
             warnings.filterwarnings(

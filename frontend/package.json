@@ -5,7 +5,7 @@
   "description": "Provider-facing healthcare analytics dashboard (baseline, XAI, LLM conditions)",
   "type": "module",
   "engines": {
-    "node": ">=20 <25",
+    "node": ">=24.16 <25",
     "npm": ">=10"
   },
   "scripts": {
@@ -15,19 +15,19 @@
     "test": "vitest run"
   },
   "dependencies": {
-    "plotly.js": "^2.35.2",
+    "plotly.js": "^4.2.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "react-plotly.js": "^2.6.0"
+    "react-plotly.js": "^4.1.0"
   },
   "devDependencies": {
-    "@types/plotly.js": "^2.33.4",
-    "@types/react": "^18.3.12",
-    "@types/react-dom": "^18.3.1",
-    "@vitejs/plugin-react": "^4.3.3",
-    "jsdom": "^25.0.1",
-    "typescript": "^5.6.3",
-    "vite": "^5.4.10",
-    "vitest": "^2.1.9"
+    "@types/plotly.js": "^3.0.15",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "jsdom": "^31.0.0",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.6",
+    "vitest": "^5.1.0"
   }
 }

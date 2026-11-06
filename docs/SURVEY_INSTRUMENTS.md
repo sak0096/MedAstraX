@@ -1,5 +1,10 @@
 # MedAstraX Post-Study Survey Instruments
 
+> **Archived prototype survey draft — not an approved QSF.** Its URL/hidden
+> assignment instructions are obsolete. Build and verify the actual survey
+> from the October working counterpart using `QUALTRICS_INTEGRATION.md` and
+> `STUDY_CROSSWALK.md`; exact reviewed-PDF equivalence remains a release gate.
+
 **Purpose:** Capture dependent variables from dissertation §3.4 — usability, workload, trust, perceived understanding/control, and qualitative follow-up.  
 **Protocol version:** 2.0  
 **Administration:** External **Qualtrics** survey (not embedded in the prototype).

@@ -137,7 +137,9 @@ def cohort_ground_truth(
 
 
 def score_fields_from_responses(responses: Dict[str, Any]) -> Dict[str, Any]:
-    result_ids: Sequence[str] = responses.get("result_ids") or responses.get("beneficiary_ids") or []
+    result_ids: Sequence[str] = (
+        responses.get("result_ids") or responses.get("beneficiary_ids") or []
+    )
     top = responses.get("top_bene_id")
     if not top and result_ids:
         top = result_ids[0]

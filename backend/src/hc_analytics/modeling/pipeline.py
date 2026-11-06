@@ -290,9 +290,7 @@ def build_predictions(
     for target in targets:
         target_scores = _score_frame(features, models_dir=models_dir, target=target)
         score_columns = [
-            column
-            for column in target_scores.columns
-            if column not in {"bene_id", "analytic_year"}
+            column for column in target_scores.columns if column not in {"bene_id", "analytic_year"}
         ]
         predictions = predictions.merge(
             target_scores[["bene_id", "analytic_year", *score_columns]],

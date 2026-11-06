@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import json
 import sqlite3
-from datetime import datetime, timezone
 from pathlib import Path
 from typing import Dict, List, Optional
 
@@ -45,7 +44,9 @@ def _connect(settings: Optional[Settings] = None) -> sqlite3.Connection:
     return connection
 
 
-def _enriched_event_dict(event: StudyEvent, settings: Optional[Settings] = None) -> Dict[str, object]:
+def _enriched_event_dict(
+    event: StudyEvent, settings: Optional[Settings] = None
+) -> Dict[str, object]:
     payload = event.model_dump(mode="json")
     payload["version_context"] = build_version_context(settings)
     return payload
@@ -105,7 +106,9 @@ def list_sessions(settings: Optional[Settings] = None) -> List[Dict[str, object]
     ]
 
 
-def load_session_events(session_id: str, settings: Optional[Settings] = None) -> List[Dict[str, object]]:
+def load_session_events(
+    session_id: str, settings: Optional[Settings] = None
+) -> List[Dict[str, object]]:
     with _connect(settings) as connection:
         rows = connection.execute(
             """

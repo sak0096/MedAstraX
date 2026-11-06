@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from datetime import datetime
+from datetime import datetime, timezone
 from enum import Enum
 from typing import Any, Dict, Optional
 
@@ -33,7 +33,7 @@ class EventType(str, Enum):
 
 class StudyEvent(BaseModel):
     event_type: EventType
-    timestamp: datetime = Field(default_factory=datetime.utcnow)
+    timestamp: datetime = Field(default_factory=lambda: datetime.now(timezone.utc))
     participant_id: Optional[str] = None
     session_id: Optional[str] = None
     study_id: Optional[str] = None
@@ -51,6 +51,27 @@ def log_event(event: StudyEvent) -> Dict[str, object]:
         event.study_id = settings.study_id
     if event.condition is None:
         event.condition = settings.experimental_condition
+
+    if settings.storage_backend == "postgres" or settings.strict_sessions:
+        from hc_analytics.persistence.repository import StudyRepository
+
+        repository = StudyRepository.from_settings(settings)
+        enrollment = (
+            repository.get_enrollment_by_code(event.participant_id)
+            if event.participant_id
+            else None
+        )
+        return repository.append_event(
+            event_type=event.event_type.value,
+            enrollment_id=enrollment["enrollment_id"] if enrollment else None,
+            session_hash=event.session_id,
+            task_id=event.task_id,
+            payload={
+                **event.payload,
+                "study_id": event.study_id,
+                "condition": event.condition.value,
+            },
+        )
 
     from hc_analytics.instrumentation.store import append_event
 

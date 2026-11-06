@@ -39,7 +39,6 @@ export interface ComprehensionQuestion {
   question_id: string;
   prompt: string;
   choices: string[];
-  correct_index: number;
 }
 
 export interface StudyTaskDefinition {
@@ -50,7 +49,6 @@ export interface StudyTaskDefinition {
   instructions: string;
   response_type: string;
   requires_cases: string[];
-  manipulation_slot?: "study1" | "study2" | null;
   conditions: string[];
   suggested_query?: string | null;
   sequential_judgment?: boolean;
@@ -60,13 +58,10 @@ export interface StudySession {
   participant_id: string;
   study_mode_enabled: boolean;
   assignments: Record<string, string>;
-  condition_order?: Record<string, string[]>;
   manipulation_catalog: Record<string, string>;
   task_sets: Record<string, string[]>;
   cases: StudyCaseRef[];
   case_set?: string;
-  case_set_by_condition?: Record<string, string>;
-  recommended_first_condition?: string | null;
   priority_rule?: { description?: string; weights?: Record<string, number> };
   comprehension?: {
     pass_threshold?: number;
@@ -81,16 +76,14 @@ export interface StudySession {
 export interface OutreachRecommendation {
   rule_description: string;
   case_ids: string[];
-  priority_scores: Record<string, number>;
-  correct_ranking: string[];
   recommended_ranking: string[];
-  manipulated: boolean;
   rationale: string;
 }
 
 export interface ApiMeta {
   prototype_phase: string;
   experimental_condition: ExperimentalCondition;
+  assigned_study?: "study1" | "study2" | null;
   data_ready: boolean;
   models_ready: boolean;
   predictions_ready: boolean;

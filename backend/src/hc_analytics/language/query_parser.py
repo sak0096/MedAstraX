@@ -5,7 +5,7 @@ import uuid
 from typing import Any, Dict, Optional
 
 from hc_analytics.language.constants import DEFAULT_QUERY_LIMIT
-from hc_analytics.language.models import InterpretedQuery, QueryAction
+from hc_analytics.language.models import InterpretedQuery
 
 _LIMIT_RE = re.compile(r"\b(?:top|first|show)\s+(\d{1,3})\b", re.IGNORECASE)
 _ANALYTIC_YEAR_RE = re.compile(

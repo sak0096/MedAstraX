@@ -1,5 +1,13 @@
 # MedAstraX User Study Protocol
 
+> **Archived prototype design — do not use for participant execution.** This
+> document predates the supplied October working counterparts and retains
+> obsolete URL-based assignment, task IDs, response scales, and facilitator
+> steps for historical traceability. The executable contract is
+> `STUDY_CROSSWALK.md`, `QUALTRICS_INTEGRATION.md`, and
+> `IRB_ALIGNMENT_AND_DECISIONS.md`. Exact reviewed-PDF comparison and PI
+> approval remain required.
+
 **Dissertation:** *Human-Centered Explainable AI for Healthcare Analytics* (revised proposal)  
 **Instrument:** MedAstraX research prototype (CMS Synthetic RIF)  
 **Conditions:** `baseline` · `xai` · `llm`  

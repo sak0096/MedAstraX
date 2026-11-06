@@ -4,14 +4,17 @@ React + Vite + Plotly dashboard for three experimental conditions.
 
 ## Phase 8 — Instrumentation
 
-When `HC_LOG_EVENTS=true` (default), the dashboard records study events to `artifacts/logs/`:
+When `HC_LOG_EVENTS=true` (default), local compatibility mode records events to
+`artifacts/logs/`; strict/production sessions use canonical PostgreSQL:
 
 - JSONL stream (`events.jsonl`) and SQLite index (`events.sqlite`)
 - UI events: session start, filter changes, drill-down, explanation views, NL queries, exports
 - Latency payloads for drill-down actions
-- Pseudonymized session export via **Export study session** (toolbar) or `POST /api/instrumentation/export`
+- research export is authenticated and export UI is hidden in participant mode
 
-Pass `?participant=P001&study=study1&condition=baseline` to assign a participant, study arm, and condition.
+Strict sessions use the authenticated launch/exchange flow. Participant,
+study, condition, case set and progression are server-owned; URL/header values
+are local-development compatibility context only.
 
 ## Phase 7 — NL-assisted dashboard (`condition=llm`)
 
@@ -22,7 +25,7 @@ This condition adds:
 - Grounded beneficiary summaries from evidence bundles (frozen in study mode)
 - Evidence drawer showing source fields behind each claim
 - Natural-language query box with interpret → confirm → execute flow
-- SQLite query cache (`artifacts/query_cache/`)
+- PostgreSQL query lineage in strict/production mode; SQLite compatibility locally
 - Grounded template narratives by default; optional freeze-time LLM polish via `HC_LLM_*` + adjudication scripts
 
 ## Phase 6 — XAI-augmented dashboard

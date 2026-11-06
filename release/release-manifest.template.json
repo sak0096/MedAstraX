@@ -1,0 +1,73 @@
+{
+  "schema": "medastrax-release-v1",
+  "code_commit": "REPLACE_WITH_FULL_COMMIT_SHA",
+  "image_digest": "sha256:REPLACE_AFTER_ACR_PUSH",
+  "configuration_version": "REPLACE_WITH_APPROVED_CONFIG_VERSION",
+  "schema_version": "2026-11-06.3",
+  "assignment_version": "REPLACE_AFTER_PI_REVIEW",
+  "survey_version": "NOT_EVIDENCED_QSF_PENDING",
+  "scoring_version": "REPLACE_AFTER_PI_REVIEW",
+  "human_adjudication_status": "pending",
+  "participant_release_approved": false,
+  "approvals": [
+    {
+      "role": "pi_release",
+      "status": "pending",
+      "evidence_ref": ""
+    },
+    {
+      "role": "reviewed_source_comparison",
+      "status": "pending",
+      "evidence_ref": ""
+    },
+    {
+      "role": "human_adjudication",
+      "status": "pending",
+      "evidence_ref": ""
+    },
+    {
+      "role": "survey_branch_validation",
+      "status": "pending",
+      "evidence_ref": ""
+    },
+    {
+      "role": "azure_security_operations",
+      "status": "pending",
+      "evidence_ref": ""
+    }
+  ],
+  "assets": [
+    {
+      "path": "docs/APPROVED_SOURCE_MANIFEST.md",
+      "sha256": "REPLACE_WITH_SHA256"
+    },
+    {
+      "path": "study/study_cases.json",
+      "sha256": "REPLACE_WITH_SHA256"
+    },
+    {
+      "path": "study/frozen_summaries.json",
+      "sha256": "REPLACE_WITH_SHA256"
+    },
+    {
+      "path": "study/adjudication_queue.json",
+      "sha256": "REPLACE_WITH_SHA256"
+    },
+    {
+      "path": "data/processed/manifest.json",
+      "sha256": "REPLACE_WITH_SHA256"
+    },
+    {
+      "path": "artifacts/models/manifest.json",
+      "sha256": "REPLACE_WITH_SHA256"
+    },
+    {
+      "path": "artifacts/explanations/manifest.json",
+      "sha256": "REPLACE_WITH_SHA256"
+    },
+    {
+      "path": "release/approved-survey.qsf",
+      "sha256": "REPLACE_WITH_SHA256"
+    }
+  ]
+}

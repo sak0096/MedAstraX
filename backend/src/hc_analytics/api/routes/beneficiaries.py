@@ -106,9 +106,7 @@ def get_beneficiary(
     history = frame_to_records(frame)
     latest = history[0]
     risk_scores = {
-        column: latest.get(column)
-        for column in PRIMARY_RISK_COLUMNS
-        if column in latest
+        column: latest.get(column) for column in PRIMARY_RISK_COLUMNS if column in latest
     }
     utilization = {
         "inpatient_claims": latest.get("inpatient_claims"),
@@ -143,9 +141,7 @@ def get_beneficiary(
             "distinct_diagnosis_count": latest.get("distinct_diagnosis_count"),
             "chronic_condition_count": latest.get("chronic_condition_count"),
             "chronic_conditions": chronic_conditions,
-            "chronic_flags": {
-                column: latest.get(column) for column in CHRONIC_CONDITION_COLUMNS
-            },
+            "chronic_flags": {column: latest.get(column) for column in CHRONIC_CONDITION_COLUMNS},
         },
         "labels": {
             "next_year_hospitalization": latest.get("next_year_hospitalization"),

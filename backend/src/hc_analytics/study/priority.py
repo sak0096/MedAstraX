@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Mapping, Optional, Sequence
+from typing import Any, Dict, List, Mapping, Sequence
 
 PRIORITY_RULE_WEIGHTS: Dict[str, float] = {
     "inpatient_claims": 3.0,

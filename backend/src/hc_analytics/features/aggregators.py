@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import Dict, Iterable
 
-import numpy as np
 import pandas as pd
 
 from hc_analytics.features.constants import CHRONIC_CONDITION_PREFIXES
@@ -71,7 +70,10 @@ def aggregate_claim_features(claims: pd.DataFrame) -> pd.DataFrame:
     chronic = pd.DataFrame(chronic_rows)
 
     readmissions = compute_readmission_counts(
-        claims.loc[claims["claim_setting"] == "inpatient", ["bene_id", "service_from_dt", "service_thru_dt"]]
+        claims.loc[
+            claims["claim_setting"] == "inpatient",
+            ["bene_id", "service_from_dt", "service_thru_dt"],
+        ]
     )
 
     feature_frames = [counts, payments, inpatient_payments, chronic, readmissions]
@@ -125,7 +127,11 @@ def compute_readmission_counts(inpatient_claims: pd.DataFrame) -> pd.DataFrame:
             gap_days = (discharge_dates[index] - discharge_dates[index - 1]).days
             if 0 < gap_days <= 30:
                 readmission_rows.append(
-                    {"bene_id": bene_id, "analytic_year": int(years[index]), "readmission_30d_count": 1}
+                    {
+                        "bene_id": bene_id,
+                        "analytic_year": int(years[index]),
+                        "readmission_30d_count": 1,
+                    }
                 )
 
     if not readmission_rows:
@@ -192,6 +198,8 @@ def add_next_year_labels(features: pd.DataFrame) -> pd.DataFrame:
     cost_threshold = next_cost[next_cost > 0].quantile(0.75)
 
     labeled["next_year_hospitalization"] = next_inpatient.gt(0).astype(int)
-    labeled["next_year_high_utilization"] = (next_claims >= claims_threshold).fillna(False).astype(int)
+    labeled["next_year_high_utilization"] = (
+        (next_claims >= claims_threshold).fillna(False).astype(int)
+    )
     labeled["next_year_elevated_cost"] = (next_cost >= cost_threshold).fillna(False).astype(int)
     return labeled

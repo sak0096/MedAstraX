@@ -4,7 +4,7 @@ import hashlib
 import json
 from datetime import datetime, timezone
 from pathlib import Path
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, Optional
 
 from hc_analytics.config import Settings, get_settings
 from hc_analytics.instrumentation.context import build_version_context
@@ -35,7 +35,9 @@ def _redact_payload(payload: Dict[str, Any], study_id: str) -> Dict[str, Any]:
 def _sanitize_event(event: Dict[str, Any], study_id: str) -> Dict[str, Any]:
     sanitized = dict(event)
     if sanitized.get("participant_id"):
-        sanitized["participant_pseudonym"] = pseudonymize(str(sanitized["participant_id"]), study_id)
+        sanitized["participant_pseudonym"] = pseudonymize(
+            str(sanitized["participant_id"]), study_id
+        )
         sanitized.pop("participant_id", None)
     payload = sanitized.get("payload")
     if isinstance(payload, dict):

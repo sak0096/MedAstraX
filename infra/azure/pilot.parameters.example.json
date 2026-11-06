@@ -1,0 +1,23 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "prefix": { "value": "medax" },
+    "location": { "value": "REQUIRES_AUBURN_IT_DECISION" },
+    "environmentName": { "value": "pilot" },
+    "containerImageReference": { "value": "medastrax@sha256:REQUIRES_IMAGE_DIGEST" },
+    "postgresAdministratorLogin": { "value": "REQUIRES_SECRET_INPUT" },
+    "postgresAdministratorPassword": { "reference": { "keyVault": { "id": "REQUIRES_BOOTSTRAP_VAULT_ID" }, "secretName": "postgres-admin-password" } },
+    "runtimeDatabaseUrl": { "reference": { "keyVault": { "id": "REQUIRES_BOOTSTRAP_VAULT_ID" }, "secretName": "runtime-database-url" } },
+    "sessionSecret": { "reference": { "keyVault": { "id": "REQUIRES_BOOTSTRAP_VAULT_ID" }, "secretName": "session-secret" } },
+    "integrationSecret": { "reference": { "keyVault": { "id": "REQUIRES_BOOTSTRAP_VAULT_ID" }, "secretName": "integration-secret" } },
+    "entraTenantId": { "value": "REQUIRES_AUBURN_IT_DECISION" },
+    "entraAudience": { "value": "REQUIRES_AUBURN_IT_DECISION" },
+    "recruitmentEnabled": { "value": false },
+    "enrollmentNamespace": { "value": "test" },
+    "retentionPolicy": { "value": "unresolved" },
+    "paymentTutorialFailCents": { "value": "" },
+    "budgetStartDate": { "value": "REQUIRES_CURRENT_MONTH_START_UTC" },
+    "budgetContactEmails": { "value": [] }
+  }
+}

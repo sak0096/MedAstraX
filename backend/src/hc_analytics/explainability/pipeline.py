@@ -28,12 +28,15 @@ from hc_analytics.explainability.shap_engine import (
     select_background,
     top_contributors,
 )
-from hc_analytics.explainability.stability import attach_margin_stability, bootstrap_top_feature_stability
+from hc_analytics.explainability.stability import (
+    attach_margin_stability,
+    bootstrap_top_feature_stability,
+)
 from hc_analytics.ingestion.io import git_commit_hash
 from hc_analytics.modeling.constants import (
     FEATURE_COLUMNS,
-    RiskTarget,
     TARGET_SHORT_NAMES,
+    RiskTarget,
     risk_score_column,
 )
 from hc_analytics.modeling.trainers import (
@@ -390,7 +393,9 @@ def run_explainability(
             git_commit=git_commit,
         )
     bundle_paths: List[str] = []
-    for idx, ((bene_id, analytic_year), target_explanations) in enumerate(per_row_targets.items(), start=1):
+    for idx, ((bene_id, analytic_year), target_explanations) in enumerate(
+        per_row_targets.items(), start=1
+    ):
         bundle = build_evidence_bundle(
             schema_version=EXPLANATION_SCHEMA_VERSION,
             bene_id=bene_id,

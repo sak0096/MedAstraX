@@ -1,5 +1,10 @@
 # MedAstraX Study Appendices
 
+> **Archived proposal appendix.** It contains prototype-only task IDs and
+> analyses that are not in the October participant task counterparts. Do not
+> use it to configure a release or score participant data. See
+> `STUDY_CROSSWALK.md` and `IRB_ALIGNMENT_AND_DECISIONS.md`.
+
 Companion to the revised dissertation proposal Appendices A, D, E, and F.  
 **Catalog source of truth:** `study/study_cases.json` v2.0
 

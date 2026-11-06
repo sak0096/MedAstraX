@@ -76,7 +76,11 @@ def build_feature_store(
     for column in FEATURE_OUTPUT_COLUMNS:
         if column not in features.columns:
             features[column] = pd.NA
-    return features[FEATURE_OUTPUT_COLUMNS].sort_values(["bene_id", "analytic_year"]).reset_index(drop=True)
+    return (
+        features[FEATURE_OUTPUT_COLUMNS]
+        .sort_values(["bene_id", "analytic_year"])
+        .reset_index(drop=True)
+    )
 
 
 def _write_feature_manifest(
@@ -108,9 +112,7 @@ def run_feature_engineering(settings: Optional[Settings] = None) -> Dict[str, ob
     prescriptions = _load_processed_table(processed_dir, "prescription_events")
 
     if claims["service_from_dt"].isna().all():
-        raise ValueError(
-            "Claims dates are missing. Re-run ingestion after updating date parsing."
-        )
+        raise ValueError("Claims dates are missing. Re-run ingestion after updating date parsing.")
 
     features = build_feature_store(beneficiaries, claims, prescriptions)
     feature_path = processed_dir / "feature_store.parquet"
