@@ -5,7 +5,7 @@
   "description": "Provider-facing healthcare analytics dashboard (baseline, XAI, LLM conditions)",
   "type": "module",
   "engines": {
-    "node": ">=20 <25",
+    "node": ">=24.16 <25",
     "npm": ">=10"
   },
   "scripts": {
