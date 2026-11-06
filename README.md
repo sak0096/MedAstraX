@@ -75,7 +75,10 @@ python -m hc_analytics.explainability
 ./scripts/start-dashboard.sh
 ```
 
-Open http://localhost:5173 (`?participant=P001&study=study1&condition=baseline` for study sessions). Vite proxies `/api` and `/health` to the FastAPI service.
+Open http://localhost:5173 for local development. Vite proxies `/api` and
+`/health` to FastAPI. Strict study sessions are entered through the
+authenticated launch/exchange flow; URL participant/condition values are only
+legacy local-development context and are not authorization.
 
 Check readiness anytime: `GET http://127.0.0.1:8000/api/meta` (data, models, predictions, explanations, instrumentation flags).
 
@@ -120,7 +123,9 @@ cd ../frontend && npm ci
 
 ## Study conditions
 
-Pass `condition=baseline|xai|llm` on the participant URL (and `X-Study-Condition` from the dashboard). `HC_EXPERIMENTAL_CONDITION` is only a fallback when the URL/header is omitted — do not restart the API to switch blocks.
+For strict sessions, condition order and case set are assigned and bound by the
+server. `condition=baseline|xai|llm`, `X-Study-Condition`, and
+`HC_EXPERIMENTAL_CONDITION` remain local-development compatibility inputs only.
 
 | Condition | URL value | Dashboard affordances |
 |-----------|-----------|------------------------|
@@ -136,11 +141,13 @@ XAI and NL-assisted conditions require cached explanations (`python -m hc_analyt
 
 When `HC_LOG_EVENTS=true` (default), the dashboard records telemetry to `artifacts/logs/`:
 
-- `events.jsonl` — append-only event stream
-- `events.sqlite` — indexed store for session export
-- Pseudonymized session bundles via the **Export study session** toolbar button or `POST /api/instrumentation/export`
+- local compatibility: `events.jsonl` and `events.sqlite`;
+- strict/production sessions: canonical PostgreSQL events;
+- authenticated research export only; participant study mode hides export UI.
 
-Assign a participant label with `http://localhost:5173/?participant=P001`. Events include session start, filter changes, drill-down, explanation views, NL query steps, exports, and latency payloads. Version context (model, explanation, API build) is attached server-side.
+Events include server-owned task/progression facts and allowed interaction
+telemetry. Browser clients cannot submit critical task/comprehension events in
+strict mode. Version context is attached server-side.
 
 ## User study mode
 
@@ -151,19 +158,14 @@ Enable the guided study protocol and manipulation trials:
 HC_STUDY_MODE=true
 ```
 
-Open the dashboard with study query params:
+Use an authenticated synthetic launch (`namespace=test`) and exchange its
+one-time token. The public `facilitator` query does not reveal assignments.
+See [docs/QUALTRICS_INTEGRATION.md](docs/QUALTRICS_INTEGRATION.md).
 
-```
-http://localhost:5173/?participant=P001&study=study1&condition=baseline
-```
-
-| URL param | Values | Purpose |
-|-----------|--------|---------|
-| `participant` | `P001`, etc. | Pseudonymized participant ID for logging |
-| `study` | `study1`, `study2` | Participant study block (`full` = facilitator/dev only) |
-| `facilitator` | `1` | Show manipulation assignments (facilitators only) |
-
-Case packets live in [`study/study_cases.json`](study/study_cases.json) (schema v2). Frozen Study 2 narratives: [`study/frozen_summaries.json`](study/frozen_summaries.json). Regenerate after pipeline runs:
+Case packets live in [`study/study_cases.json`](study/study_cases.json) (schema
+`3.0-october-working-counterpart`). Frozen Study 2 narratives:
+[`study/frozen_summaries.json`](study/frozen_summaries.json). Regenerate after
+pipeline runs:
 
 ```bash
 source backend/.venv/bin/activate
@@ -183,19 +185,25 @@ Score a completed session:
 python scripts/score_study_session.py <session_id>
 ```
 
-**Study documentation:** [docs/STUDY_INDEX.md](docs/STUDY_INDEX.md) (hub) · [STUDY_PROTOCOL](docs/STUDY_PROTOCOL.md) · [FACILITATOR_RUNBOOK](docs/FACILITATOR_RUNBOOK.md) · [SURVEY_INSTRUMENTS](docs/SURVEY_INSTRUMENTS.md) · [APPENDICES](docs/STUDY_APPENDICES.md)
+**Current study documentation:** [docs/STUDY_INDEX.md](docs/STUDY_INDEX.md)
+(hub) · [STUDY_CROSSWALK](docs/STUDY_CROSSWALK.md) ·
+[QUALTRICS_INTEGRATION](docs/QUALTRICS_INTEGRATION.md) ·
+[IRB_ALIGNMENT_AND_DECISIONS](docs/IRB_ALIGNMENT_AND_DECISIONS.md)
 
 Study APIs (when `HC_STUDY_MODE=true`):
 
 | Endpoint | Purpose |
 |----------|---------|
-| `GET /api/study/session` | Case set, priority rule, comprehension, assignments |
+| `GET /api/study/session` | Participant-safe case set, priority rule and comprehension |
 | `GET /api/study/tasks` | Task definitions |
 | `POST /api/study/tasks/{id}/start` | Begin task; returns `trial_id` for sequential tasks |
 | `POST /api/study/tasks/{id}/response` | Submit initial/final/single-phase response |
 | `GET /api/study/tasks/{id}/recommendation` | Outreach AI recommendation (Study 1) |
 | `POST /api/study/comprehension` | Comprehension check (S1-T0) |
-| `POST /api/study/score-session` | Behavioral reliance scoring export |
+| `POST /api/study/score-session` | Authenticated behavioral reliance scoring |
+| `POST /api/integration/launch` | Authenticated survey launch |
+| `POST /api/integration/exchange` | One-time browser session exchange |
+| `POST /api/integration/survey-callback` | Authenticated survey stage callback |
 
 Primary controlled errors (revised proposal Appendix D): **M2** incorrect outreach recommendation, **M3** unsupported narrative, **M4/M6/M7** query interpretation errors. SHAP remains faithful during interpretation tasks.
 
@@ -248,7 +256,12 @@ cd backend && source .venv/bin/activate && pytest
 
 ## Prototype status
 
-**Complete (Phases 0–8):** scaffold → CMS ingestion → feature store → risk models → SHAP explainability → baseline dashboard → XAI UI → grounded language layer → instrumentation and study export.
+The repository contains an engineering foundation for synthetic technical
+validation. Participant recruitment is disabled. It is not pilot-ready without
+the exact reviewed source comparison, final assets, actual QSF/branch evidence,
+human adjudication, Azure/identity approval and validation, policy decisions,
+container smoke, and signed release manifest. See
+[docs/IRB_ALIGNMENT_AND_DECISIONS.md](docs/IRB_ALIGNMENT_AND_DECISIONS.md).
 
 ## Data
 
@@ -261,6 +274,9 @@ Download from the [CMS data collection](https://data.cms.gov/collection/syntheti
 - [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) — layer design and experimental conditions
 - [docs/DATA.md](docs/DATA.md) — raw file layout and artifact manifests
 - [frontend/README.md](frontend/README.md) — per-condition UI behavior
+- [docs/BASELINE_AUDIT_2026-11-06.md](docs/BASELINE_AUDIT_2026-11-06.md) — reproduced audit
+- [docs/STUDY_CROSSWALK.md](docs/STUDY_CROSSWALK.md) — October task/field/scoring map
+- [docs/AZURE_DEPLOYMENT.md](docs/AZURE_DEPLOYMENT.md) — deployment/recovery runbook
 
 ## License
 

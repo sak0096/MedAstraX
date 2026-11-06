@@ -1,5 +1,12 @@
 # MedAstraX Facilitator Runbook
 
+> **Archived synchronous prototype runbook — do not use for pilot
+> operations.** Public `facilitator=1`, URL assignment, and the task lists
+> below are disabled/obsolete. The October studies are asynchronous and use
+> authenticated Qualtrics launch/callbacks plus server-owned assignment. Use
+> `ASYNC_STUDY_OPERATIONS.md`, `QUALTRICS_INTEGRATION.md`, and
+> `STUDY_CROSSWALK.md`.
+
 **Audience:** Session facilitators and research assistants  
 **Protocol version:** 2.1
 **Companion:** [STUDY_PROTOCOL.md](./STUDY_PROTOCOL.md)
