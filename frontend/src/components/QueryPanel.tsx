@@ -20,6 +20,7 @@ export function QueryPanel({ onResults, condition }: QueryPanelProps) {
 
   const handleInterpret = async () => {
     if (queryText.trim().length < 3) return;
+    const timingStarted = performance.now();
     setLoading(true);
     setError(null);
     setResult(null);
@@ -31,7 +32,12 @@ export function QueryPanel({ onResults, condition }: QueryPanelProps) {
       setCorrectionClaims(String(response.parameters.min_total_claims ?? ""));
       void trackEvent(
         "query_submit",
-        { query: queryText.trim(), query_id: response.query_id, action: response.action },
+        {
+          query: queryText.trim(),
+          query_id: response.query_id,
+          action: response.action,
+          interpretation_time_ms: performance.now() - timingStarted,
+        },
         condition,
       );
     } catch (interpretError) {
@@ -46,6 +52,7 @@ export function QueryPanel({ onResults, condition }: QueryPanelProps) {
 
   const handleConfirm = async () => {
     if (!interpreted) return;
+    const timingStarted = performance.now();
     setLoading(true);
     setError(null);
     try {
@@ -57,6 +64,7 @@ export function QueryPanel({ onResults, condition }: QueryPanelProps) {
           query_id: interpreted.query_id,
           row_count: response.row_count,
           cached: response.cached,
+          execution_time_ms: performance.now() - timingStarted,
         },
         condition,
       );
@@ -88,6 +96,7 @@ export function QueryPanel({ onResults, condition }: QueryPanelProps) {
 
   const handleRevise = async () => {
     if (!interpreted) return;
+    const timingStarted = performance.now();
     setLoading(true);
     setError(null);
     try {
@@ -102,7 +111,15 @@ export function QueryPanel({ onResults, condition }: QueryPanelProps) {
       const revised = await reviseQuery(interpreted.query_id, corrections);
       setInterpreted(revised);
       setResult(null);
-      void trackEvent("query_revise", { query_id: interpreted.query_id, revised_query_id: revised.query_id }, condition);
+      void trackEvent(
+        "query_revise",
+        {
+          query_id: interpreted.query_id,
+          revised_query_id: revised.query_id,
+          revision_time_ms: performance.now() - timingStarted,
+        },
+        condition,
+      );
     } catch (reviseError) {
       setError(reviseError instanceof Error ? reviseError.message : "Failed to correct the interpretation.");
     } finally {

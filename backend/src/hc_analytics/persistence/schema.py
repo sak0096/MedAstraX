@@ -46,6 +46,9 @@ SCHEMA_STATEMENTS = (
         payment_stage TEXT,
         payment_amount_cents INTEGER,
         retention_choice TEXT,
+        is_pilot INTEGER NOT NULL DEFAULT 0 CHECK (is_pilot IN (0, 1)),
+        recruitment_stage TEXT NOT NULL DEFAULT 'synthetic_test',
+        confirmatory_eligible INTEGER NOT NULL DEFAULT 0 CHECK (confirmatory_eligible IN (0, 1)),
         created_at TEXT NOT NULL
     )
     """,

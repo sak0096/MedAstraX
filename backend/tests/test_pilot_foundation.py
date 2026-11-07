@@ -19,7 +19,8 @@ from hc_analytics.persistence.repository import CapExceeded, StateConflict, Stud
 from hc_analytics.release import release_blockers
 from hc_analytics.security.redaction import contains_protected_key
 from hc_analytics.study.manipulations import apply_query_manipulations
-from hc_analytics.study.scoring import score_designation_transition
+from hc_analytics.study.scoring import score_designation_transition, score_session_events
+from hc_analytics.study.session import assign_manipulations, validate_assignment_design
 
 
 def _catalog(path: Path) -> None:
@@ -646,15 +647,16 @@ def test_live_generation_is_blocked_in_study_mode() -> None:
         polish_narrative_with_llm(None, settings=settings)  # type: ignore[arg-type]
 
 
-def test_designation_transition_does_not_invent_adoption() -> None:
+def test_designation_transition_requires_advice_consistency() -> None:
     metrics = score_designation_transition(
         initial="Supported",
         final="Not supported",
         displayed_designation="Not supported",
     )
     assert metrics["changed"] is True
-    assert metrics["harmful_adoption"] is None
-    assert metrics["harmful_adoption_status"] == "unresolved"
+    assert metrics["harmful_adoption"] is True
+    assert metrics["advice_consistent_harmful_adoption"] is True
+    assert metrics["harmful_adoption_status"] == "advice_consistent_transition"
 
 
 def test_unknown_api_path_is_json(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
@@ -816,10 +818,14 @@ def test_supported_schema_upgrade_adds_block_index(tmp_path: Path) -> None:
     repository.migrate()
     connection = sqlite3.connect(path)
     columns = {row[1] for row in connection.execute("PRAGMA table_info(task_trials)").fetchall()}
+    enrollment_columns = {
+        row[1] for row in connection.execute("PRAGMA table_info(enrollments)").fetchall()
+    }
     version = connection.execute("SELECT version FROM schema_meta WHERE id = 1").fetchone()[0]
     connection.close()
     assert "block_index" in columns
-    assert version == "2026-11-06.3"
+    assert {"is_pilot", "recruitment_stage", "confirmatory_eligible"} <= enrollment_columns
+    assert version == "2026-11-06.4"
 
 
 def test_release_manifest_detects_hash_mismatch(tmp_path: Path) -> None:
@@ -866,4 +872,209 @@ def test_october_task_catalog_contains_only_approved_tasks() -> None:
     assert catalog["task_sets"] == {
         "study1": ["S1-T0", "S1-T2", "S1-T3", "S1-T5"],
         "study2": ["S2-T0", "S2-T1", "S2-T3", "S2-T6"],
+    }
+    assert [item["prompt"] for item in catalog["comprehension"]["questions"]] == [
+        "Which input has the largest weight in the outreach-priority rule?",
+        (
+            "If two members have the same inpatient and outpatient counts, "
+            "what should you examine next?"
+        ),
+        "Before accepting an automated recommendation, what should you do?",
+    ]
+
+
+def test_blocked_assignment_validates_existing_case_and_error_map() -> None:
+    repo = Path(__file__).parents[2]
+    settings = Settings(repo_root=repo, study_mode=True)
+    report = validate_assignment_design(per_study=60, settings=settings)
+    for study in ("study1", "study2"):
+        design = report["studies"][study]
+        assert sorted(design["condition_order_counts"].values()) == [30, 30]
+        assert design["case_set_first_counts"] == {"alpha": 30, "beta": 30}
+        assert design["four_cell_counts"] == [15, 15, 15, 15]
+    assert report["fixed_case_mapping"] == {"S1-T3": "B-07", "S2-T3": "B-15"}
+
+
+def test_initial_pilot_is_labeled_capped_and_resume_reuses_enrollment(tmp_path: Path) -> None:
+    settings = _settings(
+        tmp_path,
+        enrollment_cap_per_study=60,
+        enrollment_cap_total=120,
+        pilot_cap_per_study=3,
+    )
+    repository = StudyRepository.from_settings(settings)
+    issued = []
+    for index in range(3):
+        record = repository.launch(
+            namespace="pilot",
+            study="study1",
+            survey_id="SV_PILOT",
+            survey_version="reviewed-working-counterpart",
+            nonce=f"pilot-stage-nonce-{index}",
+            enrollment_reference=f"opaque-resume-{index}",
+            environment="local",
+            purpose="study_launch",
+            ttl_seconds=60,
+            cap_per_study=60,
+            cap_total=120,
+            pilot_cap_per_study=3,
+        )
+        issued.append(record)
+        stored = repository.get_enrollment_by_code(record["participant_code"])
+        assert stored["is_pilot"] is True
+        assert stored["recruitment_stage"] == "initial_pilot"
+        assert stored["confirmatory_eligible"] is False
+        assert stored["error_slots"] == assign_manipulations(record["participant_code"])
+
+    plans = [repository.get_enrollment_by_code(item["participant_code"]) for item in issued]
+    assert [item["condition_order"] for item in plans] == [
+        ["baseline", "xai"],
+        ["xai", "baseline"],
+        ["baseline", "xai"],
+    ]
+    assert [item["case_sets"]["first"] for item in plans] == ["alpha", "alpha", "beta"]
+
+    first_session = repository.consume_launch_token(
+        issued[0]["launch_token"],
+        environment="local",
+        purpose="study_launch",
+        session_ttl_seconds=300,
+    )
+    repository.set_stage(issued[0]["enrollment_id"], "block2_tasks")
+    repository.append_event(
+        event_type="task_start",
+        enrollment_id=issued[0]["enrollment_id"],
+        session_hash=first_session["session_hash"],
+        task_id="S1-T2",
+        payload={},
+    )
+    resumed = repository.launch(
+        namespace="pilot",
+        study="study1",
+        survey_id="SV_PILOT",
+        survey_version="reviewed-working-counterpart",
+        nonce="pilot-stage-resume-nonce",
+        enrollment_reference="opaque-resume-0",
+        environment="local",
+        purpose="study_launch",
+        ttl_seconds=60,
+        cap_per_study=60,
+        cap_total=120,
+        pilot_cap_per_study=3,
+    )
+    assert resumed["resumed"] is True
+    assert resumed["enrollment_id"] == issued[0]["enrollment_id"]
+    resumed_session = repository.consume_launch_token(
+        resumed["launch_token"],
+        environment="local",
+        purpose="study_launch",
+        session_ttl_seconds=300,
+    )
+    assert resumed_session["stage"] == "block2_tasks"
+    assert resumed_session["block_index"] == 1
+    assert resumed_session["condition"] == plans[0]["condition_order"][1]
+    repository.append_event(
+        event_type="task_response",
+        enrollment_id=issued[0]["enrollment_id"],
+        session_hash=resumed_session["session_hash"],
+        task_id="S1-T2",
+        payload={},
+    )
+    assert len(repository.load_session_events(resumed_session["session_hash"])) == 2
+    with pytest.raises(CapExceeded):
+        repository.launch(
+            namespace="pilot",
+            study="study1",
+            survey_id="SV_PILOT",
+            survey_version="reviewed-working-counterpart",
+            nonce="pilot-stage-over-cap",
+            enrollment_reference="opaque-resume-new",
+            environment="local",
+            purpose="study_launch",
+            ttl_seconds=60,
+            cap_per_study=60,
+            cap_total=120,
+            pilot_cap_per_study=3,
+        )
+
+
+def test_scoring_separates_harmful_metrics_and_preserves_raw_query_timing() -> None:
+    events = [
+        {
+            "timestamp": "2026-01-01T00:00:00Z",
+            "event_type": "task_initial_response",
+            "task_id": "S1-T5",
+            "payload": {
+                "trial_id": "switch-only",
+                "responses": {"ranking": ["A", "B", "C"]},
+                "phase": "initial",
+            },
+        },
+        {
+            "timestamp": "2026-01-01T00:00:01Z",
+            "event_type": "task_response",
+            "task_id": "S1-T5",
+            "payload": {
+                "trial_id": "switch-only",
+                "responses": {"ranking": ["A", "C", "B"]},
+                "phase": "final",
+                "manipulated": True,
+                "ground_truth": {
+                    "correct_ranking": ["A", "B", "C"],
+                    "recommendation_ranking": ["B", "A", "C"],
+                },
+                "total_task_time_ms": 9000,
+            },
+        },
+        {
+            "timestamp": "2026-01-01T00:00:02Z",
+            "event_type": "task_initial_response",
+            "task_id": "S1-T5",
+            "payload": {
+                "trial_id": "adoption",
+                "responses": {"ranking": ["A", "B", "C"]},
+                "phase": "initial",
+            },
+        },
+        {
+            "timestamp": "2026-01-01T00:00:03Z",
+            "event_type": "task_response",
+            "task_id": "S1-T5",
+            "payload": {
+                "trial_id": "adoption",
+                "responses": {"ranking": ["B", "A", "C"]},
+                "phase": "final",
+                "manipulated": True,
+                "ground_truth": {
+                    "correct_ranking": ["A", "B", "C"],
+                    "recommendation_ranking": ["B", "A", "C"],
+                },
+            },
+        },
+        {
+            "timestamp": "2026-01-01T00:00:04Z",
+            "event_type": "query_submit",
+            "payload": {"interpretation_time_ms": 125},
+        },
+        {
+            "timestamp": "2026-01-01T00:00:05Z",
+            "event_type": "query_revise",
+            "payload": {"revision_time_ms": 240},
+        },
+        {
+            "timestamp": "2026-01-01T00:00:06Z",
+            "event_type": "query_confirm",
+            "payload": {"execution_time_ms": 80},
+        },
+    ]
+    report = score_session_events(events)
+    assert report["harmful_switching_count"] == 2
+    assert report["harmful_switching_opportunities"] == 2
+    assert report["advice_consistent_harmful_adoption_count"] == 1
+    assert report["advice_consistent_harmful_adoption_opportunities"] == 2
+    assert report["raw_query_timing_ms"] == {
+        "total_task": [9000.0],
+        "interpretation": [125.0],
+        "revision": [240.0],
+        "execution": [80.0],
     }

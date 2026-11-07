@@ -19,7 +19,6 @@ import { GlobalImportancePanel } from "./components/GlobalImportancePanel";
 import { ModelLimitationsPanel } from "./components/ModelLimitationsPanel";
 import { QueryPanel } from "./components/QueryPanel";
 import { RiskTable, type SortKey } from "./components/RiskTable";
-import { StudyExportButton } from "./components/StudyExportButton";
 import { TaskPanel } from "./components/TaskPanel";
 import { CONDITION_COPY } from "./config/conditions";
 import { getParticipantId, getSessionId, setActiveStudyTaskId, trackEvent, trackLatency } from "./instrumentation/logger";
@@ -448,7 +447,6 @@ export default function App() {
 
       <div className="toolbar">
         {studyMode ? null : <ExportMenu rows={rows} summary={summary} condition={condition} />}
-        {studyMode ? null : <StudyExportButton enabled={Boolean(meta?.instrumentation_enabled)} />}
         <button type="button" className="ghost-button" onClick={() => void loadDashboard()}>
           Refresh data
         </button>
@@ -464,6 +462,7 @@ export default function App() {
           onOpenCase={handleOpenStudyCase}
           lastQueryResult={lastQueryResult}
           summaryClaims={groundedSummary?.grounded.claims ?? []}
+          visibleRows={rows}
         />
       ) : null}
 

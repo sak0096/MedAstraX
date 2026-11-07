@@ -81,6 +81,11 @@ def append_event(event: StudyEvent, settings: Optional[Settings] = None) -> Dict
 
 
 def list_sessions(settings: Optional[Settings] = None) -> List[Dict[str, object]]:
+    runtime = settings or get_settings()
+    if runtime.storage_backend == "postgres" or runtime.strict_sessions:
+        from hc_analytics.persistence.repository import StudyRepository
+
+        return StudyRepository.from_settings(runtime).list_event_sessions()
     with _connect(settings) as connection:
         rows = connection.execute(
             """
@@ -109,6 +114,11 @@ def list_sessions(settings: Optional[Settings] = None) -> List[Dict[str, object]
 def load_session_events(
     session_id: str, settings: Optional[Settings] = None
 ) -> List[Dict[str, object]]:
+    runtime = settings or get_settings()
+    if runtime.storage_backend == "postgres" or runtime.strict_sessions:
+        from hc_analytics.persistence.repository import StudyRepository
+
+        return StudyRepository.from_settings(runtime).load_session_events(session_id)
     with _connect(settings) as connection:
         rows = connection.execute(
             """

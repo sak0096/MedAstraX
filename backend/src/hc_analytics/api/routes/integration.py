@@ -102,6 +102,8 @@ def launch_study(
             ttl_seconds=settings.launch_ttl_seconds,
             cap_per_study=settings.enrollment_cap_per_study,
             cap_total=settings.enrollment_cap_total,
+            pilot_cap_per_study=settings.pilot_cap_per_study,
+            pilot_recruitment_stage=settings.pilot_recruitment_stage,
         )
     except DuplicateNonce as error:
         raise HTTPException(
@@ -117,6 +119,7 @@ def launch_study(
         "exchange_path": "/api/integration/exchange",
         "study": issued["study"],
         "participant_code": issued["participant_code"],
+        "resumed": issued["resumed"],
     }
 
 

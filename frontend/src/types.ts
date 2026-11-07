@@ -71,6 +71,12 @@ export interface StudySession {
     pass_threshold?: number;
     questions?: ComprehensionQuestion[];
   };
+  progress?: {
+    stage: string;
+    current_task_id?: string | null;
+    block_index: number;
+    ending_required: boolean;
+  };
 }
 
 export interface OutreachRecommendation {

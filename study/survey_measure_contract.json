@@ -1,0 +1,62 @@
+{
+  "schema_version": "1.0-october-working-counterpart",
+  "source": "MedAstraX_Shared_Measurement_Instruments.docx",
+  "raw_tlx": {
+    "storage_rule": "Preserve each raw 1-7 response and the displayed anchors without transformation.",
+    "items": [
+      {
+        "item_id": "tlx_mental_demand",
+        "prompt": "How mentally demanding were the tasks?",
+        "minimum": 1,
+        "minimum_anchor": "Very low",
+        "maximum": 7,
+        "maximum_anchor": "Very high"
+      },
+      {
+        "item_id": "tlx_physical_demand",
+        "prompt": "How physically demanding were the tasks?",
+        "minimum": 1,
+        "minimum_anchor": "Very low",
+        "maximum": 7,
+        "maximum_anchor": "Very high"
+      },
+      {
+        "item_id": "tlx_temporal_demand",
+        "prompt": "How hurried or rushed did you feel?",
+        "minimum": 1,
+        "minimum_anchor": "Very low",
+        "maximum": 7,
+        "maximum_anchor": "Very high"
+      },
+      {
+        "item_id": "tlx_performance",
+        "prompt": "How successful were you in accomplishing what you were asked to do?",
+        "minimum": 1,
+        "minimum_anchor": "Perfect",
+        "maximum": 7,
+        "maximum_anchor": "Failure"
+      },
+      {
+        "item_id": "tlx_effort",
+        "prompt": "How hard did you have to work to achieve your level of performance?",
+        "minimum": 1,
+        "minimum_anchor": "Very low",
+        "maximum": 7,
+        "maximum_anchor": "Very high"
+      },
+      {
+        "item_id": "tlx_frustration",
+        "prompt": "How insecure, discouraged, irritated, stressed, or annoyed did you feel?",
+        "minimum": 1,
+        "minimum_anchor": "Very low",
+        "maximum": 7,
+        "maximum_anchor": "Very high"
+      }
+    ],
+    "aggregate": {
+      "status": "unresolved",
+      "value": null,
+      "reason": "The reviewed counterpart's 1 Perfect to 7 Failure anchors conflict with its instruction to reverse-code Performance. No aggregate is computed until the PI resolves the rule."
+    }
+  }
+}

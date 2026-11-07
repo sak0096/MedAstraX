@@ -44,6 +44,97 @@ def assignment_plan(participant_id: str) -> Dict[str, object]:
     }
 
 
+def blocked_assignment_plan(
+    participant_id: str,
+    *,
+    study: str,
+    study_slot: int,
+) -> Dict[str, object]:
+    """Apply a reproducible four-cell block without changing error mappings.
+
+    The existing participant-derived plan remains the source for prespecified
+    error slots. Only condition order and alpha/beta parallel-case order are
+    balanced by the enrollment's one-based slot within its study.
+    """
+    if study not in {"study1", "study2"}:
+        raise ValueError(f"Unknown study: {study}")
+    if study_slot < 1:
+        raise ValueError("study_slot must be one-based.")
+    plan = assignment_plan(participant_id)
+    cell = (study_slot - 1) % 4
+    order_index = cell % 2
+    alpha_first = cell < 2
+    order_key = "study1_order" if study == "study1" else "study2_order"
+    orders = STUDY1_ORDERS if study == "study1" else STUDY2_ORDERS
+    plan[order_key] = list(orders[order_index])
+    plan["case_set_first"] = "alpha" if alpha_first else "beta"
+    plan["case_set_second"] = "beta" if alpha_first else "alpha"
+    plan["assignment_block"] = (study_slot - 1) // 4
+    plan["assignment_cell"] = cell
+    return plan
+
+
+def validate_assignment_design(
+    *,
+    per_study: int = 60,
+    settings: Optional[Settings] = None,
+) -> Dict[str, object]:
+    """Validate balance and internal consistency of the existing frozen map."""
+    if per_study < 1:
+        raise ValueError("per_study must be positive.")
+    catalog = get_study_catalog(settings=settings or get_settings())
+    if catalog is None:
+        raise ValueError("Study catalog is unavailable.")
+    known_cases = {case.case_id for case in catalog.cases}
+    alpha = set(catalog.case_sets.get("alpha", []))
+    beta = set(catalog.case_sets.get("beta", []))
+    if not alpha or not beta or alpha & beta or not (alpha | beta) <= known_cases:
+        raise ValueError("The existing alpha/beta parallel-case map is inconsistent.")
+    expected_fixed_cases = {"S1-T3": "B-07", "S2-T3": "B-15"}
+    for task_id, case_id in expected_fixed_cases.items():
+        task = get_task_by_id(task_id, settings=settings or get_settings())
+        if task is None or task.requires_cases != [case_id]:
+            raise ValueError(f"The existing reviewed-source mapping changed for {task_id}.")
+    allowed_manipulations = set(catalog.manipulation_catalog)
+    for case in catalog.cases:
+        unknown = set(case.manipulations) - allowed_manipulations
+        if unknown:
+            raise ValueError(f"Unknown manipulation IDs on {case.case_id}: {sorted(unknown)}")
+
+    studies: Dict[str, object] = {}
+    for study, order_key in (("study1", "study1_order"), ("study2", "study2_order")):
+        order_counts: Dict[str, int] = {}
+        case_first_counts = {"alpha": 0, "beta": 0}
+        cells = [0, 0, 0, 0]
+        for slot in range(1, per_study + 1):
+            plan = blocked_assignment_plan(
+                f"VALIDATE-{study}-{slot:03d}",
+                study=study,
+                study_slot=slot,
+            )
+            order = "→".join(str(item) for item in plan[order_key])
+            order_counts[order] = order_counts.get(order, 0) + 1
+            case_first_counts[str(plan["case_set_first"])] += 1
+            cells[int(plan["assignment_cell"])] += 1
+        if max(order_counts.values()) - min(order_counts.values()) > 1:
+            raise ValueError(f"Condition order is not balanced for {study}.")
+        if max(case_first_counts.values()) - min(case_first_counts.values()) > 1:
+            raise ValueError(f"Parallel-case order is not balanced for {study}.")
+        if max(cells) - min(cells) > 1:
+            raise ValueError(f"Four-cell blocked assignment is not balanced for {study}.")
+        studies[study] = {
+            "condition_order_counts": order_counts,
+            "case_set_first_counts": case_first_counts,
+            "four_cell_counts": cells,
+        }
+    return {
+        "per_study": per_study,
+        "studies": studies,
+        "fixed_case_mapping": expected_fixed_cases,
+        "allowed_manipulations": sorted(allowed_manipulations),
+    }
+
+
 def _study_order(
     plan: Dict[str, object], study: Optional[str], condition: Optional[str]
 ) -> List[str]:

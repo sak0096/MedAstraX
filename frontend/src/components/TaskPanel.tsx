@@ -31,6 +31,7 @@ interface TaskPanelProps {
   onOpenCase: (caseRef: StudyCaseRef) => void;
   lastQueryResult?: QueryResult | null;
   summaryClaims?: EvidenceClaim[];
+  visibleRows?: Array<{ bene_id: string }>;
 }
 
 const STUDY1_TASKS = ["S1-T0", "S1-T2", "S1-T3", "S1-T5"];
@@ -60,6 +61,7 @@ export function TaskPanel({
   onOpenCase,
   lastQueryResult = null,
   summaryClaims = [],
+  visibleRows = [],
 }: TaskPanelProps) {
   const [tasks, setTasks] = useState<StudyTaskDefinition[]>([]);
   const [cases, setCases] = useState<StudyCaseRef[]>([]);
@@ -122,6 +124,9 @@ export function TaskPanel({
     void Promise.all([getStudySession(participantId), getStudyTasks()])
       .then(([session, taskPayload]) => {
         setCases(session.cases);
+        if (session.progress?.stage && !["tutorial", "comprehension"].includes(session.progress.stage)) {
+          setComprehensionPassed(true);
+        }
         setPriorityRuleDescription(String(session.priority_rule?.description ?? ""));
         const comprehension =
           studyArm === "study2"
@@ -169,7 +174,24 @@ export function TaskPanel({
       setRanking(started.outreach_case_ids ?? []);
       setStartedAt(Date.now());
       onActiveTaskChange(taskId);
-      const nextPhase = started.task.sequential_judgment ? "initial" : "single";
+      const committed = started.committed_initial;
+      if (committed) {
+        const responses = committed.responses ?? {};
+        if (Array.isArray(responses.ranking)) setRanking(responses.ranking as string[]);
+        if (Array.isArray(responses.drivers)) setDrivers(responses.drivers as typeof EMPTY_DRIVERS);
+        if (typeof responses.supported === "string") {
+          setClaimSupported(
+            responses.supported as "supported" | "not_supported" | "insufficient_information",
+          );
+        }
+        if (typeof responses.flagged_claim === "string") setFlaggedClaim(responses.flagged_claim);
+        if (typeof committed.confidence === "number") setConfidence(committed.confidence);
+      }
+      const nextPhase = committed
+        ? "awaiting_ai"
+        : started.task.sequential_judgment
+          ? "initial"
+          : "single";
       setPhase(nextPhase);
       onStudyPhaseChange?.(nextPhase);
     } catch (startError) {
@@ -190,10 +212,15 @@ export function TaskPanel({
       return { drivers };
     }
     if (activeTask?.response_type === "cohort_selection" || activeTask?.response_type === "beneficiary_list") {
-      const ids = beneficiaryIds.map((item) => item.trim()).filter(Boolean);
+      const limit = activeTask.task_id === "S1-T2" ? 5 : 25;
+      const capturedRows = lastQueryResult?.rows ?? visibleRows;
+      const capturedIds = capturedRows.slice(0, limit).map((row) => row.bene_id);
+      const manualIds = beneficiaryIds.map((item) => item.trim()).filter(Boolean);
+      const ids = capturedIds.length ? capturedIds : manualIds;
       return {
-        result_count: resultCount === "" ? null : Number(resultCount),
-        top_bene_id: topBeneId.trim() || null,
+        query_id: lastQueryResult?.query_id ?? null,
+        result_count: ids.length || (resultCount === "" ? null : Number(resultCount)),
+        top_bene_id: ids[0] ?? (topBeneId.trim() || null),
         result_ids: ids,
         beneficiary_ids: ids,
       };
@@ -390,33 +417,10 @@ export function TaskPanel({
 
         {activeTask.response_type === "cohort_selection" || activeTask.response_type === "beneficiary_list" ? (
           <div className="driver-form">
-            <label className="study-response-field">
-              <span>Result count</span>
-              <input
-                type="number"
-                min={0}
-                value={resultCount}
-                onChange={(event) => setResultCount(event.target.value)}
-              />
-            </label>
-            <label className="study-response-field">
-              <span>Highest-risk beneficiary ID</span>
-              <input type="text" value={topBeneId} onChange={(event) => setTopBeneId(event.target.value)} />
-            </label>
-            {beneficiaryIds.map((value, index) => (
-              <label key={`bene-${index}`} className="study-response-field">
-                <span>Optional ID {index + 1}</span>
-                <input
-                  type="text"
-                  value={value}
-                  onChange={(event) =>
-                    setBeneficiaryIds((current) =>
-                      current.map((item, itemIndex) => (itemIndex === index ? event.target.value : item)),
-                    )
-                  }
-                />
-              </label>
-            ))}
+            <p className="panel-subtitle">
+              Result IDs, count, and highest-risk ID will be captured automatically from the
+              currently displayed ordered results.
+            </p>
           </div>
         ) : null}
 
@@ -553,7 +557,9 @@ export function TaskPanel({
               setPhase("final");
               onStudyPhaseChange?.("final");
             }}>
-              Review summary and enter final judgment
+              {condition === "llm"
+                ? "Review summary and enter final judgment"
+                : "Continue to final judgment"}
             </button>
           </div>
         ) : null}
