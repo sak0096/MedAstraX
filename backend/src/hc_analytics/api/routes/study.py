@@ -7,6 +7,7 @@ from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 
 from hc_analytics.config import get_settings
 from hc_analytics.instrumentation.events import EventType, StudyEvent, log_event
+from hc_analytics.language.query_cache import load_result
 from hc_analytics.persistence.repository import (
     AttemptsExhausted,
     StateConflict,
@@ -274,6 +275,14 @@ def study_session(
         condition=condition,
         study=study,
     ).model_dump()
+    if bound is not None:
+        payload["progress"] = {
+            "stage": bound["stage"],
+            "current_task_id": bound["current_task_id"],
+            "block_index": bound["block_index"],
+            "ending_required": bound["stage"]
+            in {"comprehension_failed", "withdrawn", "technical_stop"},
+        }
     return _public_session(payload)
 
 
@@ -375,8 +384,14 @@ def start_task(
             raise HTTPException(status_code=409, detail=str(error)) from error
         except StudyStoreError as error:
             raise HTTPException(status_code=503, detail="Study state is unavailable.") from error
+        committed_initial = (
+            repository.get_response(trial_from_store, "initial")
+            if trial_from_store is not None
+            else None
+        )
     else:
         trial_from_store = None
+        committed_initial = None
     session = resolve_study_session(
         participant_id,
         settings=settings,
@@ -421,7 +436,7 @@ def start_task(
             StudyEvent(
                 event_type=EventType.TASK_START,
                 participant_id=participant_id,
-                session_id=session_id,
+                session_id=str(bound["session_hash"]) if bound is not None else session_id,
                 task_id=task_id,
                 condition=study_ctx.experimental_condition,
                 payload={
@@ -444,6 +459,14 @@ def start_task(
         "outreach_case_ids": outreach_case_ids,
         "cases": [case for case in session.cases if case["case_id"] in case_ids],
         "case_set": session.case_set,
+        "committed_initial": (
+            {
+                "responses": committed_initial["payload"],
+                "confidence": committed_initial["confidence"],
+            }
+            if committed_initial is not None
+            else None
+        ),
     }
 
 
@@ -522,6 +545,21 @@ def submit_task_response(
     condition = (
         bound["condition"] if bound is not None and bound.get("condition") else study_ctx.condition
     )
+    if task.response_type in {"query_flow", "cohort_selection", "beneficiary_list"}:
+        query_id = submission.responses.get("query_id")
+        if isinstance(query_id, str) and query_id:
+            result = load_result(query_id, owner_id=participant_id)
+            if result is None:
+                raise HTTPException(status_code=409, detail="The query result is not available.")
+            result_ids = [str(row.bene_id) for row in result.rows]
+            submission.responses.update(
+                {
+                    "result_ids": result_ids,
+                    "beneficiary_ids": result_ids,
+                    "result_count": result.row_count,
+                    "top_bene_id": result_ids[0] if result_ids else None,
+                }
+            )
     if bound is not None and settings.strict_sessions:
         _validate_strict_response(
             task,
@@ -594,7 +632,7 @@ def submit_task_response(
             submission.participant_id,
             settings=settings,
             condition=study_ctx.condition,
-            study=study_ctx.study or "study1",
+            study=(bound["study"] if bound is not None else study_ctx.study) or "study1",
         )
         recommendation = build_outreach_recommendation(
             case_ids,
@@ -644,6 +682,7 @@ def submit_task_response(
     payload = {
         "responses": submission.responses,
         "time_ms": submission.time_ms,
+        "total_task_time_ms": submission.time_ms,
         "timed_out": timed_out,
         "time_limit_min": task.time_limit_min,
         "notes": submission.notes,
@@ -672,7 +711,9 @@ def submit_task_response(
             StudyEvent(
                 event_type=event_type,
                 participant_id=submission.participant_id,
-                session_id=submission.session_id,
+                session_id=(
+                    str(bound["session_hash"]) if bound is not None else submission.session_id
+                ),
                 task_id=task_id,
                 condition=study_ctx.experimental_condition,
                 payload=payload,
@@ -732,7 +773,9 @@ def submit_comprehension(
             StudyEvent(
                 event_type=EventType.COMPREHENSION_COMPLETE,
                 participant_id=submission.participant_id,
-                session_id=submission.session_id,
+                session_id=(
+                    str(bound["session_hash"]) if bound is not None else submission.session_id
+                ),
                 payload={
                     "correct": correct,
                     "passed": passed,
@@ -791,6 +834,10 @@ def submit_comprehension(
         "research_tasks_ended": research_tasks_ended,
         "payment_amount_cents": None,
         "exit_reason": "comprehension_failed_before_tasks" if research_tasks_ended else None,
+        "next_step": "closing_questions_debrief_payment"
+        if research_tasks_ended
+        else "research_tasks",
+        "debrief_required": research_tasks_ended,
     }
 
 
@@ -800,8 +847,7 @@ def score_session(
     authorization: Optional[str] = Header(default=None),
 ) -> Dict[str, Any]:
     settings = get_settings()
-    if settings.research_admin_required:
-        require_admin(authorization)
+    require_admin(authorization, settings)
     if not settings.study_mode:
         raise HTTPException(status_code=404, detail="Study mode is disabled.")
     from hc_analytics.instrumentation.store import load_session_events

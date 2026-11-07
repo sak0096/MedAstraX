@@ -13,7 +13,7 @@ from typing import Any, Dict, Iterator, Optional
 from hc_analytics.config import Settings, get_settings
 from hc_analytics.persistence.schema import INDEX_STATEMENTS, SCHEMA_STATEMENTS
 
-SCHEMA_VERSION = "2026-11-06.3"
+SCHEMA_VERSION = "2026-11-06.4"
 
 
 class StudyStoreError(Exception):
@@ -180,14 +180,33 @@ class StudyRepository:
                 except Exception as error:
                     if not _is_integrity_error(error):
                         raise
-            elif existing["version"] == "2026-11-06.2":
-                self._execute(
-                    connection,
-                    """
-                    ALTER TABLE task_trials
-                    ADD COLUMN block_index INTEGER NOT NULL DEFAULT 0
-                    """,
-                )
+            elif existing["version"] in {"2026-11-06.2", "2026-11-06.3"}:
+                if existing["version"] == "2026-11-06.2":
+                    self._execute(
+                        connection,
+                        """
+                        ALTER TABLE task_trials
+                        ADD COLUMN block_index INTEGER NOT NULL DEFAULT 0
+                        """,
+                    )
+                for column, statement in (
+                    (
+                        "is_pilot",
+                        "ALTER TABLE enrollments ADD COLUMN is_pilot INTEGER NOT NULL DEFAULT 0",
+                    ),
+                    (
+                        "recruitment_stage",
+                        "ALTER TABLE enrollments ADD COLUMN recruitment_stage "
+                        "TEXT NOT NULL DEFAULT 'synthetic_test'",
+                    ),
+                    (
+                        "confirmatory_eligible",
+                        "ALTER TABLE enrollments ADD COLUMN confirmatory_eligible "
+                        "INTEGER NOT NULL DEFAULT 0",
+                    ),
+                ):
+                    if not self._column_exists(connection, "enrollments", column):
+                        self._execute(connection, statement)
                 self._execute(
                     connection,
                     "UPDATE schema_meta SET version = ? WHERE id = 1",
@@ -198,6 +217,20 @@ class StudyRepository:
                     f"Unsupported schema upgrade from {existing['version']} to {SCHEMA_VERSION}."
                 )
         self._schema_ready = True
+
+    def _column_exists(self, connection: Any, table: str, column: str) -> bool:
+        if self.backend == "sqlite":
+            rows = self._execute(connection, f"PRAGMA table_info({table})").fetchall()
+            return column in {str(row[1]) for row in rows}
+        row = self._execute(
+            connection,
+            """
+            SELECT 1 FROM information_schema.columns
+            WHERE table_schema = current_schema() AND table_name = ? AND column_name = ?
+            """,
+            (table, column),
+        ).fetchone()
+        return row is not None
 
     def launch(
         self,
@@ -213,16 +246,15 @@ class StudyRepository:
         ttl_seconds: int,
         cap_per_study: int,
         cap_total: int,
+        pilot_cap_per_study: int = 3,
+        pilot_recruitment_stage: str = "initial_pilot",
     ) -> Dict[str, Any]:
         """Commit an enrollment and a one-time launch token, or roll both back."""
-        from hc_analytics.study.session import assign_manipulations, assignment_plan
+        from hc_analytics.study.session import assign_manipulations, blocked_assignment_plan
 
         self.ensure_schema()
         now = _utcnow()
         nonce_hash = digest(nonce)
-        token = uuid.uuid4().hex + uuid.uuid4().hex
-        token_hash = digest(token)
-        enrollment_id = str(uuid.uuid4())
         expires_at = _iso(now + timedelta(seconds=ttl_seconds))
         with self.transaction() as connection:
             existing_nonce = self._execute(
@@ -237,6 +269,40 @@ class StudyRepository:
                 "INSERT INTO launch_nonces (nonce_hash, created_at) VALUES (?, ?)",
                 (nonce_hash, _iso(now)),
             )
+            if enrollment_reference:
+                resumed = _mapping(
+                    self._execute(
+                        connection,
+                        "SELECT * FROM enrollments WHERE enrollment_reference = ?",
+                        (enrollment_reference,),
+                    ).fetchone()
+                )
+                if resumed is not None:
+                    if (
+                        resumed["namespace"] != namespace
+                        or resumed["study"] != study
+                        or resumed["survey_id"] != survey_id
+                        or resumed["survey_version"] != survey_version
+                        or resumed["status"] == "deleted"
+                    ):
+                        raise StateConflict("Enrollment reference conflicts with committed state.")
+                    token = self._insert_launch_token(
+                        connection,
+                        enrollment_id=str(resumed["enrollment_id"]),
+                        purpose=purpose,
+                        environment=environment,
+                        expires_at=expires_at,
+                        created_at=_iso(now),
+                    )
+                    return {
+                        "enrollment_id": resumed["enrollment_id"],
+                        "participant_code": resumed["participant_code"],
+                        "launch_token": token,
+                        "expires_at": expires_at,
+                        "study": study,
+                        "stage": resumed["stage"],
+                        "resumed": True,
+                    }
             self._lock_counter(connection, namespace, "*")
             study_count = self._count(
                 connection,
@@ -248,7 +314,15 @@ class StudyRepository:
                 "SELECT COUNT(*) AS n FROM enrollments WHERE namespace = ?",
                 (namespace,),
             )
-            if study_count >= cap_per_study or total_count >= cap_total:
+            initial_pilot = (
+                namespace == "pilot" and pilot_recruitment_stage == "initial_pilot"
+            )
+            effective_study_cap = (
+                min(cap_per_study, pilot_cap_per_study)
+                if initial_pilot
+                else cap_per_study
+            )
+            if study_count >= effective_study_cap or total_count >= cap_total:
                 raise CapExceeded("Enrollment cap reached.")
             slot_row = _mapping(
                 self._execute(
@@ -259,14 +333,24 @@ class StudyRepository:
             )
             slot = int(slot_row["next_slot"]) if slot_row else 1
             participant_code = format_participant_code(namespace, slot)
-            plan = assignment_plan(participant_code)
+            study_slot = study_count + 1
+            plan = blocked_assignment_plan(
+                participant_code,
+                study=study,
+                study_slot=study_slot,
+            )
             order_key = "study1_order" if study == "study1" else "study2_order"
             condition_order = list(plan[order_key])
             case_sets = {
                 "first": plan["case_set_first"],
                 "second": plan["case_set_second"],
             }
+            # Preserve the reviewed existing case/error mapping implementation:
+            # blocked allocation changes order only, never the error-slot roster.
             error_slots = assign_manipulations(participant_code)
+            enrollment_id = str(uuid.uuid4())
+            is_pilot = initial_pilot
+            confirmatory_eligible = namespace == "pilot" and not is_pilot
             self._execute(
                 connection,
                 """
@@ -274,8 +358,12 @@ class StudyRepository:
                     enrollment_id, participant_code, namespace, study, status, stage,
                     condition_order_json, case_sets_json, error_slots_json, survey_id,
                     survey_version, consent_authorized, consent_at, enrollment_reference,
-                    exit_reason, payment_stage, payment_amount_cents, retention_choice, created_at
-                ) VALUES (?, ?, ?, ?, 'enrolled', 'tutorial', ?, ?, ?, ?, ?, 1, ?, ?, NULL, NULL, NULL, NULL, ?)
+                    exit_reason, payment_stage, payment_amount_cents, retention_choice,
+                    is_pilot, recruitment_stage, confirmatory_eligible, created_at
+                ) VALUES (
+                    ?, ?, ?, ?, 'enrolled', 'tutorial', ?, ?, ?, ?, ?, 1, ?, ?,
+                    NULL, NULL, NULL, NULL, ?, ?, ?, ?
+                )
                 """,
                 (
                     enrollment_id,
@@ -289,17 +377,19 @@ class StudyRepository:
                     survey_version,
                     _iso(now),
                     enrollment_reference,
+                    int(is_pilot),
+                    pilot_recruitment_stage if namespace == "pilot" else "synthetic_test",
+                    int(confirmatory_eligible),
                     _iso(now),
                 ),
             )
-            self._execute(
+            token = self._insert_launch_token(
                 connection,
-                """
-                INSERT INTO launch_tokens (
-                    token_hash, enrollment_id, purpose, environment, expires_at, consumed_at, created_at
-                ) VALUES (?, ?, ?, ?, ?, NULL, ?)
-                """,
-                (token_hash, enrollment_id, purpose, environment, expires_at, _iso(now)),
+                enrollment_id=enrollment_id,
+                purpose=purpose,
+                environment=environment,
+                expires_at=expires_at,
+                created_at=_iso(now),
             )
             self._increment_counter(connection, namespace, "*")
         return {
@@ -309,7 +399,30 @@ class StudyRepository:
             "expires_at": expires_at,
             "study": study,
             "stage": "tutorial",
+            "resumed": False,
         }
+
+    def _insert_launch_token(
+        self,
+        connection: Any,
+        *,
+        enrollment_id: str,
+        purpose: str,
+        environment: str,
+        expires_at: str,
+        created_at: str,
+    ) -> str:
+        token = uuid.uuid4().hex + uuid.uuid4().hex
+        self._execute(
+            connection,
+            """
+            INSERT INTO launch_tokens (
+                token_hash, enrollment_id, purpose, environment, expires_at, consumed_at, created_at
+            ) VALUES (?, ?, ?, ?, ?, NULL, ?)
+            """,
+            (digest(token), enrollment_id, purpose, environment, expires_at, created_at),
+        )
+        return token
 
     def next_slot(self, namespace: str, study: str) -> int:
         """Peek the next roster slot. Allocation itself happens inside launch()."""
@@ -405,19 +518,39 @@ class StudyRepository:
             enrollment = self._enrollment_row(connection, str(row["enrollment_id"]))
             if enrollment is None or enrollment["status"] == "deleted":
                 raise StateConflict("Launch credential is not usable.")
+            if enrollment["stage"] == "complete":
+                raise StateConflict("Enrollment is already complete.")
+            latest = _mapping(
+                self._execute(
+                    connection,
+                    """
+                    SELECT block_index, current_task_id FROM study_sessions
+                    WHERE enrollment_id = ? ORDER BY created_at DESC
+                    """,
+                    (enrollment["enrollment_id"],),
+                ).fetchone()
+            )
+            block_index = _block_index_for_stage(
+                str(enrollment["stage"]),
+                int(latest["block_index"]) if latest is not None else 0,
+            )
+            current_task_id = latest["current_task_id"] if latest is not None else None
+            condition = _condition_for_block(enrollment, block_index)
             self._execute(
                 connection,
                 """
                 INSERT INTO study_sessions (
                     session_hash, enrollment_id, stage, condition, block_index, current_task_id,
                     expires_at, revoked_at, created_at
-                ) VALUES (?, ?, ?, ?, 0, NULL, ?, NULL, ?)
+                ) VALUES (?, ?, ?, ?, ?, ?, ?, NULL, ?)
                 """,
                 (
                     session_hash,
                     enrollment["enrollment_id"],
                     enrollment["stage"],
-                    _first_condition(enrollment),
+                    condition,
+                    block_index,
+                    current_task_id,
                     expires_at,
                     _iso(now),
                 ),
@@ -785,6 +918,17 @@ class StudyRepository:
                     "stage": existing["to_stage"],
                     "callback_type": callback_type,
                     "idempotent": True,
+                    "next_step": (
+                        "closing_questions_debrief_payment"
+                        if existing["to_stage"] in {"withdrawn", "technical_stop"}
+                        else "condition_2"
+                        if existing["to_stage"] == "block2_tasks"
+                        else "complete"
+                    ),
+                    "debrief_required": existing["to_stage"]
+                    in {"withdrawn", "technical_stop"},
+                    "payment_reconciliation_required": existing["to_stage"]
+                    in {"withdrawn", "technical_stop"},
                 }
             if enrollment["status"] == "deleted":
                 raise StateConflict("Enrollment is not active.")
@@ -876,7 +1020,21 @@ class StudyRepository:
                     now,
                 ),
             )
-        return {"stage": to_stage, "callback_type": callback_type, "idempotent": False}
+        ending_required = to_stage in {"withdrawn", "technical_stop"}
+        return {
+            "stage": to_stage,
+            "callback_type": callback_type,
+            "idempotent": False,
+            "next_step": (
+                "closing_questions_debrief_payment"
+                if ending_required
+                else "condition_2"
+                if to_stage == "block2_tasks"
+                else "complete"
+            ),
+            "debrief_required": ending_required,
+            "payment_reconciliation_required": ending_required,
+        }
 
     def record_comprehension(
         self,
@@ -1135,6 +1293,79 @@ class StudyRepository:
                 )
         return {"event_id": event_id, "event_type": event_type, "created_at": now}
 
+    def load_session_events(self, session_hash: str) -> list[Dict[str, Any]]:
+        self.ensure_schema()
+        with self._connection() as connection:
+            session = _mapping(
+                self._execute(
+                    connection,
+                    "SELECT enrollment_id FROM study_sessions WHERE session_hash = ?",
+                    (session_hash,),
+                ).fetchone()
+            )
+            predicate = "c.enrollment_id = ?" if session is not None else "c.session_hash = ?"
+            identifier = session["enrollment_id"] if session is not None else session_hash
+            rows = self._execute(
+                connection,
+                f"""
+                SELECT c.event_id, c.event_type, c.task_id, c.session_hash,
+                       c.payload_json, c.created_at,
+                       e.participant_code
+                FROM canonical_events c
+                LEFT JOIN enrollments e ON e.enrollment_id = c.enrollment_id
+                WHERE {predicate}
+                ORDER BY c.created_at ASC, c.event_id ASC
+                """,
+                (identifier,),
+            ).fetchall()
+        events: list[Dict[str, Any]] = []
+        for row in rows:
+            item = _mapping(row)
+            if item is None:
+                continue
+            payload = json.loads(item["payload_json"])
+            events.append(
+                {
+                    "event_id": item["event_id"],
+                    "event_type": item["event_type"],
+                    "task_id": item["task_id"],
+                    "participant_id": item["participant_code"],
+                    "session_id": item["session_hash"],
+                    "timestamp": item["created_at"],
+                    "payload": payload,
+                    "study_id": payload.get("study_id"),
+                    "condition": payload.get("condition"),
+                }
+            )
+        return events
+
+    def list_event_sessions(self) -> list[Dict[str, object]]:
+        self.ensure_schema()
+        with self._connection() as connection:
+            rows = self._execute(
+                connection,
+                """
+                SELECT c.session_hash, e.participant_code, MIN(c.created_at) AS started_at,
+                       MAX(c.created_at) AS last_event_at, COUNT(*) AS event_count
+                FROM canonical_events c
+                LEFT JOIN enrollments e ON e.enrollment_id = c.enrollment_id
+                WHERE c.session_hash IS NOT NULL
+                GROUP BY c.session_hash, e.participant_code
+                ORDER BY last_event_at DESC
+                """,
+            ).fetchall()
+        return [
+            {
+                "session_id": item["session_hash"],
+                "participant_id": item["participant_code"],
+                "started_at": item["started_at"],
+                "last_event_at": item["last_event_at"],
+                "event_count": int(item["event_count"]),
+            }
+            for row in rows
+            if (item := _mapping(row)) is not None
+        ]
+
     def store_query(
         self,
         *,
@@ -1263,6 +1494,8 @@ def _hydrate_enrollment(row: Dict[str, Any]) -> Dict[str, Any]:
     hydrated["condition_order"] = json.loads(row["condition_order_json"])
     hydrated["case_sets"] = json.loads(row["case_sets_json"])
     hydrated["error_slots"] = json.loads(row["error_slots_json"])
+    hydrated["is_pilot"] = bool(row.get("is_pilot", 0))
+    hydrated["confirmatory_eligible"] = bool(row.get("confirmatory_eligible", 0))
     return hydrated
 
 
@@ -1286,4 +1519,22 @@ def _public_binding(
         "exit_reason": hydrated["exit_reason"],
         "payment_amount_cents": hydrated["payment_amount_cents"],
         "retention_choice": hydrated["retention_choice"],
+        "is_pilot": hydrated["is_pilot"],
+        "recruitment_stage": hydrated["recruitment_stage"],
+        "confirmatory_eligible": hydrated["confirmatory_eligible"],
     }
+
+
+def _block_index_for_stage(stage: str, previous: int) -> int:
+    if stage in {"block2_tasks", "final_survey"}:
+        return 1
+    if stage in {"tutorial", "comprehension", "block1_tasks", "post_condition_1_survey"}:
+        return 0
+    return previous
+
+
+def _condition_for_block(enrollment: Dict[str, Any], block_index: int) -> Optional[str]:
+    order = json.loads(enrollment["condition_order_json"])
+    if isinstance(order, list) and 0 <= block_index < len(order):
+        return str(order[block_index])
+    return None

@@ -70,6 +70,8 @@ class Settings(BaseSettings):
     launch_ttl_seconds: int = 600
     enrollment_cap_per_study: int = 60
     enrollment_cap_total: int = 120
+    pilot_cap_per_study: int = 3
+    pilot_recruitment_stage: str = "initial_pilot"
     frontend_dist: Path = Path("frontend/dist")
     asset_root: Optional[Path] = None
     release_manifest_path: Path = Path("release/release-manifest.json")

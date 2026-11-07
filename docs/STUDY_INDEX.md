@@ -17,6 +17,8 @@ for human-participant recruitment.
    alignment, unresolved owners and release gates.
 6. **[AZURE_DEPLOYMENT.md](./AZURE_DEPLOYMENT.md)** — deployment, monitoring,
    backup/restore and rollback runbook.
+7. **[PILOT_PREPARATION_2026-11-06.md](./PILOT_PREPARATION_2026-11-06.md)** —
+   implemented pilot choices, actual checks and remaining blockers.
 
 `FACILITATOR_RUNBOOK.md`, `STUDY_PROTOCOL.md`, and `STUDY_APPENDICES.md` are
 archived prototype documents. Their URL assignment and extra tasks are not an

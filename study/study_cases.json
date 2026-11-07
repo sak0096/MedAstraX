@@ -43,35 +43,35 @@
     "pass_threshold": 2,
     "questions": [
       {
-        "question_id": "Q1",
-        "prompt": "Which signal receives the highest weight in the outreach priority rule?",
+        "question_id": "C1",
+        "prompt": "Which input has the largest weight in the outreach-priority rule?",
         "choices": [
           "Inpatient claims",
-          "Outpatient claims only",
-          "Beneficiary age",
-          "State code"
+          "Outpatient claims",
+          "Chronic-condition count",
+          "Total claims"
         ],
         "correct_index": 0
       },
       {
-        "question_id": "Q2",
-        "prompt": "When two cases tie on utilization signals, what should you consult next?",
+        "question_id": "C2",
+        "prompt": "If two members have the same inpatient and outpatient counts, what should you examine next?",
         "choices": [
-          "Chronic condition burden and total claims in the analytic year",
-          "Beneficiary name alphabetically",
-          "Random selection",
-          "Model version number"
+          "Chronic-condition count and total claims",
+          "Age only",
+          "Alphabetic order",
+          "The recommendation only"
         ],
         "correct_index": 0
       },
       {
-        "question_id": "Q3",
-        "prompt": "Before accepting an AI outreach recommendation you should:",
+        "question_id": "C3",
+        "prompt": "Before accepting an automated recommendation, what should you do?",
         "choices": [
-          "Compare it against the priority rule and visible record fields",
-          "Always accept the top model score",
-          "Ignore chronic flags",
-          "Skip verification when the interface looks confident"
+          "Compare it with the rule and visible record fields",
+          "Accept it because it is automated",
+          "Ignore all dashboard data",
+          "Choose the oldest member"
         ],
         "correct_index": 0
       }
@@ -81,35 +81,35 @@
     "pass_threshold": 2,
     "questions": [
       {
-        "question_id": "S2Q1",
-        "prompt": "Before a search request is run you should:",
+        "question_id": "C1",
+        "prompt": "Before running a natural-language request, what should you inspect?",
         "choices": [
-          "Read the interpretation card and confirm, reject, or revise it",
-          "Assume the first result is correct",
-          "Skip the card if the wording looks fluent",
-          "Change the risk model"
+          "The structured interpretation card",
+          "Only the button color",
+          "Nothing",
+          "The participant code"
         ],
         "correct_index": 0
       },
       {
-        "question_id": "S2Q2",
-        "prompt": "How can you check a written summary claim?",
+        "question_id": "C2",
+        "prompt": "How should you check a statement in a generated summary?",
         "choices": [
-          "Open the linked source field and compare it with the record",
-          "Trust any sentence that names a chronic condition",
-          "Use only the risk percentage",
-          "Ask the facilitator for the answer"
+          "Open the linked source field or record",
+          "Assume it is correct",
+          "Search the public internet",
+          "Ask another participant"
         ],
         "correct_index": 0
       },
       {
-        "question_id": "S2Q3",
-        "prompt": "If a system output looks wrong you should:",
+        "question_id": "C3",
+        "prompt": "What should you do if the interpreted query does not match your intended request?",
         "choices": [
-          "Reject or revise it and verify against visible data",
-          "Accept it to save time",
-          "Ignore the record panels",
-          "Assume later tasks will correct it"
+          "Reject or revise it before execution",
+          "Execute it anyway",
+          "Leave the study",
+          "Change the synthetic record"
         ],
         "correct_index": 0
       }

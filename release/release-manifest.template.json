@@ -3,7 +3,7 @@
   "code_commit": "REPLACE_WITH_FULL_COMMIT_SHA",
   "image_digest": "sha256:REPLACE_AFTER_ACR_PUSH",
   "configuration_version": "REPLACE_WITH_APPROVED_CONFIG_VERSION",
-  "schema_version": "2026-11-06.3",
+  "schema_version": "2026-11-06.4",
   "assignment_version": "REPLACE_AFTER_PI_REVIEW",
   "survey_version": "NOT_EVIDENCED_QSF_PENDING",
   "scoring_version": "REPLACE_AFTER_PI_REVIEW",

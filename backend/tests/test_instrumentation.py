@@ -20,6 +20,7 @@ def instrumentation_settings(tmp_path: Path) -> Settings:
         artifacts_dir=Path("artifacts"),
         log_events=True,
         study_id="pilot-test",
+        admin_token="instrumentation-admin",
     )
 
 
@@ -100,6 +101,12 @@ def test_instrumentation_api_records_and_exports(
 
     export = client.post(
         "/api/instrumentation/export",
+        json={"session_id": "session-api"},
+    )
+    assert export.status_code == 401
+    export = client.post(
+        "/api/instrumentation/export",
+        headers={"Authorization": "Bearer instrumentation-admin"},
         json={"session_id": "session-api"},
     )
     assert export.status_code == 200

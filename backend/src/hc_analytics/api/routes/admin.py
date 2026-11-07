@@ -48,6 +48,9 @@ def read_enrollment(
             "payment_stage": record["payment_stage"],
             "payment_amount_cents": record["payment_amount_cents"],
             "retention_choice": record["retention_choice"],
+            "is_pilot": record["is_pilot"],
+            "recruitment_stage": record["recruitment_stage"],
+            "confirmatory_eligible": record["confirmatory_eligible"],
             "qualtrics_deletion": "not_requested",
         }
     )

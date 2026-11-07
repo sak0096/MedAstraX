@@ -206,6 +206,10 @@ export function startStudyTask(
   trial_id: string | null;
   outreach_case_ids: string[];
   cases: StudySession["cases"];
+  committed_initial?: {
+    responses: Record<string, unknown>;
+    confidence?: number | null;
+  } | null;
 }> {
   const search = new URLSearchParams({
     participant_id: participantId,

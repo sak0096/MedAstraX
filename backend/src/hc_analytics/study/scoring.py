@@ -88,6 +88,9 @@ def score_outreach_trial(
         ),
         "followed_ai_recommendation": followed_ai,
         "harmful_switching": initial_correct and not final_correct and manipulated,
+        "advice_consistent_harmful_adoption": (
+            initial_correct and not final_correct and followed_ai and manipulated
+        ),
         "beneficial_correction": not initial_correct and final_correct and not manipulated,
         "appropriate_rejection": manipulated and not followed_ai and final_correct,
         "incorrect_ai_adherence": manipulated and followed_ai,
@@ -209,6 +212,12 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
     evidence_dwell_ms: List[float] = []
     query_revises = 0
     query_rejects = 0
+    query_timing_ms: Dict[str, List[float]] = {
+        "total_task": [],
+        "interpretation": [],
+        "revision": [],
+        "execution": [],
+    }
     for event in sorted(events, key=lambda item: item.get("timestamp", "")):
         payload = event.get("payload") or {}
         event_type = event.get("event_type")
@@ -222,6 +231,15 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
             query_revises += 1
         if event_type == "query_reject":
             query_rejects += 1
+        for field, bucket_name in (
+            ("total_task_time_ms", "total_task"),
+            ("interpretation_time_ms", "interpretation"),
+            ("revision_time_ms", "revision"),
+            ("execution_time_ms", "execution"),
+        ):
+            duration = payload.get(field)
+            if duration is not None:
+                query_timing_ms[bucket_name].append(float(duration))
         trial_id = payload.get("trial_id") or event.get("task_id")
         if trial_id is None:
             continue
@@ -345,8 +363,19 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
         "claim_trials": claims,
         "query_trials": queries,
         "harmful_switching_rate": _rate(harmful_eligible, "harmful_switching"),
+        "harmful_switching_count": _hits(harmful_eligible, "harmful_switching"),
+        "harmful_switching_opportunities": len(harmful_eligible),
+        "advice_consistent_harmful_adoption_rate": _rate(
+            harmful_eligible, "advice_consistent_harmful_adoption"
+        ),
+        "advice_consistent_harmful_adoption_count": _hits(
+            harmful_eligible, "advice_consistent_harmful_adoption"
+        ),
+        "advice_consistent_harmful_adoption_opportunities": len(harmful_eligible),
         "appropriate_rejection_rate": _rate(incorrect, "appropriate_rejection"),
+        "appropriate_rejection_opportunities": len(incorrect),
         "beneficial_correction_rate": _rate(beneficial_eligible, "beneficial_correction"),
+        "beneficial_correction_opportunities": len(beneficial_eligible),
         "incorrect_trial_count": len(incorrect),
         "faithful_trial_count": len(faithful),
         "harmful_switching_rate_incorrect_trials": _rate(incorrect, "harmful_switching"),
@@ -362,6 +391,12 @@ def score_session_events(events: List[Dict[str, Any]]) -> Dict[str, Any]:
         "mean_evidence_dwell_ms": _mean(evidence_dwell_ms),
         "query_revise_count": query_revises,
         "query_reject_count": query_rejects,
+        # Raw values remain available; final pause/latency rules are not imposed here.
+        "raw_query_timing_ms": query_timing_ms,
+        "mean_query_total_task_time_ms": _mean(query_timing_ms["total_task"]),
+        "mean_query_interpretation_time_ms": _mean(query_timing_ms["interpretation"]),
+        "mean_query_revision_time_ms": _mean(query_timing_ms["revision"]),
+        "mean_query_execution_time_ms": _mean(query_timing_ms["execution"]),
     }
 
 
@@ -370,6 +405,10 @@ def _rate(rows: List[Dict[str, Any]], field: str) -> Optional[float]:
         return None
     hits = sum(1 for row in rows if row.get(field))
     return round(hits / len(rows), 4)
+
+
+def _hits(rows: List[Dict[str, Any]], field: str) -> int:
+    return sum(1 for row in rows if row.get(field))
 
 
 def _mean(values: List[Any]) -> Optional[float]:
@@ -387,9 +426,10 @@ def score_designation_transition(
 ) -> Dict[str, Any]:
     """Keep initial and final summary judgments separate.
 
-    Harmful adoption is unresolved until the PI defines whether it is only a
-    transition category or must also match the displayed unsupported claim.
-    A final error by itself is not coded as adoption.
+    This is the narrow advice-consistent transition: the initial judgment
+    differs from displayed harmful advice and the final judgment matches it.
+    It stays separate from broader harmful switching; a final error alone is
+    never coded as adoption.
     """
     changed = initial is not None and final is not None and initial != final
     return {
@@ -401,6 +441,24 @@ def score_designation_transition(
             if final is not None and displayed_designation is not None
             else None
         ),
-        "harmful_adoption": None,
-        "harmful_adoption_status": "unresolved",
+        "advice_consistent_harmful_adoption_opportunity": (
+            initial is not None
+            and displayed_designation is not None
+            and initial != displayed_designation
+        ),
+        "advice_consistent_harmful_adoption": (
+            changed
+            and final is not None
+            and displayed_designation is not None
+            and final == displayed_designation
+            and initial != displayed_designation
+        ),
+        "harmful_adoption": (
+            changed
+            and final is not None
+            and displayed_designation is not None
+            and final == displayed_designation
+            and initial != displayed_designation
+        ),
+        "harmful_adoption_status": "advice_consistent_transition",
     }
